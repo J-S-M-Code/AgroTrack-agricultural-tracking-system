@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import com.agrotrack.domain.exception.BusinessRuleViolationsException;
 import com.agrotrack.domain.model.enums.TypeUser;
-import io.minio.messages.Owner;
 import lombok.Getter;
 import lombok.Setter;
 import org.locationtech.jts.geom.Polygon;
@@ -86,7 +85,7 @@ public class Land {
         owners.add(newOwner);
     }
 
-    public void modifyuPoligonLimited(Polygon newPolygonLimit) {
+    public void modifyPolygonLimit(Polygon newPolygonLimit) {
         if (newPolygonLimit == null || newPolygonLimit.isEmpty()){
             throw new BusinessRuleViolationsException("El perimetro de la finca no puede estar vacio");
         }

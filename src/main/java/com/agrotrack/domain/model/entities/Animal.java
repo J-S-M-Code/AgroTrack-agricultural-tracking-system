@@ -59,13 +59,13 @@ public class Animal {
         if (field == null) {
             throw new BusinessRuleViolationsException("Debe estar asignado a un campo/lote existente");
         }
-        if (caravanSenasa.isBlank() || caravanSenasa == null){
+        if (caravanSenasa== null || caravanSenasa.isBlank()){
             throw new BusinessRuleViolationsException("El campo Caravana SENASA no puede estar vacio");
         }
-        if (caravanManagement.isBlank() || caravanManagement == null){
+        if (caravanManagement == null || caravanManagement.isBlank()){
             throw new BusinessRuleViolationsException("El campo Caravana no puede estar vacio");
         }
-        if (race.isBlank() || race == null){
+        if (race == null || race.isBlank()){
             throw new BusinessRuleViolationsException("El campo Raza no puede estar vacio");
         }
         if (sex == null){

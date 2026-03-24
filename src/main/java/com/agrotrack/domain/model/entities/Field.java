@@ -71,7 +71,7 @@ public class Field {
         return new Field(land, name, typeFloor, description, polygonLimit, state, type);
     }
 
-    public void modifyuPoligonLimited(Polygon newPolygonLimit) {
+    public void modifyPolygonLimit(Polygon newPolygonLimit) {
         if (newPolygonLimit == null || newPolygonLimit.isEmpty()){
             throw new BusinessRuleViolationsException("El perimetro de la finca no puede estar vacio");
         }
