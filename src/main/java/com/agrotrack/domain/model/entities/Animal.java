@@ -1,9 +1,9 @@
 package com.agrotrack.domain.model.entities;
 
-
 import com.agrotrack.domain.exception.BusinessRuleViolationsException;
-import com.agrotrack.domain.model.enums.TypeCategoryAnimal;
-import com.agrotrack.domain.model.enums.TypeSex;
+import com.agrotrack.domain.model.enums.Species; // Asegúrate de crear este enum
+import com.agrotrack.domain.model.enums.CategoryAnimal;
+import com.agrotrack.domain.model.enums.Sex;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,88 +17,156 @@ public class Animal {
     @Getter
     @Setter
     private UUID idAnimal;
+
     @Getter
-    private Field field;
+    private String visualCaravan;
+
     @Getter
     private String caravanSenasa;
+
     @Getter
-    private String caravanManagement;
+    private String livestockKey;
+
     @Getter
-    private String rfidTag;
+    private String numRENSPA;
+
+    @Getter
+    private String internalManagementCaravan;
+
+    @Getter
+    private IoTCollar collar;
+
+    @Getter
+    private Species species;
+
     @Getter
     private String race;
+
     @Getter
-    private TypeSex sex;
+    private Sex sex;
+
     @Getter
-    @Setter
-    private TypeCategoryAnimal category;
+    private CategoryAnimal category;
+
     @Getter
     private LocalDateTime birthdate;
-    @Getter
-    @Setter
-    private double currentWeight;
-    @Getter
-    private List<AnimalMovement> animalMovement;
 
-    private Animal(Field field, String caravanSenasa, String caravanManagement, String race, TypeSex sex,
-                   TypeCategoryAnimal category, LocalDateTime birthdate, double currentWeight, AnimalMovement animalMovement) {
-        this.field = field;
+    @Getter
+    private double currentWeight;
+
+    @Getter
+    private List<HealthEvent> healthHistory;
+
+    @Getter
+    private List<AnimalMovement> movementHistory;
+
+    @Getter
+    private Lot assignedLot;
+
+    private Animal(String visualCaravan, String caravanSenasa, String livestockKey, String numRENSPA,
+                   String internalManagementCaravan, Species species, String race, Sex sex,
+                   CategoryAnimal category, LocalDateTime birthdate, double currentWeight, Lot assignedLot) {
+        this.visualCaravan = visualCaravan;
         this.caravanSenasa = caravanSenasa;
-        this.caravanManagement = caravanManagement;
+        this.livestockKey = livestockKey;
+        this.numRENSPA = numRENSPA;
+        this.internalManagementCaravan = internalManagementCaravan;
+        this.species = species;
         this.race = race;
         this.sex = sex;
         this.category = category;
         this.birthdate = birthdate;
         this.currentWeight = currentWeight;
-        this.animalMovement = new ArrayList<>();
-        this.animalMovement.add(animalMovement);
+        this.assignedLot = assignedLot;
+
+        // Inicializamos las relaciones
+        this.collar = null;
+        this.healthHistory = new ArrayList<>();
+        this.movementHistory = new ArrayList<>();
     }
 
-    public static Animal create(Field field, String caravanSenasa, String caravanManagement, String race, TypeSex sex,
-                                TypeCategoryAnimal category, LocalDateTime birthdate, double currentWeight, AnimalMovement animalMovement){
-        if (field == null) {
-            throw new BusinessRuleViolationsException("Debe estar asignado a un campo/lote existente");
+    public static Animal create(String visualCaravan, String caravanSenasa, String livestockKey, String numRENSPA,
+                                String internalManagementCaravan, Species species, String race, Sex sex,
+                                CategoryAnimal category, LocalDateTime birthdate, double currentWeight, Lot assignedLot) {
+
+        // Validaciones de Strings
+        if (visualCaravan == null || visualCaravan.isBlank()) {
+            throw new BusinessRuleViolationsException("La caravana visual no puede estar vacía");
         }
-        if (caravanSenasa== null || caravanSenasa.isBlank()){
-            throw new BusinessRuleViolationsException("El campo Caravana SENASA no puede estar vacio");
+        if (caravanSenasa == null || caravanSenasa.isBlank()) {
+            throw new BusinessRuleViolationsException("La caravana SENASA no puede estar vacía");
         }
-        if (caravanManagement == null || caravanManagement.isBlank()){
-            throw new BusinessRuleViolationsException("El campo Caravana no puede estar vacio");
+        if (livestockKey == null || livestockKey.isBlank()) {
+            throw new BusinessRuleViolationsException("La clave ganadera no puede estar vacía");
         }
-        if (race == null || race.isBlank()){
-            throw new BusinessRuleViolationsException("El campo Raza no puede estar vacio");
+        if (numRENSPA == null || numRENSPA.isBlank()) {
+            throw new BusinessRuleViolationsException("El número RENSPA no puede estar vacío");
         }
-        if (sex == null){
+        if (race == null || race.isBlank()) {
+            throw new BusinessRuleViolationsException("La raza no puede estar vacía");
+        }
+
+        // Validaciones de Enums y Entidades
+        if (species == null) {
+            throw new BusinessRuleViolationsException("Debe seleccionar la especie del animal");
+        }
+        if (sex == null) {
             throw new BusinessRuleViolationsException("Debe seleccionar el sexo del animal");
         }
-        if (category == null){
-            throw new BusinessRuleViolationsException("Debe seleccionar el categoria del animal");
+        if (category == null) {
+            throw new BusinessRuleViolationsException("Debe seleccionar la categoría del animal");
         }
-        if (birthdate == null || birthdate.isAfter(LocalDateTime.now())){
-            throw new BusinessRuleViolationsException("La fecha de nacimiento no es valida");
+        if (assignedLot == null) {
+            throw new BusinessRuleViolationsException("El animal debe estar asignado a un lote");
         }
-        if (currentWeight <= 0 || currentWeight > 9999){
-            throw new BusinessRuleViolationsException("Ingrese un peso valido");
+
+        // Validaciones de Fecha y Números
+        if (birthdate == null) {
+            throw new BusinessRuleViolationsException("La fecha de nacimiento no puede ser nula");
         }
-        if (animalMovement == null){
-            throw new BusinessRuleViolationsException("Se debe ingresar el campo/lote donde va a estar el animal");
+        if (birthdate.isAfter(LocalDateTime.now())) {
+            throw new BusinessRuleViolationsException("La fecha de nacimiento no puede ser mayor a la fecha actual");
         }
-        return new Animal(field, caravanSenasa, caravanManagement, race, sex, category, birthdate, currentWeight, animalMovement);
+        if (currentWeight <= 0) {
+            throw new BusinessRuleViolationsException("El peso actual debe ser mayor a 0");
+        }
+
+        return new Animal(visualCaravan, caravanSenasa, livestockKey, numRENSPA, internalManagementCaravan,
+                species, race, sex, category, birthdate, currentWeight, assignedLot);
     }
 
-    public void assignRfidTag(String newRfidTag) {
-        if (newRfidTag == null || newRfidTag.isBlank()) {
-            throw new BusinessRuleViolationsException("El código RFID no puede ser nulo o vacío");
+    // --- MÉTODOS DE COMPORTAMIENTO ---
+
+    public void changeTypeCategory(CategoryAnimal newCategory) {
+        if (newCategory == null) {
+            throw new BusinessRuleViolationsException("La nueva categoría no puede ser nula");
         }
-        this.rfidTag = newRfidTag;
+        this.category = newCategory;
     }
 
-    public void newMovement(AnimalMovement newMovement){
-        this.animalMovement.add(newMovement);
+    public int calculateAgeInMonths(LocalDateTime currentDate) {
+        if (currentDate == null) {
+            throw new BusinessRuleViolationsException("La fecha actual no puede ser nula para calcular la edad");
+        }
+        if (currentDate.isBefore(this.birthdate)) {
+            throw new BusinessRuleViolationsException("La fecha proporcionada no puede ser anterior a la fecha de nacimiento");
+        }
+        return Math.toIntExact(ChronoUnit.MONTHS.between(this.birthdate, currentDate));
     }
 
-    public int ageInMonths(){
-        if (this.birthdate == null) return 0;
-        return Math.toIntExact(ChronoUnit.MONTHS.between(this.birthdate, LocalDateTime.now()));
+    // --- Métodos extra que te pueden ser útiles para gestionar las nuevas entidades ---
+
+    public void assignCollar(IoTCollar newCollar) {
+        if (newCollar == null) {
+            throw new BusinessRuleViolationsException("El collar IoT no puede ser nulo");
+        }
+        this.collar = newCollar;
+    }
+
+    public void updateWeight(double newWeight) {
+        if (newWeight <= 0) {
+            throw new BusinessRuleViolationsException("El nuevo peso debe ser mayor a 0");
+        }
+        this.currentWeight = newWeight;
     }
 }
