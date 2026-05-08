@@ -91,8 +91,8 @@ public class Alert {
         if (relatedLot != null || relatedCrop != null){
             if (polygonLimit == null){
                 if (relatedLot == null){
-                    polygonLimit = relatedCrop.getLot().getPolygonLimit();
-                    centroid = relatedCrop.getLot().getPolygonLimit().getCentroid();
+                    polygonLimit = relatedCrop.getAssignedLot().getPolygonLimit();
+                    centroid = relatedCrop.getAssignedLot().getPolygonLimit().getCentroid();
                 } else {
                     polygonLimit = relatedLot.getPolygonLimit();
                     centroid = relatedLot.getPolygonLimit().getCentroid();
