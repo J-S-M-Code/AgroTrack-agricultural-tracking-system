@@ -1,6 +1,7 @@
 package com.agrotrack.domain.model.entities;
 
 import com.agrotrack.domain.exception.BusinessRuleViolationsException;
+import com.agrotrack.domain.model.enums.PhenologicalState;
 import com.agrotrack.domain.model.enums.TypeCrop;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,61 +9,125 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Getter
 public class Crop {
+    @Getter
     @Setter
     private UUID idCrop;
 
-    private Field field;
+    @Getter
     private TypeCrop typeCrop;
+
+    @Getter
+    private String species;
+
+    @Getter
+    private String variety;
+
+    @Getter
     private LocalDateTime plantingDate;
-    private Integer monthsCultivate;
-    private Integer monthsBetweenHarvests;
-    private LocalDateTime estimatedHarvestDate;
-    private boolean isActive;
 
-    private Crop(Field field, TypeCrop typeCrop, LocalDateTime plantingDate, Integer monthsCultivate, Integer monthsBetweenHarvests) {
-        this.field = field;
+    @Getter
+    private LocalDateTime estimateHarvestDate;
+
+    @Getter
+    private Lot assignedLot;
+
+    @Getter
+    private double implantedSurface;
+
+    @Getter
+    private String renspa;
+
+    @Getter
+    private PhenologicalState phenologicalState;
+
+    private Crop(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
+                 LocalDateTime estimateHarvestDate, Lot assignedLot, double implantedSurface,
+                 String renspa, PhenologicalState phenologicalState) {
         this.typeCrop = typeCrop;
+        this.species = species;
+        this.variety = variety;
         this.plantingDate = plantingDate;
-        this.monthsCultivate = monthsCultivate;
-        this.monthsBetweenHarvests = monthsBetweenHarvests;
-        this.estimatedHarvestDate = plantingDate.plusMonths(monthsCultivate);
-        this.isActive = true;
+        this.estimateHarvestDate = estimateHarvestDate;
+        this.assignedLot = assignedLot;
+        this.implantedSurface = implantedSurface;
+        this.renspa = renspa;
+        this.phenologicalState = phenologicalState;
     }
 
-    public static Crop create(Field field, TypeCrop typeCrop, LocalDateTime plantingDate, Integer monthsCultivate, Integer monthsBetweenHarvests) {
-        if (field == null) throw new BusinessRuleViolationsException("Debe estar asignado a un campo/lote existente");
-        if (typeCrop == null) throw new BusinessRuleViolationsException("Debe tener un tipo de cultivo asignado");
-        if (plantingDate == null) throw new BusinessRuleViolationsException("Seleccione una fecha de plantación");
-        if (monthsCultivate == null || monthsCultivate < 0) throw new BusinessRuleViolationsException("Los meses para cultivar deben ser mayor o igual a 0");
+    public static Crop create(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
+                              LocalDateTime estimateHarvestDate, Lot assignedLot, double implantedSurface,
+                              String renspa, PhenologicalState phenologicalState) {
 
-        // Regla de negocio: Si es FRUIT, debe tener un intervalo de recosecha.
-        if (isPerennial(typeCrop) && (monthsBetweenHarvests == null || monthsBetweenHarvests <= 0)) {
-            throw new BusinessRuleViolationsException("Los cultivos perennes requieren definir los meses entre cosechas.");
+        // Validaciones de Enums y Entidades
+        if (typeCrop == null) {
+            throw new BusinessRuleViolationsException("El tipo de cultivo no puede ser nulo");
+        }
+        if (assignedLot == null) {
+            throw new BusinessRuleViolationsException("El cultivo debe estar asignado a un lote");
+        }
+        if (phenologicalState == null) {
+            throw new BusinessRuleViolationsException("El estado fenológico no puede ser nulo");
         }
 
-        return new Crop(field, typeCrop, plantingDate, monthsCultivate, monthsBetweenHarvests);
+        // Validaciones de Strings
+        if (species == null || species.isBlank()) {
+            throw new BusinessRuleViolationsException("La especie no puede estar vacía");
+        }
+        if (variety == null || variety.isBlank()) {
+            throw new BusinessRuleViolationsException("La variedad no puede estar vacía");
+        }
+        if (renspa == null || renspa.isBlank()) {
+            throw new BusinessRuleViolationsException("El código RENSPA no puede estar vacío");
+        }
+
+        // Validaciones de Fechas
+        if (plantingDate == null) {
+            throw new BusinessRuleViolationsException("La fecha de plantación no puede ser nula");
+        }
+        if (estimateHarvestDate == null) {
+            throw new BusinessRuleViolationsException("La fecha estimada de cosecha no puede ser nula");
+        }
+        if (estimateHarvestDate.isBefore(plantingDate)) {
+            throw new BusinessRuleViolationsException("La fecha de cosecha estimada no puede ser anterior a la fecha de plantación");
+        }
+
+        // Validaciones de Números
+        if (implantedSurface <= 0) {
+            throw new BusinessRuleViolationsException("La superficie implantada debe ser mayor a 0");
+        }
+        // Validacion cruzada opcional: Verificar que la superficie implantada no supere la del lote
+        if (implantedSurface > assignedLot.getHectares()) {
+            throw new BusinessRuleViolationsException("La superficie implantada no puede superar la superficie total del lote asignado");
+        }
+
+        return new Crop(typeCrop, species, variety, plantingDate, estimateHarvestDate, assignedLot, implantedSurface, renspa, phenologicalState);
     }
 
-    /**
-     * Registrar una cosecha y preparar el siguiente ciclo si corresponde.
-     */
-    public void registerHarvest(LocalDateTime actualHarvestDate) {
-        if (!this.isActive) {
-            throw new BusinessRuleViolationsException("No se puede cosechar un cultivo que ya está inactivo o finalizado.");
-        }
+    // --- MÉTODOS DE COMPORTAMIENTO ---
 
-        if (isPerennial(this.typeCrop)) {
-            // Si es frutal o forraje, calculamos la próxima fecha de cosecha basándonos en la fecha actual
-            this.estimatedHarvestDate = actualHarvestDate.plusMonths(this.monthsBetweenHarvests);
-        } else {
-            // Si es un cultivo anual, el ciclo de vida termina con la cosecha
-            this.isActive = false;
+    public void setHarvestDate(LocalDateTime harvest) {
+        if (harvest == null) {
+            throw new BusinessRuleViolationsException("La nueva fecha de cosecha no puede ser nula");
         }
+        if (harvest.isBefore(this.plantingDate)) {
+            throw new BusinessRuleViolationsException("La nueva fecha de cosecha no puede ser anterior a la fecha de plantación");
+        }
+        this.estimateHarvestDate = harvest;
     }
 
-    private static boolean isPerennial(TypeCrop typeCrop) {
-        return typeCrop == TypeCrop.FRUIT || typeCrop == TypeCrop.FORAGE;
+    public boolean isReadyForHarvest(LocalDateTime currentDate) {
+        if (currentDate == null) {
+            throw new BusinessRuleViolationsException("La fecha actual para calcular la cosecha no puede ser nula");
+        }
+        // Está listo para cosechar si la fecha actual es igual o posterior a la fecha estimada
+        return !currentDate.isBefore(this.estimateHarvestDate);
+    }
+
+    public void updatePhenologicalState(PhenologicalState newState) {
+        if (newState == null) {
+            throw new BusinessRuleViolationsException("El nuevo estado fenológico no puede ser nulo");
+        }
+        this.phenologicalState = newState;
     }
 }

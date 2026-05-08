@@ -1,11 +1,13 @@
 package com.agrotrack.domain.model.entities;
 
 import com.agrotrack.domain.exception.BusinessRuleViolationsException;
-import com.agrotrack.domain.model.enums.TypeUser;
+import com.agrotrack.domain.model.enums.UserRole;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -30,7 +32,7 @@ public class User {
     private Password password;
 
     @Getter
-    private TypeUser rol;
+    private UserRole rol;
     @Getter
     private LocalDateTime creationDate;
     @Setter
@@ -38,8 +40,10 @@ public class User {
     private LocalDateTime lastAccess;
     @Getter
     private boolean active;
+    @Getter
+    private List<Farm> managedFarms;
 
-    private User(String name, String lastName, String dni, String phone, String address, String email, Password password, TypeUser rol) {
+    private User(String name, String lastName, String dni, String phone, String address, String email, Password password, UserRole rol) {
         this.name = name;
         this.lastName = lastName;
         this.dni = dni;
@@ -51,9 +55,10 @@ public class User {
         this.creationDate = LocalDateTime.now();
         this.lastAccess = LocalDateTime.now();
         this.active = true;
+        this.managedFarms = new ArrayList<>();
     }
 
-    public static User create(String name, String lastName, String dni, String phone, String address, String email, Password password, TypeUser rol){
+    public static User create(String name, String lastName, String dni, String phone, String address, String email, Password password, UserRole rol){
         if (name.isBlank() || name == null){
             throw new BusinessRuleViolationsException("El campo Nombre no puede estar vacio.");
         }
@@ -85,5 +90,9 @@ public class User {
 
     public boolean validatePassword(String password) {
         return this.password.getValue().equals(password);
+    }
+
+    public void addFarm(Farm farm) {
+        this.managedFarms.add(farm);
     }
 }
