@@ -128,4 +128,11 @@ public class Task {
 
         return new Task(title, accionType, taskStatus, dueDate, priority, creationDate, completeDate, creator, assigned, relatedFarm, relatedLot, polygonLimit, centroid, images, description);
     }
+
+    public void updateStatus(TaskStatus newStatus) {
+        if (newStatus == null) {
+            throw new BusinessRuleViolationsException("El nuevo estado de la tarea no puede ser nulo");
+        }
+        this.taskStatus = newStatus;
+    }
 }
