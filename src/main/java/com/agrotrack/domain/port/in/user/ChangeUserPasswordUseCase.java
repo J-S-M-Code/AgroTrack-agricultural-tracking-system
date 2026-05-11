@@ -1,5 +1,7 @@
 package com.agrotrack.domain.port.in.user;
 
+import java.util.UUID;
+
 public interface ChangeUserPasswordUseCase {
-    void execute(String email, String currentRawPassword, String newRawPassword);
+    void execute(UUID userId, String currentRawPassword, String newRawPassword);
 }
