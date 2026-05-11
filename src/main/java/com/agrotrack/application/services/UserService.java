@@ -1,0 +1,71 @@
+package com.agrotrack.application.services;
+
+import com.agrotrack.domain.exception.BusinessRuleViolationsException;
+import com.agrotrack.domain.model.entities.Password;
+import com.agrotrack.domain.model.entities.User;
+import com.agrotrack.domain.model.enums.UserRole;
+import com.agrotrack.domain.port.in.user.ChangeUserActivationUseCase;
+import com.agrotrack.domain.port.in.user.ChangeUserPasswordUseCase;
+import com.agrotrack.domain.port.in.user.RegisterUserUseCase;
+import com.agrotrack.domain.port.out.user.UserRepositoryPort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
+@Service
+public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase {
+
+    private final UserRepositoryPort userRepositoryPort;
+
+    public UserService(UserRepositoryPort userRepositoryPort) {
+        this.userRepositoryPort = userRepositoryPort;
+    }
+
+    @Override
+    @Transactional
+    public User executeRegisterUser(String name, String lastName, String dni, String phone,
+                        String address, String email, String rawPassword, UserRole role) {
+
+        // 1. Validar unicidad (regla de negocio que requiere de la base de datos)
+        if (userRepositoryPort.existsByEmail(email)) {
+            throw new BusinessRuleViolationsException("Ya existe un usuario registrado con el correo: " + email);
+        }
+
+        // 2. Instanciar el Value Object de Password (aquí explotan las validaciones de seguridad de tu regex)
+        Password password = new Password(rawPassword);
+
+        // 3. Crear el usuario (su estado 'active' y las fechas nacen solas según tu constructor)
+        User newUser = User.create(name, lastName, dni, phone, address, email, password, role);
+
+        // 4. Guardar y retornar con su UUID asignado por el adaptador
+        return userRepositoryPort.save(newUser);
+    }
+
+    @Override
+    @Transactional
+    public void executeChangeUserPassword(UUID userId, String currentRawPassword, String newRawPassword) {
+
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+
+        // Validamos la contraseña vieja antes de dejarlo cambiar a la nueva
+        if (!user.validatePassword(currentRawPassword)) {
+            throw new BusinessRuleViolationsException("La contraseña actual proporcionada es incorrecta.");
+        }
+
+        user.changePassword(newRawPassword);
+        userRepositoryPort.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void executeChangeUserActivation(UUID userId, boolean newStatus) {
+
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+
+        user.changeActivation(newStatus);
+        userRepositoryPort.save(user);
+    }
+}
