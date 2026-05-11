@@ -8,6 +8,6 @@ import org.locationtech.jts.geom.Polygon;
 import java.util.UUID;
 
 public interface CreateLotUseCase {
-    Lot execute(UUID farmId, String name, double hectares, SoilType soilType,
+    Lot executeCreateLot(UUID farmId, String name, double hectares, SoilType soilType,
                 LotType type, String description, Polygon polygonLimit);
 }

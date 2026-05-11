@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CreateTaskUseCase {
-    Task execute(String title, AccionType accionType, TaskStatus taskStatus, LocalDateTime dueDate,
+    Task executeCreateTask(String title, AccionType accionType, TaskStatus taskStatus, LocalDateTime dueDate,
                  Priority priority, LocalDateTime creationDate, LocalDateTime completeDate,
                  UUID creatorId, UUID assignedId, UUID relatedFarmId, UUID relatedLotId,
                  Polygon polygonLimit, Point centroid, List<String> images, String description);

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface RegisterCropUseCase {
-    Crop execute(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
+    Crop executeRegisterCrop(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
                  LocalDateTime estimateHarvestDate, UUID assignedLotId, double implantedSurface,
                  String renspa, PhenologicalState phenologicalState);
 }

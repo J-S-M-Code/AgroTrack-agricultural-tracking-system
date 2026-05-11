@@ -5,5 +5,5 @@ import java.util.UUID;
 
 public interface ChangeLotStateUseCase {
     // Recibe el ID del lote a modificar y el nuevo estado a asignar
-    void execute(UUID lotId, LotState newState);
+    void executeChangeLotState(UUID lotId, LotState newState);
 }

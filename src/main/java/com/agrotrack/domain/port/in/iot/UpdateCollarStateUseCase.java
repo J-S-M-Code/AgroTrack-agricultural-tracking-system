@@ -4,5 +4,5 @@ import com.agrotrack.domain.model.enums.State;
 import java.util.UUID;
 
 public interface UpdateCollarStateUseCase {
-    void execute(UUID collarId, State newState);
+    void executeUpdateCollarState(UUID collarId, State newState);
 }

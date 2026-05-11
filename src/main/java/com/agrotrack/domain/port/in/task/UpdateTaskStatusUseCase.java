@@ -4,5 +4,5 @@ import com.agrotrack.domain.model.enums.TaskStatus;
 import java.util.UUID;
 
 public interface UpdateTaskStatusUseCase {
-    void execute(UUID taskId, TaskStatus newStatus);
+    void executeUpdateTaskStatus(UUID taskId, TaskStatus newStatus);
 }
