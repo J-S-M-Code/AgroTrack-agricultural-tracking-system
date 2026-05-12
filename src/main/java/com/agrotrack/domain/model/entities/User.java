@@ -29,10 +29,11 @@ public class User {
     @Getter
     private String email;
 
+    @Getter
     private Password password;
 
     @Getter
-    private UserRole rol;
+    private UserRole role;
     @Getter
     private LocalDateTime creationDate;
     @Setter
@@ -43,7 +44,7 @@ public class User {
     @Getter
     private List<Farm> managedFarms;
 
-    private User(String name, String lastName, String dni, String phone, String address, String email, Password password, UserRole rol) {
+    private User(String name, String lastName, String dni, String phone, String address, String email, Password password, UserRole role) {
         this.name = name;
         this.lastName = lastName;
         this.dni = dni;
@@ -51,33 +52,33 @@ public class User {
         this.address = address;
         this.email = email;
         this.password = password;
-        this.rol = rol;
+        this.role = role;
         this.creationDate = LocalDateTime.now();
         this.lastAccess = LocalDateTime.now();
         this.active = true;
         this.managedFarms = new ArrayList<>();
     }
 
-    public static User create(String name, String lastName, String dni, String phone, String address, String email, Password password, UserRole rol){
-        if (name.isBlank() || name == null){
+    public static User create(String name, String lastName, String dni, String phone, String address, String email, Password password, UserRole role){
+        if (name == null || name.isBlank()){
             throw new BusinessRuleViolationsException("El campo Nombre no puede estar vacio.");
         }
-        if (lastName.isBlank() || lastName == null){
+        if (lastName == null || lastName.isBlank()){
             throw new BusinessRuleViolationsException("El campo Apellido no puede estar vacio.");
         }
-        if (dni.isBlank() || dni == null){
+        if (dni == null || dni.isBlank()){
             throw new BusinessRuleViolationsException("El campo DNI no puede estar vacio.");
         }
-        if (phone.isBlank() || phone == null){
+        if (phone == null || phone.isBlank()){
             throw new BusinessRuleViolationsException("El campo Telefono no puede estar vacio.");
         }
-        if (address.isBlank() || address == null){
+        if (address == null || address.isBlank()){
             throw new BusinessRuleViolationsException("El campo Direccion no puede estar vacio.");
         }
-        if (email.isBlank() || email == null){
+        if (email == null || email.isBlank()){
             throw new BusinessRuleViolationsException("El campo Email no puede estar vacio.");
         }
-        return new User(name, lastName, dni, phone, address, email, password, rol);
+        return new User(name, lastName, dni, phone, address, email, password, role);
     }
 
     public void changeActivation(boolean newStatus) {

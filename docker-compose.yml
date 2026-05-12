@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  agrotrack-db:
+    image: postgis/postgis:15-3.3
+    container_name: agrotrack-postgres
+    environment:
+      POSTGRES_USER: agrotrack_user
+      POSTGRES_PASSWORD: agrotrack2027
+      POSTGRES_DB: agrotrack_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - agrotrack-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  agrotrack-minio:
+    image: minio/minio:latest
+    container_name: agrotrack-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: agrotrack_admin
+      MINIO_ROOT_PASSWORD: agrotrack2027
+    ports:
+      - "9000:9000" # Puerto para la API
+      - "9001:9001" # Puerto para la Consola Web
+    volumes:
+      - agrotrack-minio-data:/data
+    restart: unless-stopped
+
+volumes:
+  agrotrack-db-data:
+  agrotrack-minio-data:

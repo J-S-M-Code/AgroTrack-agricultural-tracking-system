@@ -2,35 +2,79 @@ package com.agrotrack.infrastructure.adapters.out;
 
 import com.agrotrack.domain.model.entities.Farm;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
+import com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity;
+import com.agrotrack.infrastructure.adapters.out.database.repositories.FarmJpaRepository;
 import org.locationtech.jts.geom.Polygon;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository // ¡Esta anotación soluciona el error de Autowire!
+@Repository
 public class FarmRepositoryAdapter implements FarmRepositoryPort {
 
-    // Aquí luego inyectarás tu FarmJpaRepository de Spring Data
+    private final FarmJpaRepository farmJpaRepository;
+
+    public FarmRepositoryAdapter(FarmJpaRepository farmJpaRepository) {
+        this.farmJpaRepository = farmJpaRepository;
+    }
 
     @Override
     public Farm save(Farm farm) {
-        // Lógica para mapear la entidad de dominio a entidad JPA y guardar
-        return farm;
+        // 1. Mapeamos la entidad "Pura" de dominio a una entidad de Base de Datos
+        FarmJpaEntity entity = new FarmJpaEntity(
+                farm.getIdLand(),
+                farm.getName(),
+                farm.getCompanyName(),
+                farm.getCuit(),
+                farm.getNumberRENAPSA(),
+                farm.getProductiveOrientation(),
+                farm.getAddress(),
+                farm.getPolygonLimit(),
+                farm.getCentroid(),
+                farm.getSurface(),
+                farm.getImageUrl()
+        );
+
+        // 2. Guardamos. Aquí PostgreSQL inserta la fila y genera el UUID.
+        FarmJpaEntity savedEntity = farmJpaRepository.save(entity);
+
+        // 3. Le pasamos el UUID recién nacido a nuestra entidad de dominio
+        farm.setIdLand(savedEntity.getId());
+
+        return farm; // Retornamos la entidad con su nuevo ID
     }
 
     @Override
     public Optional<Farm> findById(UUID id) {
-        return Optional.empty(); // Lógica de búsqueda
+        return farmJpaRepository.findById(id).map(this::mapToDomain);
     }
 
     @Override
     public boolean existsOverlappingFarm(Polygon newPerimeter, UUID excludeFarmId) {
-        return false; // Lógica de PostGIS (ST_Intersects)
+        return farmJpaRepository.existsOverlappingFarm(newPerimeter, excludeFarmId);
     }
 
     @Override
     public boolean existsByCuit(String cuit) {
-        return false; // Lógica de búsqueda
+        return farmJpaRepository.existsByCuit(cuit);
+    }
+
+    // --- Método auxiliar para cuando recuperamos datos de la BD ---
+    private Farm mapToDomain(FarmJpaEntity entity) {
+        Farm farm = Farm.create(
+                entity.getName(),
+                entity.getCompanyName(),
+                entity.getCuit(),
+                entity.getNumberRENAPSA(),
+                entity.getProductiveOrientation(),
+                entity.getAddress(),
+                entity.getPolygonLimit(),
+                entity.getCentroid(),
+                entity.getSurface(),
+                entity.getImageUrl()
+        );
+        farm.setIdLand(entity.getId());
+        return farm;
     }
 }

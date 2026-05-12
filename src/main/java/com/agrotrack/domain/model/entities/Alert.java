@@ -17,7 +17,7 @@ import java.util.UUID;
 public class Alert {
     @Getter
     @Setter
-    private UUID idTask;
+    private UUID idAlert;
     @Getter
     private String title;
     @Getter

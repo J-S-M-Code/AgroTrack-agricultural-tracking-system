@@ -169,4 +169,15 @@ public class Animal {
         }
         this.currentWeight = newWeight;
     }
+
+    public void moveToLot(Lot newLot, AnimalMovement newMovement) {
+        if (newLot == null) {
+            throw new BusinessRuleViolationsException("El nuevo lote no puede ser nulo");
+        }
+        if (newMovement == null) {
+            throw new BusinessRuleViolationsException("El registro del movimiento no puede ser nulo");
+        }
+        this.assignedLot = newLot;
+        this.movementHistory.add(newMovement);
+    }
 }
