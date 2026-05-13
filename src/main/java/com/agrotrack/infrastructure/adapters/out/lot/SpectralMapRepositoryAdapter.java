@@ -1,4 +1,4 @@
-package com.agrotrack.infrastructure.adapters.out;
+package com.agrotrack.infrastructure.adapters.out.lot;
 
 import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.model.entities.SpectralMap;
