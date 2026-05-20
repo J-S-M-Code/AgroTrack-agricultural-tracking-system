@@ -15,7 +15,7 @@ import java.util.UUID;
 public class Lot {
     @Getter
     @Setter
-    private UUID idField;
+    private UUID idLot;
 
     @Getter
     private String name;

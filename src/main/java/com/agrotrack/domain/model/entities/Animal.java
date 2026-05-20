@@ -170,9 +170,6 @@ public class Animal {
         this.currentWeight = newWeight;
     }
 
-    /**
-     * Mueve el animal a un nuevo lote y registra el movimiento en su historial.
-     */
     public void moveToLot(Lot newLot, AnimalMovement newMovement) {
         if (newLot == null) {
             throw new BusinessRuleViolationsException("El nuevo lote no puede ser nulo");
