@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface RegisterSpectralMapUseCase {
     // El servicio buscará el Lot a través del assignedLotId antes de crear la entidad
-    SpectralMap execute(String urlSpectralMap, LocalDateTime flightDate, SpectralMapType indexType,
+    SpectralMap executeRegisterSpectralMap(String urlSpectralMap, LocalDateTime flightDate, SpectralMapType indexType,
                         Double cloudCoverPercentage, Double resolutionGSD, Double meanIndexValue,
                         UUID assignedLotId);
 }

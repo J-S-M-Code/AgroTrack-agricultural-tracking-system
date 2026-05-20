@@ -4,5 +4,5 @@ import java.util.UUID;
 
 public interface UpdateCollarBatteryUseCase {
     // Ideal para conectarlo a un Webhook o MQTT que reciba los pings del hardware
-    void execute(UUID collarId, Double currentBatteryLevel);
+    void executeUpdateCollarBattery(UUID collarId, Double currentBatteryLevel);
 }

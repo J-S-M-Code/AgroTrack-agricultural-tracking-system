@@ -4,5 +4,5 @@ import org.locationtech.jts.geom.Polygon;
 import java.util.UUID;
 
 public interface UpdateFarmPerimeterUseCase {
-    void execute(UUID farmId, Polygon newPerimeter);
+    void executeUpdateFarmPerimeter(UUID farmId, Polygon newPerimeter);
 }

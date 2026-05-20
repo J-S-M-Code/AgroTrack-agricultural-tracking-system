@@ -10,5 +10,5 @@ public interface RegisterGPSPositionUseCase {
     // 2. Buscar el Lote donde se supone que está el animal (AnimalMovement activo).
     // 3. Evaluar matemáticamente si el Point está dentro del Polygon del lote (Geofencing).
     // 4. Asignar el boolean isOutOfBounds y guardar.
-    void execute(UUID collarId, LocalDateTime timestamp, Point coordinate);
+    void executeRegisterGPSPosition(UUID collarId, LocalDateTime timestamp, Point coordinate);
 }
