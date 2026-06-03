@@ -6,12 +6,16 @@ import com.agrotrack.domain.model.enums.LotType;
 import com.agrotrack.domain.model.enums.SoilType;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Builder;
+import lombok.AllArgsConstructor;
 import org.locationtech.jts.geom.Polygon;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@Builder
+@AllArgsConstructor
 public class Lot {
     @Getter
     @Setter

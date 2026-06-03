@@ -8,9 +8,13 @@ import com.agrotrack.domain.exception.BusinessRuleViolationsException;
 import com.agrotrack.domain.model.enums.ProductiveOrientation; // Asegúrate de tener este enum
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Builder;
+import lombok.AllArgsConstructor;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
+@Builder
+@AllArgsConstructor
 public class Farm {
     @Setter
     @Getter

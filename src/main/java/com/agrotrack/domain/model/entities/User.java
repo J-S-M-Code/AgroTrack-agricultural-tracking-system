@@ -4,6 +4,8 @@ import com.agrotrack.domain.exception.BusinessRuleViolationsException;
 import com.agrotrack.domain.model.enums.UserRole;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Builder;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.List;
 import java.util.UUID;
 
 
+@Builder
+@AllArgsConstructor
 public class User {
     @Setter
     @Getter
