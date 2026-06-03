@@ -8,14 +8,16 @@ from matplotlib.colors import LinearSegmentedColormap
 import urllib.request
 import tempfile
 
+temp_tif_file = None
+
 def get_custom_cmap(map_type):
-    """Crea y devuelve paletas de colores exactas a las especificaciones (DJI Terra)"""
+    """Crea y devuelve paletas de colores"""
 
     if map_type in ["NDVI", "GNDVI", "OSAVI"]:
-        # Definimos los colores con su posición exacta para que el negro caiga en el 0
-        # Escala normalizada: 0.0 es el valor -1, 0.5 es el valor 0, y 1.0 es el valor 1.
         colors_with_positions = [
             (0.00, "#ffffff"),  # Blanco (Valor -1)
+            (0.125, "#000000"),
+            (0.375, "#ffffff"),  
             (0.52, "#000000"),  # Negro (Valor 0)
             (0.58, "#0867b4"),  # Celeste (Transición justo arriba del 0)
             (0.60, "#00ff00"),  # Verde
@@ -27,10 +29,17 @@ def get_custom_cmap(map_type):
         # Creamos el mapa de colores
         cmap = LinearSegmentedColormap.from_list("custom_ndvi", colors_with_positions)
         return {'cmap': cmap, 'vmin': -1.0, 'vmax': 1.0}
-
+    
     elif map_type in ["NDRE", "LCI"]:
         # Replicando la Imagen 2: Morado -> Azul -> Cian -> Verde -> Amarillo -> Rojo -> Rojo Oscuro
-        colors = ["#800080", "#0000ff", "#008cff", "#00ff00", "#ffff00", "#ff0000", "#800000"]
+        colors = [
+            (0.00, "#800080"), 
+            (0.125, "#0000ff"), 
+            (0.375, "#008cff"), 
+            (0.50, "#00ff00"), 
+            (0.57, "#ffff00"), 
+            (0.90, "#ff0000"), 
+            (1.00, "#800000")]
         cmap = LinearSegmentedColormap.from_list("custom_ndre", colors)
         return {'cmap': cmap, 'vmin': -1.0, 'vmax': 1.0}
 
@@ -50,15 +59,19 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
     """
     print(f"Procesando {'URL' if is_url else 'archivo'}: {tif_source} como {map_type}")
     
-    temp_tif_file = None
+    temp_download_path = None
+    colored_tif = None
     try:
         # Si es URL, descargar el archivo
         if is_url:
-            temp_tif_file = tempfile.NamedTemporaryFile(suffix='.tif', delete=False)
+            # mkstemp crea el archivo y devuelve un FileDescriptor (fd) y la ruta
+            fd, temp_download_path = tempfile.mkstemp(suffix='.tif')
+            # ¡CLAVE! Cerramos el FileDescriptor inmediatamente para liberar el archivo en Windows
+            os.close(fd)
             try:
                 print(f"Descargando TIF desde URL: {tif_source}")
-                urllib.request.urlretrieve(tif_source, temp_tif_file.name)
-                input_tif = temp_tif_file.name
+                urllib.request.urlretrieve(tif_source, temp_download_path)
+                input_tif = temp_download_path
             except Exception as e:
                 print(f"Error descargando TIF desde URL: {e}")
                 sys.exit(1)
@@ -125,14 +138,14 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
 
             print(f"Entorno OSGeo4W detectado. Usando: {osgeo_bat}")
 
-            cmd_str = f'"{osgeo_bat}" python "{gdal_script_path}" --processes={cores} -z 12-20 -w none "{target_tif}" "{output_dir}"'
+            cmd_str = f'"{osgeo_bat}" python "{gdal_script_path}" --processes={cores} -z 12-22 -w none "{target_tif}" "{output_dir}"'
 
             result = subprocess.run(cmd_str, capture_output=True, text=True, shell=True)
         else:
             gdal2tiles_cmd = [
                 "python", "-W", "ignore", gdal_script_path,
                 f"--processes={cores}",
-                "-z", "12-20",
+                "-z", "12-22",
                 "-w", "none",
                 target_tif,
                 output_dir
@@ -147,13 +160,21 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
         print(f"Paches generados correctamente en: {output_dir}")
     
     finally:
-        # Limpiar el archivo temporal si fue descargado
-        if temp_tif_file and os.path.exists(temp_tif_file.name):
+        # Primero eliminamos el colored.tif si lo creamos
+        if colored_tif and os.path.exists(colored_tif):
             try:
-                os.remove(temp_tif_file.name)
-                print(f"Archivo temporal eliminado: {temp_tif_file.name}")
+                os.remove(colored_tif)
+                print("Archivo temporal colored.tif eliminado.")
             except Exception as e:
-                print(f"Error eliminando archivo temporal: {e}")
+                print(f"Advertencia: No se pudo eliminar colored.tif: {e}")
+
+        # Luego eliminamos el archivo descargado de la URL si existe
+        if temp_download_path and os.path.exists(temp_download_path):
+            try:
+                os.remove(temp_download_path)
+                print(f"Archivo temporal descargado eliminado: {temp_download_path}")
+            except Exception as e:
+                print(f"Advertencia: No se pudo eliminar temporal de URL: {e}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 5:
@@ -164,6 +185,7 @@ if __name__ == "__main__":
     out_folder = sys.argv[2]
     m_type = sys.argv[3]
     gdal_path = sys.argv[4]
+
     
     # Verificar si se pasó el flag --url para indicar que in_file es una URL
     is_url_flag = len(sys.argv) > 5 and sys.argv[5] == "--url"

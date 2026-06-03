@@ -8,6 +8,7 @@ import com.agrotrack.domain.model.entities.Password;
 import com.agrotrack.domain.model.entities.User;
 import com.agrotrack.domain.model.enums.Priority;
 import com.agrotrack.domain.port.out.alert.AlertRepositoryPort;
+import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.infrastructure.adapters.out.database.entities.AlertJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.entities.AnimalJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.entities.CropJpaEntity;
@@ -26,9 +27,11 @@ import java.util.stream.Collectors;
 public class AlertRepositoryAdapter implements AlertRepositoryPort {
 
     private final AlertJpaRepository alertJpaRepository;
+    private final FarmRepositoryPort farmRepositoryPort;
 
-    public AlertRepositoryAdapter(AlertJpaRepository alertJpaRepository) {
+    public AlertRepositoryAdapter(AlertJpaRepository alertJpaRepository, FarmRepositoryPort farmRepositoryPort) {
         this.alertJpaRepository = alertJpaRepository;
+        this.farmRepositoryPort = farmRepositoryPort;
     }
 
     @Override
@@ -120,7 +123,7 @@ public class AlertRepositoryAdapter implements AlertRepositoryPort {
             lot = Lot.create(
                     entity.getRelatedLot().getName(), entity.getRelatedLot().getHectares(),
                     entity.getRelatedLot().getSoilType(), entity.getRelatedLot().getType(),
-                    entity.getRelatedLot().getDescription(), entity.getRelatedLot().getPolygonLimit()
+                    entity.getRelatedLot().getDescription(), entity.getRelatedLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getRelatedLot().getFarm().getId()).orElse(null)
             );
             lot.setIdLot(entity.getRelatedLot().getId());
         }

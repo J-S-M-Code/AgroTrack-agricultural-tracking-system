@@ -1,5 +1,6 @@
 package com.agrotrack.domain.port.in.lot;
 
+import com.agrotrack.domain.model.entities.Farm;
 import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.model.enums.LotType;
 import com.agrotrack.domain.model.enums.SoilType;
@@ -9,5 +10,5 @@ import java.util.UUID;
 
 public interface CreateLotUseCase {
     Lot executeCreateLot(UUID farmId, String name, double hectares, SoilType soilType,
-                LotType type, String description, Polygon polygonLimit);
+                LotType type, String description, Polygon polygonLimit, Farm farm);
 }

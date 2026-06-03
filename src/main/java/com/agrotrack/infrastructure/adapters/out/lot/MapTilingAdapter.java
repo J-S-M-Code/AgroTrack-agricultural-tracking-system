@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.*;
 import java.util.Comparator;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 @Component
@@ -33,7 +34,7 @@ public class MapTilingAdapter implements MapTilingPort {
     }
 
     @Override
-    public void processAndStoreTiles(String tifUrl, String mapId, SpectralMapType mapType) {
+    public void processAndStoreTiles(String tifUrl, UUID mapId, UUID idFamr, UUID idLot, SpectralMapType mapType) {
         System.out.println("⚡ Iniciando motor Python (MapPaches) para: " + mapId);
         System.out.println("📥 URL del TIF: " + tifUrl);
         Path tempDir = null;
@@ -63,7 +64,7 @@ public class MapTilingAdapter implements MapTilingPort {
             }
 
             System.out.println("Subiendo paches a MinIO...");
-            uploadTilesToMinio(tilesDir, mapId);
+            uploadTilesToMinio(tilesDir, mapId, idFamr, idLot);
 
         } catch (Exception e) {
             throw new RuntimeException("Error crítico procesando mapa con Python: " + e.getMessage(), e);
@@ -72,14 +73,14 @@ public class MapTilingAdapter implements MapTilingPort {
         }
     }
 
-    private void uploadTilesToMinio(Path tilesDir, String mapId) throws IOException {
+    private void uploadTilesToMinio(Path tilesDir, UUID mapId, UUID idFamr, UUID idLot) throws IOException {
         try (Stream<Path> paths = Files.walk(tilesDir)) {
             paths.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".png"))
                     .parallel()
                     .forEach(path -> {
                         String relativePath = tilesDir.relativize(path).toString().replace("\\", "/");
-                        String minioFileName = "mapas-espectrales/" + mapId + "/" + relativePath;
+                        String minioFileName = "mapas-espectrales/" + idFamr + "/" + idLot + "/" + mapId + "/" + relativePath;
 
                         try (InputStream is = Files.newInputStream(path)) {
                             fileStoragePort.uploadFile(minioFileName, is, "image/png");

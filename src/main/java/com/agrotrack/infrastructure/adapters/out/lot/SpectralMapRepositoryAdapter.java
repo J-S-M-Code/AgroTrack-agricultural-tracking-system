@@ -3,6 +3,7 @@ package com.agrotrack.infrastructure.adapters.out.lot;
 import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.model.entities.SpectralMap;
 import com.agrotrack.domain.port.out.crop.SpectralMapRepositoryPort;
+import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.infrastructure.adapters.out.database.entities.LotJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.entities.SpectralMapJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.repositories.SpectralMapJpaRepository;
@@ -17,9 +18,11 @@ import java.util.stream.Collectors;
 public class SpectralMapRepositoryAdapter implements SpectralMapRepositoryPort {
 
     private final SpectralMapJpaRepository spectralMapJpaRepository;
+    private final FarmRepositoryPort farmRepositoryPort;
 
-    public SpectralMapRepositoryAdapter(SpectralMapJpaRepository spectralMapJpaRepository) {
+    public SpectralMapRepositoryAdapter(SpectralMapJpaRepository spectralMapJpaRepository, FarmRepositoryPort farmRepositoryPort) {
         this.spectralMapJpaRepository = spectralMapJpaRepository;
+        this.farmRepositoryPort = farmRepositoryPort;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class SpectralMapRepositoryAdapter implements SpectralMapRepositoryPort {
     private SpectralMap mapToDomain(SpectralMapJpaEntity entity) {
         Lot lot = Lot.create(
                 entity.getLot().getName(), entity.getLot().getHectares(), entity.getLot().getSoilType(),
-                entity.getLot().getType(), entity.getLot().getDescription(), entity.getLot().getPolygonLimit()
+                entity.getLot().getType(), entity.getLot().getDescription(), entity.getLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getLot().getFarm().getId()).orElse(null)
         );
         lot.setIdLot(entity.getLot().getId());
 

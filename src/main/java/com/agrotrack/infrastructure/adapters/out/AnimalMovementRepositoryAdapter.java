@@ -5,6 +5,7 @@ import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.model.entities.Password;
 import com.agrotrack.domain.model.entities.User;
 import com.agrotrack.domain.port.out.animal.AnimalMovementRepositoryPort;
+import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.infrastructure.adapters.out.database.entities.AnimalMovementJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.entities.LotJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.entities.UserJpaEntity;
@@ -20,9 +21,11 @@ import java.util.stream.Collectors;
 public class AnimalMovementRepositoryAdapter implements AnimalMovementRepositoryPort {
 
     private final AnimalMovementJpaRepository animalMovementJpaRepository;
+    private final FarmRepositoryPort farmRepositoryPort;
 
-    public AnimalMovementRepositoryAdapter(AnimalMovementJpaRepository animalMovementJpaRepository) {
+    public AnimalMovementRepositoryAdapter(AnimalMovementJpaRepository animalMovementJpaRepository, FarmRepositoryPort farmRepositoryPort) {
         this.animalMovementJpaRepository = animalMovementJpaRepository;
+        this.farmRepositoryPort = farmRepositoryPort;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class AnimalMovementRepositoryAdapter implements AnimalMovementRepository
         Lot lot = Lot.create(
                 entity.getOriginLot().getName(), entity.getOriginLot().getHectares(),
                 entity.getOriginLot().getSoilType(), entity.getOriginLot().getType(),
-                entity.getOriginLot().getDescription(), entity.getOriginLot().getPolygonLimit()
+                entity.getOriginLot().getDescription(), entity.getOriginLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getOriginLot().getFarm().getId()).orElse(null)
         );
         lot.setIdLot(entity.getOriginLot().getId());
 

@@ -14,7 +14,7 @@ import org.locationtech.jts.geom.Polygon;
 public class Farm {
     @Setter
     @Getter
-    private UUID idLand;
+    private UUID idFarm;
 
     @Getter
     private String name;

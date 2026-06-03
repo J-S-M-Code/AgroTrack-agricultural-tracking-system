@@ -48,8 +48,12 @@ public class Lot {
     @Getter
     private List<SpectralMap> spectralMaps;
 
+    @Getter
+    private Farm farm;
+
+
     private Lot(String name, double hectares, SoilType soilType, LotType type,
-                String description, Polygon polygonLimit, LotState state) {
+                String description, Polygon polygonLimit, LotState state, Farm farm) {
         this.name = name;
         this.hectares = hectares;
         this.soilType = soilType;
@@ -57,6 +61,7 @@ public class Lot {
         this.description = description;
         this.polygonLimit = polygonLimit;
         this.state = state;
+        this.farm = farm;
         // Inicializamos las relaciones
         this.crop = null;
         this.animals = new ArrayList<>();
@@ -64,7 +69,7 @@ public class Lot {
     }
 
     public static Lot create(String name, double hectares, SoilType soilType,
-                             LotType type, String description, Polygon polygonLimit) {
+                             LotType type, String description, Polygon polygonLimit, Farm farm) {
 
         if (name == null || name.isBlank()) {
             throw new BusinessRuleViolationsException("El campo Nombre no puede estar vacío");
@@ -84,9 +89,13 @@ public class Lot {
         if (!polygonLimit.isValid()) {
             throw new BusinessRuleViolationsException("La geometría del polígono es inválida");
         }
+        if (farm == null) {
+            throw new BusinessRuleViolationsException("El lote debe estar asignado a una finca");
+        }
+
 
         // Se asigna como ACTIVO por defecto al momento de crearlo
-        return new Lot(name, hectares, soilType, type, description, polygonLimit, LotState.ACTIVE);
+        return new Lot(name, hectares, soilType, type, description, polygonLimit, LotState.ACTIVE, farm);
     }
 
     // --- MÉTODOS DE COMPORTAMIENTO ---

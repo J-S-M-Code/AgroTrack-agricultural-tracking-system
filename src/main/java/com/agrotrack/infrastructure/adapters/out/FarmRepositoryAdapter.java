@@ -23,7 +23,7 @@ public class FarmRepositoryAdapter implements FarmRepositoryPort {
     public Farm save(Farm farm) {
         // 1. Mapeamos la entidad "Pura" de dominio a una entidad de Base de Datos
         FarmJpaEntity entity = new FarmJpaEntity(
-                farm.getIdLand(),
+                farm.getIdFarm(),
                 farm.getName(),
                 farm.getCompanyName(),
                 farm.getCuit(),
@@ -40,7 +40,7 @@ public class FarmRepositoryAdapter implements FarmRepositoryPort {
         FarmJpaEntity savedEntity = farmJpaRepository.save(entity);
 
         // 3. Le pasamos el UUID recién nacido a nuestra entidad de dominio
-        farm.setIdLand(savedEntity.getId());
+        farm.setIdFarm(savedEntity.getId());
 
         return farm; // Retornamos la entidad con su nuevo ID
     }
@@ -74,7 +74,7 @@ public class FarmRepositoryAdapter implements FarmRepositoryPort {
                 entity.getSurface(),
                 entity.getImageUrl()
         );
-        farm.setIdLand(entity.getId());
+        farm.setIdFarm(entity.getId());
         return farm;
     }
 }

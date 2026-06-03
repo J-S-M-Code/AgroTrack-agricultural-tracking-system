@@ -1,5 +1,7 @@
 package com.agrotrack.domain.port.out.lot;
 
+import java.util.UUID;
+
 import com.agrotrack.domain.model.enums.SpectralMapType;
 
 public interface MapTilingPort {
@@ -11,7 +13,9 @@ public interface MapTilingPort {
      *
      * @param tifUrl URL del archivo GeoTIFF en MinIO
      * @param mapId El ID del mapa
+     * @param idFamr El ID de la finca
+     * @param idLot El ID de la lote
      * @param mapType El tipo de mapa (RGB, NDVI, GNDVI, etc.)
      */
-    void processAndStoreTiles(String tifUrl, String mapId, SpectralMapType mapType);
+    void processAndStoreTiles(String tifUrl, UUID mapId, UUID idFamr, UUID idLot, SpectralMapType mapType);
 }

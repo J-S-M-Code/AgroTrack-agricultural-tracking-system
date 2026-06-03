@@ -2,6 +2,9 @@ package com.agrotrack.infrastructure.adapters.out.lot;
 
 import com.agrotrack.domain.model.enums.SpectralMapType;
 import com.agrotrack.domain.port.out.lot.MapTilingPort;
+
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,10 +21,12 @@ class MapTilingAdapterTest {
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/RGB.tif";
-            String fakeMapId = "test-map-rgb-12345678";
             SpectralMapType mapType = SpectralMapType.RGB;
 
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, mapType);
+            UUID fakeMapId = UUID.fromString("test-map-rgb");
+            UUID farmId = UUID.fromString("1");
+            UUID lotId = UUID.fromString("1");
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -38,10 +43,12 @@ class MapTilingAdapterTest {
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/NDVI.tif";
-            String fakeMapId = "test-map-ndvi-12345678";
             SpectralMapType mapType = SpectralMapType.NDVI;
 
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, mapType);
+            UUID fakeMapId = UUID.fromString("test-map-ndvi");
+            UUID farmId = UUID.fromString("1");
+            UUID lotId = UUID.fromString("1");
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -58,10 +65,12 @@ class MapTilingAdapterTest {
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/GNDVI.tif";
-            String fakeMapId = "test-map-gndvi-12345678";
             SpectralMapType mapType = SpectralMapType.GNDVI;
 
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, mapType);
+            UUID fakeMapId = UUID.fromString("test-map-gndvi");
+            UUID farmId = UUID.fromString("1");
+            UUID lotId = UUID.fromString("1");
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -78,10 +87,12 @@ class MapTilingAdapterTest {
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/LCI.tif";
-            String fakeMapId = "test-map-lci-12345678";
             SpectralMapType mapType = SpectralMapType.LCI;
 
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, mapType);
+            UUID fakeMapId = UUID.fromString("test-map-lci");
+            UUID farmId = UUID.fromString("1");
+            UUID lotId = UUID.fromString("1");
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -98,10 +109,12 @@ class MapTilingAdapterTest {
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/NDRE.tif";
-            String fakeMapId = "test-map-ndre-12345678";
             SpectralMapType mapType = SpectralMapType.NDRE;
 
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, mapType);
+            UUID fakeMapId = UUID.fromString("test-map-ndre");
+            UUID farmId = UUID.fromString("1");
+            UUID lotId = UUID.fromString("1");
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -118,10 +131,12 @@ class MapTilingAdapterTest {
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/OSAVI.tif";
-            String fakeMapId = "test-map-osavi-12345678";
             SpectralMapType mapType = SpectralMapType.OSAVI;
 
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, mapType);
+            UUID fakeMapId = UUID.fromString("test-map-osavi");
+            UUID farmId = UUID.fromString("1");
+            UUID lotId = UUID.fromString("1");
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");

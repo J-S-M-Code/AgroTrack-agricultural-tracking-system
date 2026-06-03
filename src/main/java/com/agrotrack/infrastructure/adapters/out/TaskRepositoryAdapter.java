@@ -46,7 +46,7 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
         FarmJpaEntity farmEntity = null;
         if (task.getRelatedFarm() != null) {
             farmEntity = new FarmJpaEntity();
-            farmEntity.setId(task.getRelatedFarm().getIdLand());
+            farmEntity.setId(task.getRelatedFarm().getIdFarm());
         }
 
         // 4. Mapear Lote (Puede ser nulo)
@@ -136,7 +136,7 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
                     entity.getFarm().getPolygonLimit(), entity.getFarm().getCentroid(),
                     entity.getFarm().getSurface(), entity.getFarm().getImageUrl()
             );
-            farm.setIdLand(entity.getFarm().getId());
+            farm.setIdFarm(entity.getFarm().getId());
         }
 
         // Reconstruir Lote (si existe)
@@ -145,7 +145,7 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
             lot = Lot.create(
                     entity.getLot().getName(), entity.getLot().getHectares(),
                     entity.getLot().getSoilType(), entity.getLot().getType(),
-                    entity.getLot().getDescription(), entity.getLot().getPolygonLimit()
+                    entity.getLot().getDescription(), entity.getLot().getPolygonLimit(), farm
             );
             lot.setIdLot(entity.getLot().getId());
         }
