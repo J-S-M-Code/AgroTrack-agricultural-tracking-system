@@ -7,6 +7,8 @@ import com.agrotrack.infrastructure.adapters.out.database.entities.UserJpaEntity
 import com.agrotrack.infrastructure.adapters.out.database.repositories.UserJpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -54,6 +56,23 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public boolean existsByEmail(String email) {
         return userJpaRepository.existsByEmail(email);
+    }
+
+    @Override
+    public Optional<User> findByDni(String dni) {
+        // TODO: Implement findByDni in UserJpaRepository
+        return Optional.empty();
+    }
+
+    @Override
+    public List<User> findAll() {
+        return userJpaRepository.findAll().stream().map(this::mapToDomain).toList();
+    }
+
+    @Override
+    public List<User> findByFarmId(UUID farmId) {
+        // TODO: Implement relationship mapping in FarmJpaEntity/UserJpaEntity
+        return Collections.emptyList();
     }
 
     private User mapToDomain(UserJpaEntity entity) {

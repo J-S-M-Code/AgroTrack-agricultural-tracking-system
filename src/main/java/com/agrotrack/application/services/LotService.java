@@ -8,8 +8,12 @@ import com.agrotrack.domain.model.enums.LotType;
 import com.agrotrack.domain.model.enums.SoilType;
 import com.agrotrack.domain.port.in.lot.ChangeLotStateUseCase;
 import com.agrotrack.domain.port.in.lot.CreateLotUseCase;
+import com.agrotrack.domain.port.in.lot.GetLotsByFarmUseCase;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
+import com.agrotrack.application.dto.LotDto;
+import com.agrotrack.application.mapper.ApplicationDtoMapper;
+import java.util.List;
 import org.locationtech.jts.geom.Polygon;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,14 +21,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class LotService implements CreateLotUseCase, ChangeLotStateUseCase {
+public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetLotsByFarmUseCase {
 
     private final LotRepositoryPort lotRepositoryPort;
-    private final FarmRepositoryPort farmRepositoryPort; // Necesitamos buscar la finca
+    private final FarmRepositoryPort farmRepositoryPort;
+    private final ApplicationDtoMapper applicationDtoMapper;
 
-    public LotService(LotRepositoryPort lotRepositoryPort, FarmRepositoryPort farmRepositoryPort) {
+    public LotService(LotRepositoryPort lotRepositoryPort, FarmRepositoryPort farmRepositoryPort, ApplicationDtoMapper applicationDtoMapper) {
         this.lotRepositoryPort = lotRepositoryPort;
         this.farmRepositoryPort = farmRepositoryPort;
+        this.applicationDtoMapper = applicationDtoMapper;
     }
 
     @Override
@@ -75,5 +81,12 @@ public class LotService implements CreateLotUseCase, ChangeLotStateUseCase {
         lot.changeState(newState);
 
         lotRepositoryPort.save(lot);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LotDto> executeGetLotsByFarm(UUID farmId) {
+        List<Lot> lots = lotRepositoryPort.findByFarmId(farmId);
+        return applicationDtoMapper.toLotDtoList(lots);
     }
 }

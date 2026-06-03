@@ -7,6 +7,8 @@ import com.agrotrack.infrastructure.adapters.out.database.repositories.FarmJpaRe
 import org.locationtech.jts.geom.Polygon;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,6 +60,12 @@ public class FarmRepositoryAdapter implements FarmRepositoryPort {
     @Override
     public boolean existsByCuit(String cuit) {
         return farmJpaRepository.existsByCuit(cuit);
+    }
+
+    @Override
+    public List<Farm> findByUserId(UUID userId) {
+        // TODO: Implement relationship mapping in FarmJpaEntity/UserJpaEntity
+        return Collections.emptyList();
     }
 
     // --- Método auxiliar para cuando recuperamos datos de la BD ---
