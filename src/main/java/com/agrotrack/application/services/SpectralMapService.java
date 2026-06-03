@@ -1,15 +1,16 @@
 package com.agrotrack.application.services;
 
-import com.agrotrack.domain.exception.BusinessRuleViolationsException;
 import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.model.entities.SpectralMap;
 import com.agrotrack.domain.model.enums.SpectralMapType;
 import com.agrotrack.domain.port.in.lot.RegisterSpectralMapUseCase;
 import com.agrotrack.domain.port.out.crop.SpectralMapRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
+import com.agrotrack.domain.port.out.storage.FileStoragePort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -17,41 +18,66 @@ import java.util.UUID;
 public class SpectralMapService implements RegisterSpectralMapUseCase {
 
     private final SpectralMapRepositoryPort spectralMapRepositoryPort;
+    private final FileStoragePort fileStoragePort;
+    private final AsyncMapProcessor asyncMapProcessor;
     private final LotRepositoryPort lotRepositoryPort;
 
-    public SpectralMapService(SpectralMapRepositoryPort spectralMapRepositoryPort, LotRepositoryPort lotRepositoryPort) {
+
+    public SpectralMapService(SpectralMapRepositoryPort spectralMapRepositoryPort,
+                            FileStoragePort fileStoragePort,
+                            AsyncMapProcessor asyncMapProcessor,
+                            LotRepositoryPort lotRepositoryPort) {
         this.spectralMapRepositoryPort = spectralMapRepositoryPort;
+        this.fileStoragePort = fileStoragePort;
+        this.asyncMapProcessor = asyncMapProcessor;
         this.lotRepositoryPort = lotRepositoryPort;
     }
 
     @Override
     @Transactional
-    public SpectralMap executeRegisterSpectralMap(String urlSpectralMap, LocalDateTime flightDate, SpectralMapType indexType,
-                               Double cloudCoverPercentage, Double resolutionGSD, Double meanIndexValue,
-                               UUID assignedLotId) {
+    public SpectralMap executeRegisterSpectralMap(
+            InputStream geoTiffStream, 
+            LocalDateTime flightDate, 
+            SpectralMapType indexType,
+            Double cloudCoverPercentage, 
+            Double resolutionGSD, 
+            Double meanIndexValue,
+            UUID assignedLotId) {
 
-        // 1. Validar que el Lote exista
-        Lot lot = lotRepositoryPort.findById(assignedLotId)
-                .orElseThrow(() -> new BusinessRuleViolationsException("Lote no encontrado con ID: " + assignedLotId));
+        // Definimos el lote ya que vamos a utilizar los datos para asignar y guardar los datos
+        Lot mapLot = lotRepositoryPort.findById(assignedLotId)
+            .orElseThrow(() -> new IllegalArgumentException("Problemas al asignar el lote al mapeo"));
 
-        // 2. Instanciar el mapa espectral a través de su factory method
-        // (Las validaciones de la fecha límite y del porcentaje de nubosidad ocurren dentro)
-        SpectralMap newMap = SpectralMap.create(
-                urlSpectralMap,
-                flightDate,
-                indexType,
-                cloudCoverPercentage,
-                resolutionGSD,
-                meanIndexValue,
-                lot
+        // 1. Instanciar el objeto de dominio con todos los parámetros definidos
+        SpectralMap map = SpectralMap.create(
+            null, // URL interna
+            flightDate,
+            indexType,
+            cloudCoverPercentage,
+            resolutionGSD,
+            meanIndexValue,
+            mapLot
         );
 
-        // 3. Vincular el mapa a la lista del lote
-        lot.addSpectralMap(newMap);
 
-        // 4. Guardar los cambios
-        // Guardamos el mapa (y opcionalmente el lote si la persistencia JPA lo requiere por relaciones bidireccionales)
-        lotRepositoryPort.save(lot);
-        return spectralMapRepositoryPort.save(newMap);
+        // 2. Persistir para obtener el ID autogenerado
+        SpectralMap savedMap = spectralMapRepositoryPort.save(map);
+
+        // 3. Definir la ruta de almacenamiento para el archivo crudo original
+        String minioRawPath = "mapas-crudos/"+ map.getAssignedLot().getFarm().getIdFarm() + "/"
+                                + map.getAssignedLot().getIdLot()+ "/"
+                                + flightDate.toString() + "/" + savedMap.getIndexType().toString() + ".tif";
+                                
+        fileStoragePort.uploadFile(minioRawPath, geoTiffStream, "image/tiff");
+
+        // 4. Actualizar la URL interna del mapa con la ruta del archivo crudo
+        savedMap.setUrlSpectralMap(minioRawPath);
+        spectralMapRepositoryPort.save(savedMap);
+
+        // 5. Disparar el motor de paches en segundo plano
+        asyncMapProcessor.processAndTileMap(savedMap, minioRawPath, indexType);
+
+        // 6. Retornar de inmediato el mapa en estado PENDING para no bloquear la API
+        return savedMap;
     }
 }

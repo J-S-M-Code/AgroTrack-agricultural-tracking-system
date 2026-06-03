@@ -1,5 +1,6 @@
 package com.agrotrack.infrastructure.adapters.out.database.entities;
 
+import com.agrotrack.domain.model.entities.Farm;
 import com.agrotrack.domain.model.enums.LotState;
 import com.agrotrack.domain.model.enums.LotType;
 import com.agrotrack.domain.model.enums.SoilType;

@@ -2,6 +2,7 @@ package com.agrotrack.domain.model.entities;
 
 import com.agrotrack.domain.exception.BusinessRuleViolationsException;
 import com.agrotrack.domain.model.enums.SpectralMapType;
+import com.agrotrack.domain.model.enums.MapStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,7 +15,13 @@ public class SpectralMap {
     private UUID idMap;
 
     @Getter
+    @Setter
     private String urlSpectralMap;
+
+    @Getter
+    @Setter
+    private String tilesBaseUrl;
+
 
     @Getter
     private LocalDateTime flightDate;
@@ -34,6 +41,10 @@ public class SpectralMap {
     @Getter
     private Lot assignedLot;
 
+    @Getter
+    @Setter
+    private MapStatus mapStatus;
+
     private SpectralMap(String urlSpectralMap, LocalDateTime flightDate, SpectralMapType indexType,
                         Double cloudCoverPercentage, Double resolutionGSD, Double meanIndexValue, Lot assignedLot) {
         this.urlSpectralMap = urlSpectralMap;
@@ -43,6 +54,7 @@ public class SpectralMap {
         this.resolutionGSD = resolutionGSD;
         this.meanIndexValue = meanIndexValue;
         this.assignedLot = assignedLot;
+        this.mapStatus = MapStatus.PENDING;
     }
 
     public static SpectralMap create(String urlSpectralMap, LocalDateTime flightDate, SpectralMapType indexType,
@@ -50,9 +62,6 @@ public class SpectralMap {
 
         if (assignedLot == null) {
             throw new BusinessRuleViolationsException("El mapa debe estar asociado a un lote");
-        }
-        if (urlSpectralMap == null || urlSpectralMap.isBlank()) {
-            throw new BusinessRuleViolationsException("La URL del mapa no puede estar vacía");
         }
         if (flightDate == null || flightDate.isAfter(LocalDateTime.now())) {
             throw new BusinessRuleViolationsException("La fecha del vuelo no es válida");

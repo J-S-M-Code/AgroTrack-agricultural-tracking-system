@@ -30,36 +30,33 @@ public class LotService implements CreateLotUseCase, ChangeLotStateUseCase {
     @Override
     @Transactional
     public Lot executeCreateLot(UUID farmId, String name, double hectares, SoilType soilType,
-                       LotType type, String description, Polygon polygonLimit) {
+                       LotType type, String description, Polygon polygonLimit, Farm farm) {
 
-        // 1. Validar que la Finca exista
-        Farm farm = farmRepositoryPort.findById(farmId)
-                .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con el ID: " + farmId));
-
-        // 2. Validar que el Lote no se superponga con otro Lote existente
+        // 1. Validar que el Lote no se superponga con otro Lote existente
         if (lotRepositoryPort.existsOverlappingLot(polygonLimit, null)) {
             throw new BusinessRuleViolationsException("El perímetro ingresado se superpone con un lote ya existente.");
         }
 
-        // 3. ¡Magia Geospacial! Validar que el lote esté físicamente DENTRO de la finca
+        // 2. ¡Magia Geospacial! Validar que el lote esté físicamente DENTRO de la finca
         if (!farm.getPolygonLimit().contains(polygonLimit)) {
             throw new BusinessRuleViolationsException("El perímetro del lote debe estar completamente dentro de los límites de la finca.");
         }
 
-        // 4. Instanciar la entidad a través de su factory method
+        // 3. Instanciar la entidad a través de su factory method
         Lot newLot = Lot.create(
                 name,
                 hectares,
                 soilType,
                 type,
                 description,
-                polygonLimit
+                polygonLimit,
+                farm
         );
 
-        // 5. Agregar el lote a la lista de la finca
+        // 4. Agregar el lote a la lista de la finca
         farm.newLot(newLot);
 
-        // 6. Persistencia
+        // 5. Persistencia
         // Guardamos el lote. Si tu BD relacional requiere actualizar la finca para
         // mantener la relación FK, también guardamos la finca.
         Lot savedLot = lotRepositoryPort.save(newLot);

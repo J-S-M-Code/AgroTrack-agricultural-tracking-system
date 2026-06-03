@@ -1,8 +1,10 @@
 package com.agrotrack.infrastructure.adapters.out;
 
 import com.agrotrack.domain.model.entities.Crop;
+import com.agrotrack.domain.model.entities.Farm;
 import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.port.out.crop.CropRepositoryPort;
+import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.infrastructure.adapters.out.database.entities.CropJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.entities.LotJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.repositories.CropJpaRepository;
@@ -17,9 +19,11 @@ import java.util.stream.Collectors;
 public class CropRepositoryAdapter implements CropRepositoryPort {
 
     private final CropJpaRepository cropJpaRepository;
+    private final FarmRepositoryPort farmRepositoryPort;
 
-    public CropRepositoryAdapter(CropJpaRepository cropJpaRepository) {
+    public CropRepositoryAdapter(CropJpaRepository cropJpaRepository, FarmRepositoryPort farmRepositoryPort) {
         this.cropJpaRepository = cropJpaRepository;
+        this.farmRepositoryPort = farmRepositoryPort;
     }
 
     @Override
@@ -62,7 +66,7 @@ public class CropRepositoryAdapter implements CropRepositoryPort {
         // Reconstruimos un Lote básico para que el dominio no falle por nulos
         Lot lot = Lot.create(
                 entity.getLot().getName(), entity.getLot().getHectares(), entity.getLot().getSoilType(),
-                entity.getLot().getType(), entity.getLot().getDescription(), entity.getLot().getPolygonLimit()
+                entity.getLot().getType(), entity.getLot().getDescription(), entity.getLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getLot().getFarm().getId()).orElse(null)
         );
         lot.setIdLot(entity.getLot().getId());
 

@@ -1,7 +1,9 @@
-package com.agrotrack.infrastructure.adapters.out;
+package com.agrotrack.infrastructure.adapters.out.lot;
 
 import com.agrotrack.domain.model.entities.Lot;
+import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
+import com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.entities.LotJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.repositories.LotJpaRepository;
 import org.locationtech.jts.geom.Polygon;
@@ -16,9 +18,12 @@ import java.util.stream.Collectors;
 public class LotRepositoryAdapter implements LotRepositoryPort {
 
     private final LotJpaRepository lotJpaRepository;
+    private final FarmRepositoryPort farmRepositoryPort;
 
-    public LotRepositoryAdapter(LotJpaRepository lotJpaRepository) {
+
+    public LotRepositoryAdapter(LotJpaRepository lotJpaRepository, FarmRepositoryPort farmRepositoryPort) {
         this.lotJpaRepository = lotJpaRepository;
+        this.farmRepositoryPort = farmRepositoryPort;
     }
 
     @Override
@@ -32,6 +37,12 @@ public class LotRepositoryAdapter implements LotRepositoryPort {
         entity.setDescription(lot.getDescription());
         entity.setPolygonLimit(lot.getPolygonLimit());
         entity.setState(lot.getState());
+        // Mapear la Farm al JPA Entity si existe
+        if (lot.getFarm() != null) {
+            FarmJpaEntity farmEntity = new FarmJpaEntity();
+            farmEntity.setId(lot.getFarm().getIdFarm());
+            entity.setFarm(farmEntity);
+        }
 
         LotJpaEntity savedEntity = lotJpaRepository.save(entity);
         lot.setIdLot(savedEntity.getId());
@@ -58,7 +69,7 @@ public class LotRepositoryAdapter implements LotRepositoryPort {
     private Lot mapToDomain(LotJpaEntity entity) {
         Lot lot = Lot.create(
                 entity.getName(), entity.getHectares(), entity.getSoilType(),
-                entity.getType(), entity.getDescription(), entity.getPolygonLimit()
+                entity.getType(), entity.getDescription(), entity.getPolygonLimit(), farmRepositoryPort.findById(entity.getFarm().getId()).orElse(null)
         );
         lot.setIdLot(entity.getId());
         lot.changeState(entity.getState());

@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Evitamos los .tif ###
+test/resource
+
 ### STS ###
 .apt_generated
 .classpath
