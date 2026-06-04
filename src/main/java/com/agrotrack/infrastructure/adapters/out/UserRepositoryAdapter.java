@@ -16,9 +16,11 @@ import java.util.UUID;
 public class UserRepositoryAdapter implements UserRepositoryPort {
 
     private final UserJpaRepository userJpaRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    public UserRepositoryAdapter(UserJpaRepository userJpaRepository) {
+    public UserRepositoryAdapter(UserJpaRepository userJpaRepository, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.userJpaRepository = userJpaRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -31,7 +33,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 user.getPhone(),
                 user.getAddress(),
                 user.getEmail(),
-                user.getPassword().getValue(), // Extraemos el string del Value Object
+                user.getPassword().getValue().startsWith("$2a$") ? user.getPassword().getValue() : passwordEncoder.encode(user.getPassword().getValue()), // Encriptamos si no lo está
                 user.getRole(),
                 user.isActive(),
                 user.getCreationDate(),

@@ -41,11 +41,14 @@ class UserRepositoryAdapterIT {
     @Autowired
     private UserJpaRepository userJpaRepository;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     private UserRepositoryAdapter adapter;
 
     @BeforeEach
     void setUp() {
-        adapter = new UserRepositoryAdapter(userJpaRepository);
+        adapter = new UserRepositoryAdapter(userJpaRepository, passwordEncoder);
         userJpaRepository.deleteAll();
     }
 
