@@ -54,7 +54,7 @@ public class HealthEventRepositoryAdapter implements HealthEventRepositoryPort {
                 entity.getVeterinarian().getName(), entity.getVeterinarian().getLastName(),
                 entity.getVeterinarian().getDni(), entity.getVeterinarian().getPhone(),
                 entity.getVeterinarian().getAddress(), entity.getVeterinarian().getEmail(),
-                new Password("DUMMY123*"), entity.getVeterinarian().getRole()
+                new Password("Dummy@2026"), entity.getVeterinarian().getRole()
         );
         vet.setIdUser(entity.getVeterinarian().getId());
 
