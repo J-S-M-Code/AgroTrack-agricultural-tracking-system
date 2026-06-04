@@ -5,7 +5,11 @@ import com.agrotrack.domain.model.entities.Farm;
 import com.agrotrack.domain.model.enums.ProductiveOrientation;
 import com.agrotrack.domain.port.in.farm.CreateFarmUseCase;
 import com.agrotrack.domain.port.in.farm.UpdateFarmPerimeterUseCase;
+import com.agrotrack.domain.port.in.farm.GetFarmsUseCase;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
+import com.agrotrack.application.dto.FarmDto;
+import com.agrotrack.application.mapper.ApplicationDtoMapper;
+import java.util.List;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.springframework.stereotype.Service;
@@ -14,12 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCase {
+public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCase, GetFarmsUseCase {
 
     private final FarmRepositoryPort farmRepositoryPort;
+    private final ApplicationDtoMapper applicationDtoMapper;
 
-    public FarmService(FarmRepositoryPort farmRepositoryPort) {
+    public FarmService(FarmRepositoryPort farmRepositoryPort, ApplicationDtoMapper applicationDtoMapper) {
         this.farmRepositoryPort = farmRepositoryPort;
+        this.applicationDtoMapper = applicationDtoMapper;
     }
 
     @Override
@@ -68,5 +74,12 @@ public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCas
 
         farm.modifyPolygonLimit(newPerimeter);
         farmRepositoryPort.save(farm);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<FarmDto> executeGetFarmsByUser(UUID userId) {
+        List<Farm> farms = farmRepositoryPort.findByUserId(userId);
+        return applicationDtoMapper.toFarmDtoList(farms);
     }
 }

@@ -7,19 +7,25 @@ import com.agrotrack.domain.model.enums.UserRole;
 import com.agrotrack.domain.port.in.user.ChangeUserActivationUseCase;
 import com.agrotrack.domain.port.in.user.ChangeUserPasswordUseCase;
 import com.agrotrack.domain.port.in.user.RegisterUserUseCase;
+import com.agrotrack.domain.port.in.user.GetPersonnelByFarmUseCase;
 import com.agrotrack.domain.port.out.user.UserRepositoryPort;
+import com.agrotrack.application.dto.UserDto;
+import com.agrotrack.application.mapper.ApplicationDtoMapper;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 @Service
-public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase {
+public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
+    private final ApplicationDtoMapper applicationDtoMapper;
 
-    public UserService(UserRepositoryPort userRepositoryPort) {
+    public UserService(UserRepositoryPort userRepositoryPort, ApplicationDtoMapper applicationDtoMapper) {
         this.userRepositoryPort = userRepositoryPort;
+        this.applicationDtoMapper = applicationDtoMapper;
     }
 
     @Override
@@ -67,5 +73,12 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
 
         user.changeActivation(newStatus);
         userRepositoryPort.save(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDto> executeGetPersonnelByFarm(UUID farmId) {
+        List<User> users = userRepositoryPort.findByFarmId(farmId);
+        return applicationDtoMapper.toUserDtoList(users);
     }
 }

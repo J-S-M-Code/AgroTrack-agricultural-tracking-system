@@ -10,10 +10,13 @@ import com.agrotrack.domain.model.enums.Priority;
 import com.agrotrack.domain.model.enums.TaskStatus;
 import com.agrotrack.domain.port.in.task.CreateTaskUseCase;
 import com.agrotrack.domain.port.in.task.UpdateTaskStatusUseCase;
+import com.agrotrack.domain.port.in.task.GetTasksByFarmUseCase;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
 import com.agrotrack.domain.port.out.task.TaskRepositoryPort;
 import com.agrotrack.domain.port.out.user.UserRepositoryPort;
+import com.agrotrack.application.dto.TaskDto;
+import com.agrotrack.application.mapper.ApplicationDtoMapper;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.springframework.stereotype.Service;
@@ -24,19 +27,22 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase {
+public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase, GetTasksByFarmUseCase {
 
     private final TaskRepositoryPort taskRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
     private final FarmRepositoryPort farmRepositoryPort;
     private final LotRepositoryPort lotRepositoryPort;
+    private final ApplicationDtoMapper applicationDtoMapper;
 
     public TaskService(TaskRepositoryPort taskRepositoryPort, UserRepositoryPort userRepositoryPort,
-                       FarmRepositoryPort farmRepositoryPort, LotRepositoryPort lotRepositoryPort) {
+                       FarmRepositoryPort farmRepositoryPort, LotRepositoryPort lotRepositoryPort,
+                       ApplicationDtoMapper applicationDtoMapper) {
         this.taskRepositoryPort = taskRepositoryPort;
         this.userRepositoryPort = userRepositoryPort;
         this.farmRepositoryPort = farmRepositoryPort;
         this.lotRepositoryPort = lotRepositoryPort;
+        this.applicationDtoMapper = applicationDtoMapper;
     }
 
     @Override
@@ -80,5 +86,12 @@ public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase {
 
         task.updateStatus(newStatus);
         taskRepositoryPort.save(task);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TaskDto> executeGetTasksByFarm(UUID farmId) {
+        List<Task> tasks = taskRepositoryPort.findByFarmId(farmId);
+        return applicationDtoMapper.toTaskDtoList(tasks);
     }
 }
