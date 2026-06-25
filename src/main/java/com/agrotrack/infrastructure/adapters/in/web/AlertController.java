@@ -1,0 +1,32 @@
+package com.agrotrack.infrastructure.adapters.in.web;
+
+import com.agrotrack.application.dto.AlertDto;
+import com.agrotrack.domain.model.entities.Alert;
+import com.agrotrack.domain.port.in.alert.CreateAlertUseCase;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/alerts")
+public class AlertController {
+
+    private final CreateAlertUseCase createAlertUseCase;
+
+    public AlertController(CreateAlertUseCase createAlertUseCase) {
+        this.createAlertUseCase = createAlertUseCase;
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
+    public ResponseEntity<Alert> createAlert(@RequestBody AlertDto dto) {
+        Alert createdAlert = createAlertUseCase.execute(
+                dto.title(), dto.alertType(), dto.priority(), dto.recordType(),
+                dto.description(), dto.createdAt(), dto.authorId(), dto.images(),
+                dto.relatedLotId(), dto.relatedCropId(), dto.relatedAnimalId(),
+                dto.polygonLimit(), dto.centroid()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdAlert);
+    }
+}

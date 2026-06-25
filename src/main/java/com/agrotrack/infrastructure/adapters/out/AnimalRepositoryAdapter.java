@@ -5,6 +5,7 @@ import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.port.out.animal.AnimalRepositoryPort;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.infrastructure.adapters.out.database.entities.AnimalJpaEntity;
+import com.agrotrack.infrastructure.adapters.out.database.entities.IoTCollarJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.entities.LotJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.repositories.AnimalJpaRepository;
 import org.springframework.stereotype.Repository;
@@ -32,6 +33,12 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
             lotEntity.setId(animal.getAssignedLot().getIdLot());
         }
 
+        IoTCollarJpaEntity collarJpaEntity = null;
+        if (animal.getCollar() != null) {
+            collarJpaEntity = new IoTCollarJpaEntity();
+            collarJpaEntity.setId(animal.getCollar().getIdCollar());
+        }
+
         AnimalJpaEntity entity = new AnimalJpaEntity(
                 animal.getIdAnimal(),
                 animal.getVisualCaravan(),
@@ -46,6 +53,7 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
                 animal.getBirthdate(),
                 animal.getCurrentWeight(),
                 lotEntity,
+                collarJpaEntity,
                 new ArrayList<>(), // Se delega al cascade o al repositorio de movimientos
                 new ArrayList<>()  // Se delega al cascade o al repositorio de salud
         );
@@ -70,6 +78,11 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
         return animalJpaRepository.existsByCaravanSenasa(caravanSenasa);
     }
 
+    @Override
+    public Optional<Animal> findByCollarId(UUID collarId) {
+        return animalJpaRepository.findByCollar_Id(collarId).map(this::mapToDomain);
+    }
+
     private Animal mapToDomain(AnimalJpaEntity entity) {
         Lot lot = null;
         if (entity.getAssignedLot() != null) {
@@ -88,6 +101,15 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
                 entity.getCurrentWeight(), lot
         );
         animal.setIdAnimal(entity.getId());
+        
+        if (entity.getCollar() != null) {
+            com.agrotrack.domain.model.entities.IoTCollar domainCollar = com.agrotrack.domain.model.entities.IoTCollar.create(
+                    entity.getCollar().getCodeRFID(), entity.getCollar().getModel(),
+                    entity.getCollar().getState(), entity.getCollar().getBatteryLevel()
+            );
+            domainCollar.setIdCollar(entity.getCollar().getId());
+            animal.assignCollar(domainCollar);
+        }
         return animal;
     }
 }
