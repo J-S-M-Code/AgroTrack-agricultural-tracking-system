@@ -10,4 +10,5 @@ public interface AnimalRepositoryPort {
     Optional<Animal> findByCaravanSenasa(String caravanSenasa);
     boolean existsByCaravanSenasa(String caravanSenasa);
     Optional<Animal> findByCollarId(UUID collarId);
+    java.util.List<Animal> findByFarmId(UUID farmId);
 }

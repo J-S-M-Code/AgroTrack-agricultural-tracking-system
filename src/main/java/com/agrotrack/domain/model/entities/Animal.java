@@ -16,6 +16,7 @@ import java.util.UUID;
 public class Animal {
     @Getter
     @Setter
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idAnimal;
 
     @Getter

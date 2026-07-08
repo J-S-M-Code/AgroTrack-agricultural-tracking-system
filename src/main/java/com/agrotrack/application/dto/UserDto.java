@@ -10,6 +10,7 @@ import java.util.UUID;
 @Data
 @Builder
 public class UserDto {
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idUser;
     private String name;
     private String lastName;

@@ -11,6 +11,11 @@ import com.agrotrack.domain.model.entities.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import com.agrotrack.application.dto.PointDto;
+import com.agrotrack.application.dto.PolygonDto;
+
 import java.util.List;
 
 @Mapper(componentModel = "spring")
@@ -31,4 +36,22 @@ public interface ApplicationDtoMapper {
     @Mapping(source = "relatedLot.idLot", target = "relatedLotId")
     TaskDto toTaskDto(Task task);
     List<TaskDto> toTaskDtoList(List<Task> tasks);
+
+    default PolygonDto mapPolygon(Polygon polygon) {
+        return PolygonDto.fromJtsPolygon(polygon);
+    }
+
+    default Polygon mapPolygonDto(PolygonDto dto) {
+        if (dto == null) return null;
+        return dto.toJtsPolygon();
+    }
+
+    default PointDto mapPoint(Point point) {
+        return PointDto.fromJtsPoint(point);
+    }
+
+    default Point mapPointDto(PointDto dto) {
+        if (dto == null) return null;
+        return dto.toJtsPoint();
+    }
 }

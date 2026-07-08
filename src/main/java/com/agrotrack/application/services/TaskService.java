@@ -9,6 +9,8 @@ import com.agrotrack.domain.model.enums.AccionType;
 import com.agrotrack.domain.model.enums.Priority;
 import com.agrotrack.domain.model.enums.TaskStatus;
 import com.agrotrack.domain.port.in.task.CreateTaskUseCase;
+import com.agrotrack.domain.port.in.task.GetTaskByIdUseCase;
+import com.agrotrack.domain.port.in.task.GetAssignedTasksUseCase;
 import com.agrotrack.domain.port.in.task.UpdateTaskStatusUseCase;
 import com.agrotrack.domain.port.in.task.GetTasksByFarmUseCase;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
@@ -27,7 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase, GetTasksByFarmUseCase {
+public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase, GetTasksByFarmUseCase, GetTaskByIdUseCase, GetAssignedTasksUseCase {
 
     private final TaskRepositoryPort taskRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
@@ -92,6 +94,21 @@ public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase, 
     @Transactional(readOnly = true)
     public List<TaskDto> executeGetTasksByFarm(UUID farmId) {
         List<Task> tasks = taskRepositoryPort.findByFarmId(farmId);
+        return applicationDtoMapper.toTaskDtoList(tasks);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TaskDto executeGetTaskById(UUID taskId) {
+        Task task = taskRepositoryPort.findById(taskId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Tarea no encontrada con ID: " + taskId));
+        return applicationDtoMapper.toTaskDto(task);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TaskDto> executeGetAssignedTasks(UUID userId) {
+        List<Task> tasks = taskRepositoryPort.findByAssignedUserId(userId);
         return applicationDtoMapper.toTaskDtoList(tasks);
     }
 }

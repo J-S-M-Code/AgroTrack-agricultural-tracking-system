@@ -8,6 +8,7 @@ import com.agrotrack.domain.port.in.user.ChangeUserActivationUseCase;
 import com.agrotrack.domain.port.in.user.ChangeUserPasswordUseCase;
 import com.agrotrack.domain.port.in.user.RegisterUserUseCase;
 import com.agrotrack.domain.port.in.user.GetPersonnelByFarmUseCase;
+import com.agrotrack.domain.port.in.user.GetUserByIdUseCase;
 import com.agrotrack.domain.port.out.user.UserRepositoryPort;
 import com.agrotrack.application.dto.UserDto;
 import com.agrotrack.application.mapper.ApplicationDtoMapper;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase {
+public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
     private final ApplicationDtoMapper applicationDtoMapper;
@@ -80,5 +81,13 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
     public List<UserDto> executeGetPersonnelByFarm(UUID farmId) {
         List<User> users = userRepositoryPort.findByFarmId(farmId);
         return applicationDtoMapper.toUserDtoList(users);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDto executeGetUserById(UUID userId) {
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+        return applicationDtoMapper.toUserDto(user);
     }
 }

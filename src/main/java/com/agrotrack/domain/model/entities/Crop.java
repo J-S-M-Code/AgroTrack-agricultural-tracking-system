@@ -12,6 +12,7 @@ import java.util.UUID;
 public class Crop {
     @Getter
     @Setter
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idCrop;
 
     @Getter

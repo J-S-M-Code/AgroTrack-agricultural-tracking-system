@@ -38,6 +38,7 @@ public class Lot {
     private String description;
 
     @Getter
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Polygon polygonLimit;
 
     @Getter

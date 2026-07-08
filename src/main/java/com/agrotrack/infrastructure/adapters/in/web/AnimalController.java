@@ -6,7 +6,7 @@ import com.agrotrack.domain.model.entities.Animal;
 import com.agrotrack.domain.port.in.animal.MoveAnimalUseCase;
 import com.agrotrack.domain.port.in.animal.RegisterAnimalUseCase;
 import com.agrotrack.domain.port.in.animal.RegisterHealthEventUseCase;
-import com.agrotrack.domain.port.out.animal.AnimalRepositoryPort;
+import com.agrotrack.domain.port.in.animal.GetAnimalByIdUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,14 +22,31 @@ public class AnimalController {
     private final RegisterAnimalUseCase registerAnimalUseCase;
     private final MoveAnimalUseCase moveAnimalUseCase;
     private final RegisterHealthEventUseCase registerHealthEventUseCase;
-    private final AnimalRepositoryPort animalRepositoryPort;
+    private final GetAnimalByIdUseCase getAnimalByIdUseCase;
+    private final com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase;
 
     public AnimalController(RegisterAnimalUseCase registerAnimalUseCase, MoveAnimalUseCase moveAnimalUseCase,
-                            RegisterHealthEventUseCase registerHealthEventUseCase, AnimalRepositoryPort animalRepositoryPort) {
+                            RegisterHealthEventUseCase registerHealthEventUseCase, GetAnimalByIdUseCase getAnimalByIdUseCase,
+                            com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase) {
         this.registerAnimalUseCase = registerAnimalUseCase;
         this.moveAnimalUseCase = moveAnimalUseCase;
         this.registerHealthEventUseCase = registerHealthEventUseCase;
-        this.animalRepositoryPort = animalRepositoryPort;
+        this.getAnimalByIdUseCase = getAnimalByIdUseCase;
+        this.getAnimalsByFarmUseCase = getAnimalsByFarmUseCase;
+    }
+
+    @GetMapping("/farm/{farmId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'VETERINARIAN', 'WORKER')")
+    public ResponseEntity<java.util.List<Animal>> getAnimalsByFarm(@PathVariable UUID farmId) {
+        return ResponseEntity.ok(getAnimalsByFarmUseCase.executeGetAnimalsByFarm(farmId));
+    }
+
+    @GetMapping("/test/{farmId}")
+    public ResponseEntity<java.util.List<Animal>> testGetAnimalsByFarm(@PathVariable UUID farmId) {
+        System.out.println("Calling test endpoint for farmId: " + farmId);
+        java.util.List<Animal> animals = getAnimalsByFarmUseCase.executeGetAnimalsByFarm(farmId);
+        System.out.println("Found animals: " + animals.size());
+        return ResponseEntity.ok(animals);
     }
 
     @PostMapping
@@ -62,7 +79,7 @@ public class AnimalController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN', 'VETERINARIAN')")
     public ResponseEntity<Animal> getAnimal(@PathVariable UUID id) {
-        return animalRepositoryPort.findById(id)
+        return getAnimalByIdUseCase.executeGetAnimalById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

@@ -2,6 +2,7 @@ package com.agrotrack.infrastructure.adapters.in.web;
 
 import com.agrotrack.application.dto.UserDto;
 import com.agrotrack.domain.port.in.user.GetPersonnelByFarmUseCase;
+import com.agrotrack.domain.port.in.user.GetUserByIdUseCase;
 import com.agrotrack.infrastructure.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,32 +17,32 @@ import java.util.UUID;
 public class UserController {
 
     private final GetPersonnelByFarmUseCase getPersonnelByFarmUseCase;
+    private final GetUserByIdUseCase getUserByIdUseCase;
+    private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
-    public UserController(GetPersonnelByFarmUseCase getPersonnelByFarmUseCase) {
+    public UserController(GetPersonnelByFarmUseCase getPersonnelByFarmUseCase,
+                          GetUserByIdUseCase getUserByIdUseCase,
+                          com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.getPersonnelByFarmUseCase = getPersonnelByFarmUseCase;
+        this.getUserByIdUseCase = getUserByIdUseCase;
+        this.mapper = mapper;
     }
 
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        // En una app real mapearíamos el User de userDetails a UserDto
-        // Por simplicidad devolvemos datos básicos o usamos un mapper inyectado
         com.agrotrack.domain.model.entities.User user = userDetails.getUser();
-        UserDto dto = UserDto.builder()
-                .idUser(user.getIdUser())
-                .name(user.getName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .role(user.getRole())
-                .dni(user.getDni())
-                .build();
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(mapper.toUserDto(user));
+    }
+    
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
+    public ResponseEntity<UserDto> getUserById(@PathVariable UUID id) {
+        return ResponseEntity.ok(getUserByIdUseCase.executeGetUserById(id));
     }
 
     @GetMapping("/farm/{farmId}")
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
     public ResponseEntity<List<UserDto>> getPersonnelByFarm(@PathVariable UUID farmId) {
-        // Solo OWNER y AGRONOMIST pueden ver el personal de la finca.
-        // Opcional: Validar que el usuario autenticado pertenezca a esa finca
         List<UserDto> users = getPersonnelByFarmUseCase.executeGetPersonnelByFarm(farmId);
         return ResponseEntity.ok(users);
     }

@@ -1,9 +1,17 @@
 package com.agrotrack.infrastructure.adapters.in.web;
 
 import com.agrotrack.application.dto.TaskDto;
-// import com.agrotrack.domain.port.in.task.CreateTaskUseCase;
+import com.agrotrack.domain.model.entities.Task;
+import com.agrotrack.domain.model.enums.TaskStatus;
+import com.agrotrack.domain.port.in.task.CreateTaskUseCase;
+import com.agrotrack.domain.port.in.task.GetAssignedTasksUseCase;
+import com.agrotrack.domain.port.in.task.GetTaskByIdUseCase;
+import com.agrotrack.domain.port.in.task.GetTasksByFarmUseCase;
+import com.agrotrack.domain.port.in.task.UpdateTaskStatusUseCase;
+import com.agrotrack.infrastructure.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,28 +21,74 @@ import java.util.UUID;
 @RequestMapping("/api/v1/tasks")
 public class TaskController {
 
-    // private final CreateTaskUseCase createTaskUseCase;
+    private final CreateTaskUseCase createTaskUseCase;
+    private final GetAssignedTasksUseCase getAssignedTasksUseCase;
+    private final GetTaskByIdUseCase getTaskByIdUseCase;
+    private final GetTasksByFarmUseCase getTasksByFarmUseCase;
+    private final UpdateTaskStatusUseCase updateTaskStatusUseCase;
+    private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
+
+    public TaskController(CreateTaskUseCase createTaskUseCase,
+                          GetAssignedTasksUseCase getAssignedTasksUseCase,
+                          GetTaskByIdUseCase getTaskByIdUseCase,
+                          GetTasksByFarmUseCase getTasksByFarmUseCase,
+                          UpdateTaskStatusUseCase updateTaskStatusUseCase,
+                          com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
+        this.createTaskUseCase = createTaskUseCase;
+        this.getAssignedTasksUseCase = getAssignedTasksUseCase;
+        this.getTaskByIdUseCase = getTaskByIdUseCase;
+        this.getTasksByFarmUseCase = getTasksByFarmUseCase;
+        this.updateTaskStatusUseCase = updateTaskStatusUseCase;
+        this.mapper = mapper;
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN', 'AGRONOMIST', 'VETERINARIAN')")
-    public ResponseEntity<TaskDto> createTask(@RequestBody TaskDto taskDto) {
-        // AGRONOMIST crea tareas para APPLICATOR
-        // VETERINARIAN crea tareas relacionadas con animales
-        // OWNER / FOREMAN pueden crear tareas generales para WORKER
-        return ResponseEntity.ok(taskDto); // Simulación
+    public ResponseEntity<TaskDto> createTask(@RequestBody TaskDto taskDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Task createdTask = createTaskUseCase.executeCreateTask(
+                taskDto.getTitle(),
+                taskDto.getAccionType(),
+                taskDto.getTaskStatus(),
+                taskDto.getDueDate(),
+                taskDto.getPriority(),
+                taskDto.getCreationDate(),
+                taskDto.getCompleteDate(),
+                userDetails.getUser().getIdUser(), // Asignamos al usuario autenticado como creador
+                taskDto.getAssignedId(),
+                taskDto.getRelatedFarmId(),
+                taskDto.getRelatedLotId(),
+                null, // polygonLimit: Se podría mapear si se usa
+                null, // centroid
+                taskDto.getImages(),
+                taskDto.getDescription()
+        );
+        return ResponseEntity.ok(mapper.toTaskDto(createdTask));
     }
 
     @GetMapping("/assigned")
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
-    public ResponseEntity<List<TaskDto>> getAssignedTasks() {
-        // Obtiene las tareas asignadas al usuario autenticado (extraído del token)
-        return ResponseEntity.ok(List.of()); 
+    public ResponseEntity<List<TaskDto>> getAssignedTasks(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<TaskDto> dtos = getAssignedTasksUseCase.executeGetAssignedTasks(userDetails.getUser().getIdUser());
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/farm/{farmId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    public ResponseEntity<List<TaskDto>> getTasksByFarm(@PathVariable UUID farmId) {
+        List<TaskDto> dtos = getTasksByFarmUseCase.executeGetTasksByFarm(farmId);
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    public ResponseEntity<TaskDto> getTaskById(@PathVariable UUID id) {
+        return ResponseEntity.ok(getTaskByIdUseCase.executeGetTaskById(id));
     }
 
     @PatchMapping("/{taskId}/status")
     @PreAuthorize("hasAnyRole('APPLICATOR', 'VETERINARIAN', 'WORKER', 'OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> updateTaskStatus(@PathVariable UUID taskId, @RequestParam String newStatus) {
-        // Un WORKER / APPLICATOR marca su tarea como completada
+    public ResponseEntity<Void> updateTaskStatus(@PathVariable UUID taskId, @RequestParam TaskStatus newStatus) {
+        updateTaskStatusUseCase.executeUpdateTaskStatus(taskId, newStatus);
         return ResponseEntity.ok().build();
     }
 }

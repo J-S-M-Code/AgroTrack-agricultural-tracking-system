@@ -10,14 +10,17 @@ import com.agrotrack.domain.port.in.crop.RegisterHarvestUseCase;
 import com.agrotrack.domain.port.in.crop.UpdatePhenologicalStateUseCase;
 import com.agrotrack.domain.port.out.crop.CropRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
+import com.agrotrack.domain.port.in.crop.GetCropByIdUseCase;
+import com.agrotrack.domain.port.in.crop.GetCropsByFarmUseCase;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
-public class CropService implements RegisterCropUseCase, UpdatePhenologicalStateUseCase, RegisterHarvestUseCase {
+public class CropService implements RegisterCropUseCase, UpdatePhenologicalStateUseCase, RegisterHarvestUseCase, GetCropsByFarmUseCase, GetCropByIdUseCase {
 
     private final CropRepositoryPort cropRepositoryPort;
     private final LotRepositoryPort lotRepositoryPort; // Necesario para validar dónde se planta
@@ -86,5 +89,18 @@ public class CropService implements RegisterCropUseCase, UpdatePhenologicalState
         crop.setHarvestDate(actualHarvestDate);
 
         cropRepositoryPort.save(crop);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Crop> executeGetCropsByFarm(UUID farmId) {
+        return cropRepositoryPort.findByFarmId(farmId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Crop executeGetCropById(UUID cropId) {
+        return cropRepositoryPort.findById(cropId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Cultivo no encontrado con ID: " + cropId));
     }
 }

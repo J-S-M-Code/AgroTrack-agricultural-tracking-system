@@ -41,8 +41,10 @@ public class Task {
     @Getter
     private Lot relatedLot;
     @Getter
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Polygon polygonLimit;
     @Getter
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Point centroid;
     @Getter
     private List<String> images;

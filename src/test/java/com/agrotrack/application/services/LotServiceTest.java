@@ -53,7 +53,8 @@ class LotServiceTest {
     void executeCreateLot_Success() {
         // Arrange
         Polygon lotPolygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(1,1), new Coordinate(1,5), new Coordinate(5,5), new Coordinate(5,1), new Coordinate(1,1)});
-        
+        UUID farmId = UUID.randomUUID();
+        when(farmRepositoryPort.findById(farmId)).thenReturn(java.util.Optional.of(farm));
         when(lotRepositoryPort.existsOverlappingLot(lotPolygon, null)).thenReturn(false);
         when(lotRepositoryPort.save(any(Lot.class))).thenAnswer(i -> {
             Lot l = i.getArgument(0);
@@ -62,7 +63,7 @@ class LotServiceTest {
         });
 
         // Act
-        Lot result = lotService.executeCreateLot(UUID.randomUUID(), "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon, farm);
+        Lot result = lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon);
 
         // Assert
         assertNotNull(result.getIdLot());
@@ -75,12 +76,13 @@ class LotServiceTest {
     void executeCreateLot_ThrowsExceptionWhenOverlaps() {
         // Arrange
         Polygon lotPolygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(1,1), new Coordinate(1,5), new Coordinate(5,5), new Coordinate(5,1), new Coordinate(1,1)});
-        
+        UUID farmId = UUID.randomUUID();
+        when(farmRepositoryPort.findById(farmId)).thenReturn(java.util.Optional.of(farm));
         when(lotRepositoryPort.existsOverlappingLot(lotPolygon, null)).thenReturn(true);
 
         // Act & Assert
         assertThrows(BusinessRuleViolationsException.class, () -> 
-            lotService.executeCreateLot(UUID.randomUUID(), "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon, farm)
+            lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon)
         );
     }
 
@@ -88,12 +90,13 @@ class LotServiceTest {
     void executeCreateLot_ThrowsExceptionWhenOutsideFarm() {
         // Arrange (polygon outside farm)
         Polygon lotPolygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(20,20), new Coordinate(20,25), new Coordinate(25,25), new Coordinate(25,20), new Coordinate(20,20)});
-        
+        UUID farmId = UUID.randomUUID();
+        when(farmRepositoryPort.findById(farmId)).thenReturn(java.util.Optional.of(farm));
         when(lotRepositoryPort.existsOverlappingLot(lotPolygon, null)).thenReturn(false);
 
         // Act & Assert
         Exception exception = assertThrows(BusinessRuleViolationsException.class, () -> 
-            lotService.executeCreateLot(UUID.randomUUID(), "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon, farm)
+            lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon)
         );
         assertTrue(exception.getMessage().contains("fuera") || exception.getMessage().contains("dentro"));
     }

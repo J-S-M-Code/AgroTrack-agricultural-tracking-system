@@ -10,4 +10,5 @@ public interface AnimalJpaRepository extends JpaRepository<AnimalJpaEntity, UUID
     Optional<AnimalJpaEntity> findByCaravanSenasa(String caravanSenasa);
     boolean existsByCaravanSenasa(String caravanSenasa);
     Optional<AnimalJpaEntity> findByCollar_Id(UUID collarId);
+    java.util.List<AnimalJpaEntity> findByAssignedLot_Farm_Id(UUID farmId);
 }

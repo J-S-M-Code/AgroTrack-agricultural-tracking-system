@@ -83,6 +83,11 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
         return animalJpaRepository.findByCollar_Id(collarId).map(this::mapToDomain);
     }
 
+    @Override
+    public java.util.List<Animal> findByFarmId(UUID farmId) {
+        return animalJpaRepository.findByAssignedLot_Farm_Id(farmId).stream().map(this::mapToDomain).toList();
+    }
+
     private Animal mapToDomain(AnimalJpaEntity entity) {
         Lot lot = null;
         if (entity.getAssignedLot() != null) {

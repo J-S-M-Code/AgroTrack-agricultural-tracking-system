@@ -39,9 +39,11 @@ public class Farm {
     private String address;
 
     @Getter
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Polygon polygonLimit;
 
     @Getter
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Point centroid;
 
     @Getter

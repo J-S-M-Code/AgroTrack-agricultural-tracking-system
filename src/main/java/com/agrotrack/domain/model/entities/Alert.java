@@ -17,6 +17,7 @@ import java.util.UUID;
 public class Alert {
     @Getter
     @Setter
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idAlert;
     @Getter
     private String title;
@@ -41,8 +42,10 @@ public class Alert {
     @Getter
     private Animal relatedAnimal;
     @Getter
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Polygon polygonLimit;
     @Getter
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Point centroid;
 
 

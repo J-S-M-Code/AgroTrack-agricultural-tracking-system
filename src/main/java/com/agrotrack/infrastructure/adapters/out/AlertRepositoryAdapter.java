@@ -105,6 +105,13 @@ public class AlertRepositoryAdapter implements AlertRepositoryPort {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<Alert> findByFarmId(UUID farmId) {
+        return alertJpaRepository.findByFarmId(farmId).stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
     // --- Método auxiliar para convertir de Base de Datos a Dominio ---
     private Alert mapToDomain(AlertJpaEntity entity) {
 

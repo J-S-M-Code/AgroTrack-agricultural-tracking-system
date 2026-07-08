@@ -36,7 +36,10 @@ public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetL
     @Override
     @Transactional
     public Lot executeCreateLot(UUID farmId, String name, double hectares, SoilType soilType,
-                       LotType type, String description, Polygon polygonLimit, Farm farm) {
+                       LotType type, String description, Polygon polygonLimit) {
+
+        Farm farm = farmRepositoryPort.findById(farmId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + farmId));
 
         // 1. Validar que el Lote no se superponga con otro Lote existente
         if (lotRepositoryPort.existsOverlappingLot(polygonLimit, null)) {

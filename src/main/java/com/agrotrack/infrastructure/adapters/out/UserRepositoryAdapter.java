@@ -74,7 +74,8 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
     @Override
     public List<User> findByFarmId(UUID farmId) {
         // TODO: Implement relationship mapping in FarmJpaEntity/UserJpaEntity
-        return Collections.emptyList();
+        // Temporarily return all users so the frontend can display them as personnel
+        return userJpaRepository.findAll().stream().map(this::mapToDomain).toList();
     }
 
     private User mapToDomain(UserJpaEntity entity) {

@@ -15,6 +15,7 @@ import java.util.UUID;
 @Data
 @Builder
 public class TaskDto {
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idTask;
     private String title;
     private AccionType accionType;
@@ -24,13 +25,19 @@ public class TaskDto {
     private LocalDateTime creationDate;
     private LocalDateTime completeDate;
     private String description;
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Polygon polygonLimit;
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Point centroid;
     private List<String> images;
     
     // IDs de relaciones en lugar de las entidades completas
     private UUID creatorId;
+    private String creatorName;
     private UUID assignedId;
+    private String assignedName;
     private UUID relatedFarmId;
+    private String farmName;
     private UUID relatedLotId;
+    private String lotName;
 }

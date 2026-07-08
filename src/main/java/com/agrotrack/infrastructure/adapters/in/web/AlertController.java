@@ -13,9 +13,27 @@ import org.springframework.web.bind.annotation.*;
 public class AlertController {
 
     private final CreateAlertUseCase createAlertUseCase;
+    private final com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase;
+    private final com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase;
 
-    public AlertController(CreateAlertUseCase createAlertUseCase) {
+    public AlertController(CreateAlertUseCase createAlertUseCase,
+                           com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase,
+                           com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase) {
         this.createAlertUseCase = createAlertUseCase;
+        this.getAlertsByFarmUseCase = getAlertsByFarmUseCase;
+        this.getAlertByIdUseCase = getAlertByIdUseCase;
+    }
+
+    @GetMapping("/farm/{farmId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
+    public ResponseEntity<java.util.List<Alert>> getAlertsByFarm(@PathVariable java.util.UUID farmId) {
+        return ResponseEntity.ok(getAlertsByFarmUseCase.executeGetAlertsByFarm(farmId));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
+    public ResponseEntity<Alert> getAlertById(@PathVariable java.util.UUID id) {
+        return ResponseEntity.ok(getAlertByIdUseCase.executeGetAlertById(id));
     }
 
     @PostMapping

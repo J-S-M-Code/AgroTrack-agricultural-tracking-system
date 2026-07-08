@@ -12,4 +12,6 @@ public interface CropRepositoryPort {
 
     // Útil para saber qué está plantado actualmente en un lote
     List<Crop> findActiveCropsByLotId(UUID lotId);
+
+    List<Crop> findByFarmId(UUID farmId);
 }

@@ -6,6 +6,7 @@ import com.agrotrack.domain.model.enums.ProductiveOrientation;
 import com.agrotrack.domain.port.in.farm.CreateFarmUseCase;
 import com.agrotrack.domain.port.in.farm.UpdateFarmPerimeterUseCase;
 import com.agrotrack.domain.port.in.farm.GetFarmsUseCase;
+import com.agrotrack.domain.port.in.farm.GetFarmByIdUseCase;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.application.dto.FarmDto;
 import com.agrotrack.application.mapper.ApplicationDtoMapper;
@@ -18,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCase, GetFarmsUseCase {
+public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCase, GetFarmsUseCase, GetFarmByIdUseCase {
 
     private final FarmRepositoryPort farmRepositoryPort;
     private final ApplicationDtoMapper applicationDtoMapper;
@@ -81,5 +82,13 @@ public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCas
     public List<FarmDto> executeGetFarmsByUser(UUID userId) {
         List<Farm> farms = farmRepositoryPort.findByUserId(userId);
         return applicationDtoMapper.toFarmDtoList(farms);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FarmDto executeGetFarmById(UUID farmId) {
+        Farm farm = farmRepositoryPort.findById(farmId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + farmId));
+        return applicationDtoMapper.toFarmDto(farm);
     }
 }

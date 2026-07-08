@@ -21,11 +21,30 @@ public class CropController {
     private final RegisterCropUseCase registerCropUseCase;
     private final UpdatePhenologicalStateUseCase updatePhenologicalStateUseCase;
     private final RegisterHarvestUseCase registerHarvestUseCase;
+    private final com.agrotrack.domain.port.in.crop.GetCropsByFarmUseCase getCropsByFarmUseCase;
+    private final com.agrotrack.domain.port.in.crop.GetCropByIdUseCase getCropByIdUseCase;
 
-    public CropController(RegisterCropUseCase registerCropUseCase, UpdatePhenologicalStateUseCase updatePhenologicalStateUseCase, RegisterHarvestUseCase registerHarvestUseCase) {
+    public CropController(RegisterCropUseCase registerCropUseCase, UpdatePhenologicalStateUseCase updatePhenologicalStateUseCase, 
+                          RegisterHarvestUseCase registerHarvestUseCase, 
+                          com.agrotrack.domain.port.in.crop.GetCropsByFarmUseCase getCropsByFarmUseCase,
+                          com.agrotrack.domain.port.in.crop.GetCropByIdUseCase getCropByIdUseCase) {
         this.registerCropUseCase = registerCropUseCase;
         this.updatePhenologicalStateUseCase = updatePhenologicalStateUseCase;
         this.registerHarvestUseCase = registerHarvestUseCase;
+        this.getCropsByFarmUseCase = getCropsByFarmUseCase;
+        this.getCropByIdUseCase = getCropByIdUseCase;
+    }
+
+    @GetMapping("/crops/farm/{farmId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'WORKER')")
+    public ResponseEntity<java.util.List<Crop>> getCropsByFarm(@PathVariable UUID farmId) {
+        return ResponseEntity.ok(getCropsByFarmUseCase.executeGetCropsByFarm(farmId));
+    }
+
+    @GetMapping("/crops/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'WORKER')")
+    public ResponseEntity<Crop> getCropById(@PathVariable UUID id) {
+        return ResponseEntity.ok(getCropByIdUseCase.executeGetCropById(id));
     }
 
     @PostMapping("/lots/{lotId}/crops")

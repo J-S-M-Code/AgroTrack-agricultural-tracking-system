@@ -17,15 +17,18 @@ import com.agrotrack.domain.port.out.animal.AnimalMovementRepositoryPort;
 import com.agrotrack.domain.port.out.animal.AnimalRepositoryPort;
 import com.agrotrack.domain.port.out.animal.HealthEventRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
+import com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase;
+import com.agrotrack.domain.port.in.animal.GetAnimalByIdUseCase;
 import com.agrotrack.domain.port.out.user.UserRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
-public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, RegisterHealthEventUseCase {
+public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, RegisterHealthEventUseCase, GetAnimalsByFarmUseCase, GetAnimalByIdUseCase {
 
     private final AnimalRepositoryPort animalRepositoryPort;
     private final LotRepositoryPort lotRepositoryPort;
@@ -115,5 +118,17 @@ public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, 
 
         healthEventRepositoryPort.save(healthEvent);
         animalRepositoryPort.save(animal);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Animal> executeGetAnimalsByFarm(UUID farmId) {
+        return animalRepositoryPort.findByFarmId(farmId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.Optional<Animal> executeGetAnimalById(UUID animalId) {
+        return animalRepositoryPort.findById(animalId);
     }
 }

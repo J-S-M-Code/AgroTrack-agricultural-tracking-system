@@ -11,5 +11,6 @@ public interface TaskRepositoryPort {
     Task save(Task task);
     Optional<Task> findById(UUID taskId);
     List<Task> findByFarmId(UUID farmId);
+    List<Task> findByAssignedUserId(UUID assignedUserId);
     List<Task> findByAssignedUserIdAndStatus(UUID assignedUserId, TaskStatus status);
 }

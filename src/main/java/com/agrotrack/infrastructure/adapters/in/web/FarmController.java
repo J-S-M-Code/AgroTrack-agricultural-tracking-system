@@ -1,11 +1,18 @@
 package com.agrotrack.infrastructure.adapters.in.web;
 
 import com.agrotrack.application.dto.FarmDto;
-// Importaremos los puertos de Farm (ej. CreateFarmUseCase, GetFarmUseCase) cuando los creemos.
+import com.agrotrack.domain.model.entities.Farm;
+import com.agrotrack.domain.port.in.farm.CreateFarmUseCase;
+import com.agrotrack.domain.port.in.farm.GetFarmByIdUseCase;
+import com.agrotrack.domain.port.in.farm.GetFarmsUseCase;
+import com.agrotrack.infrastructure.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,29 +20,52 @@ import java.util.UUID;
 @RequestMapping("/api/v1/farms")
 public class FarmController {
 
-    // private final CreateFarmUseCase createFarmUseCase;
-    // ... inyectar casos de uso
+    private final CreateFarmUseCase createFarmUseCase;
+    private final GetFarmsUseCase getFarmsUseCase;
+    private final GetFarmByIdUseCase getFarmByIdUseCase;
+    private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
+
+    public FarmController(CreateFarmUseCase createFarmUseCase, GetFarmsUseCase getFarmsUseCase,
+                          GetFarmByIdUseCase getFarmByIdUseCase, com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
+        this.createFarmUseCase = createFarmUseCase;
+        this.getFarmsUseCase = getFarmsUseCase;
+        this.getFarmByIdUseCase = getFarmByIdUseCase;
+        this.mapper = mapper;
+    }
 
     @PostMapping
     @PreAuthorize("hasRole('OWNER')")
-    public ResponseEntity<FarmDto> createFarm(@RequestBody FarmDto farmDto) {
-        // Solo el OWNER puede registrar nuevas fincas
-        // Llamada al caso de uso aquí
-        return ResponseEntity.ok(farmDto); // Simulación
+    public ResponseEntity<FarmDto> createFarm(@RequestBody FarmDto farmDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Farm createdFarm = createFarmUseCase.executeCreateFarm(
+                farmDto.getName(),
+                farmDto.getCompanyName(),
+                farmDto.getCuit(),
+                farmDto.getNumberRENAPSA(),
+                farmDto.getProductiveOrientation(),
+                farmDto.getAddress(),
+                farmDto.getPolygonLimit() != null ? farmDto.getPolygonLimit().toJtsPolygon() : null,
+                farmDto.getSurface(),
+                farmDto.getImageUrl()
+        );
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createdFarm.getIdFarm())
+                .toUri();
+
+        return ResponseEntity.created(location).body(mapper.toFarmDto(createdFarm));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
-    public ResponseEntity<List<FarmDto>> getMyFarms() {
-        // Todos pueden ver sus fincas asignadas, pero la implementación del UseCase filtrará 
-        // qué fincas retorna basándose en el ID del usuario autenticado.
-        return ResponseEntity.ok(List.of()); 
+    public ResponseEntity<List<FarmDto>> getMyFarms(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<FarmDto> userFarms = getFarmsUseCase.executeGetFarmsByUser(userDetails.getUser().getIdUser());
+        return ResponseEntity.ok(userFarms);
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN')")
     public ResponseEntity<FarmDto> getFarmDetails(@PathVariable UUID id) {
-        // Solo ciertos roles con acceso gerencial/técnico ven el detalle profundo de la finca
-        return ResponseEntity.ok(FarmDto.builder().idFarm(id).build());
+        return ResponseEntity.ok(getFarmByIdUseCase.executeGetFarmById(id));
     }
 }

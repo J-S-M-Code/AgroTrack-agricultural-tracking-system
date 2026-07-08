@@ -12,6 +12,7 @@ import java.util.UUID;
 public class IoTCollar {
     @Getter
     @Setter
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idCollar;
 
     @Getter
