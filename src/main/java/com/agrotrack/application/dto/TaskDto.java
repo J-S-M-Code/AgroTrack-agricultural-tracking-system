@@ -5,6 +5,8 @@ import com.agrotrack.domain.model.enums.Priority;
 import com.agrotrack.domain.model.enums.TaskStatus;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
@@ -14,6 +16,8 @@ import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaskDto {
     @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idTask;

@@ -50,4 +50,12 @@ public class UserJpaEntity {
     @Column(updatable = false)
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "user_farms",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "farm_id")
+    )
+    private java.util.List<FarmJpaEntity> managedFarms = new java.util.ArrayList<>();
 }

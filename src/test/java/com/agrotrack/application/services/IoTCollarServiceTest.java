@@ -48,7 +48,7 @@ class IoTCollarServiceTest {
         });
 
         // Act
-        IoTCollar result = ioTCollarService.executeRegisterIoTCollar("RFID-123", "V1", State.AVAILABLE, 100.0);
+        IoTCollar result = ioTCollarService.executeRegisterIoTCollar("RFID-123", "Model A", State.AVAILABLE, 100.0, null);
 
         // Assert
         assertNotNull(result);
@@ -59,11 +59,11 @@ class IoTCollarServiceTest {
     @Test
     void executeRegisterIoTCollar_WhenRfidExists_ShouldThrowException() {
         // Arrange
-        when(ioTCollarRepositoryPort.findByCodeRFID("RFID-123")).thenReturn(Optional.of(IoTCollar.create("RFID-123", "V1", State.AVAILABLE, 100.0)));
+        when(ioTCollarRepositoryPort.findByCodeRFID("RFID-123")).thenReturn(Optional.of(IoTCollar.create("RFID-123", "V1", State.AVAILABLE, 100.0, null)));
 
         // Act & Assert
         assertThrows(BusinessRuleViolationsException.class, () -> 
-            ioTCollarService.executeRegisterIoTCollar("RFID-123", "V1", State.AVAILABLE, 100.0)
+            ioTCollarService.executeRegisterIoTCollar("RFID-123", "Model A", State.AVAILABLE, 100.0, null)
         );
     }
 
@@ -71,7 +71,7 @@ class IoTCollarServiceTest {
     void executeRegisterGPSPosition_ShouldAddPositionAndSave() {
         // Arrange
         UUID collarId = UUID.randomUUID();
-        IoTCollar collar = IoTCollar.create("RFID-123", "V1", State.AVAILABLE, 100.0);
+        IoTCollar collar = IoTCollar.create("RFID-123", "Model A", State.AVAILABLE, 100.0, null);
         collar.setIdCollar(collarId);
 
         when(ioTCollarRepositoryPort.findById(collarId)).thenReturn(Optional.of(collar));

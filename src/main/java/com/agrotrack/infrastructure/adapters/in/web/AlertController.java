@@ -1,6 +1,7 @@
 package com.agrotrack.infrastructure.adapters.in.web;
 
 import com.agrotrack.application.dto.AlertDto;
+import com.agrotrack.application.mapper.ApplicationDtoMapper;
 import com.agrotrack.domain.model.entities.Alert;
 import com.agrotrack.domain.port.in.alert.CreateAlertUseCase;
 import org.springframework.http.HttpStatus;
@@ -15,36 +16,40 @@ public class AlertController {
     private final CreateAlertUseCase createAlertUseCase;
     private final com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase;
     private final com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase;
+    private final ApplicationDtoMapper mapper;
 
     public AlertController(CreateAlertUseCase createAlertUseCase,
                            com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase,
-                           com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase) {
+                           com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase,
+                           ApplicationDtoMapper mapper) {
         this.createAlertUseCase = createAlertUseCase;
         this.getAlertsByFarmUseCase = getAlertsByFarmUseCase;
         this.getAlertByIdUseCase = getAlertByIdUseCase;
+        this.mapper = mapper;
     }
 
     @GetMapping("/farm/{farmId}")
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
-    public ResponseEntity<java.util.List<Alert>> getAlertsByFarm(@PathVariable java.util.UUID farmId) {
-        return ResponseEntity.ok(getAlertsByFarmUseCase.executeGetAlertsByFarm(farmId));
+    public ResponseEntity<java.util.List<AlertDto>> getAlertsByFarm(@PathVariable java.util.UUID farmId) {
+        return ResponseEntity.ok(mapper.toAlertDtoList(getAlertsByFarmUseCase.executeGetAlertsByFarm(farmId)));
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
-    public ResponseEntity<Alert> getAlertById(@PathVariable java.util.UUID id) {
-        return ResponseEntity.ok(getAlertByIdUseCase.executeGetAlertById(id));
+    public ResponseEntity<AlertDto> getAlertById(@PathVariable java.util.UUID id) {
+        return ResponseEntity.ok(mapper.toAlertDto(getAlertByIdUseCase.executeGetAlertById(id)));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
-    public ResponseEntity<Alert> createAlert(@RequestBody AlertDto dto) {
+    public ResponseEntity<AlertDto> createAlert(@RequestBody AlertDto dto) {
         Alert createdAlert = createAlertUseCase.execute(
                 dto.title(), dto.alertType(), dto.priority(), dto.recordType(),
                 dto.description(), dto.createdAt(), dto.authorId(), dto.images(),
                 dto.relatedLotId(), dto.relatedCropId(), dto.relatedAnimalId(),
-                dto.polygonLimit(), dto.centroid()
+                dto.polygonLimit() != null ? dto.polygonLimit().toJtsPolygon() : null, 
+                dto.centroid() != null ? dto.centroid().toJtsPoint() : null
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdAlert);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toAlertDto(createdAlert));
     }
 }

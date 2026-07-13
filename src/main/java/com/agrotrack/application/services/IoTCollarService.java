@@ -7,6 +7,8 @@ import com.agrotrack.domain.model.entities.IoTCollar;
 import com.agrotrack.domain.model.enums.State;
 import com.agrotrack.domain.port.in.iot.RegisterGPSPositionUseCase;
 import com.agrotrack.domain.port.in.iot.RegisterIoTCollarUseCase;
+import com.agrotrack.domain.port.in.iot.GetCollarsByFarmUseCase;
+import com.agrotrack.domain.port.in.iot.DeleteIoTCollarUseCase;
 import com.agrotrack.domain.port.in.iot.UpdateCollarBatteryUseCase;
 import com.agrotrack.domain.port.in.iot.UpdateCollarStateUseCase;
 import com.agrotrack.domain.port.out.animal.AnimalRepositoryPort;
@@ -18,9 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 @Service
-public class IoTCollarService implements RegisterIoTCollarUseCase, RegisterGPSPositionUseCase, UpdateCollarBatteryUseCase, UpdateCollarStateUseCase {
+public class IoTCollarService implements RegisterIoTCollarUseCase, RegisterGPSPositionUseCase, UpdateCollarBatteryUseCase, UpdateCollarStateUseCase, GetCollarsByFarmUseCase, DeleteIoTCollarUseCase {
 
     private final IoTCollarRepositoryPort ioTCollarRepositoryPort;
     private final AnimalRepositoryPort animalRepositoryPort;
@@ -32,13 +35,25 @@ public class IoTCollarService implements RegisterIoTCollarUseCase, RegisterGPSPo
 
     @Override
     @Transactional
-    public IoTCollar executeRegisterIoTCollar(String codeRFID, String model, State state, Double batteryLevel) {
+    public IoTCollar executeRegisterIoTCollar(String codeRFID, String model, State state, Double batteryLevel, UUID farmId) {
         if (ioTCollarRepositoryPort.findByCodeRFID(codeRFID).isPresent()) {
             throw new BusinessRuleViolationsException("Ya existe un collar con el código RFID: " + codeRFID);
         }
 
-        IoTCollar newCollar = IoTCollar.create(codeRFID, model, state, batteryLevel);
+        IoTCollar newCollar = IoTCollar.create(codeRFID, model, state, batteryLevel, farmId);
         return ioTCollarRepositoryPort.save(newCollar);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<IoTCollar> executeGetCollarsByFarm(UUID farmId) {
+        return ioTCollarRepositoryPort.findByFarmId(farmId);
+    }
+
+    @Override
+    @Transactional
+    public void executeDeleteIoTCollar(UUID collarId) {
+        ioTCollarRepositoryPort.delete(collarId);
     }
 
     @Override

@@ -14,6 +14,7 @@ public class PolygonDto {
     private String type = "Polygon";
     private List<List<List<Double>>> coordinates;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Polygon toJtsPolygon() {
         if (coordinates == null || coordinates.isEmpty() || coordinates.get(0).isEmpty()) {
             return null;

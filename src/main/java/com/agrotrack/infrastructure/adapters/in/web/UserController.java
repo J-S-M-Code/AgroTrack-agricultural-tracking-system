@@ -3,6 +3,7 @@ package com.agrotrack.infrastructure.adapters.in.web;
 import com.agrotrack.application.dto.UserDto;
 import com.agrotrack.domain.port.in.user.GetPersonnelByFarmUseCase;
 import com.agrotrack.domain.port.in.user.GetUserByIdUseCase;
+import com.agrotrack.domain.port.in.user.AssignPersonnelUseCase;
 import com.agrotrack.infrastructure.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -18,13 +20,16 @@ public class UserController {
 
     private final GetPersonnelByFarmUseCase getPersonnelByFarmUseCase;
     private final GetUserByIdUseCase getUserByIdUseCase;
+    private final AssignPersonnelUseCase assignPersonnelUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public UserController(GetPersonnelByFarmUseCase getPersonnelByFarmUseCase,
                           GetUserByIdUseCase getUserByIdUseCase,
+                          AssignPersonnelUseCase assignPersonnelUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.getPersonnelByFarmUseCase = getPersonnelByFarmUseCase;
         this.getUserByIdUseCase = getUserByIdUseCase;
+        this.assignPersonnelUseCase = assignPersonnelUseCase;
         this.mapper = mapper;
     }
 
@@ -45,5 +50,21 @@ public class UserController {
     public ResponseEntity<List<UserDto>> getPersonnelByFarm(@PathVariable UUID farmId) {
         List<UserDto> users = getPersonnelByFarmUseCase.executeGetPersonnelByFarm(farmId);
         return ResponseEntity.ok(users);
+    }
+
+    public static class AssignRequest {
+        public String email;
+        public String role;
+        public List<UUID> farmIds;
+    }
+
+    @PostMapping("/assign")
+    @PreAuthorize("hasAnyRole('OWNER')")
+    public ResponseEntity<Void> assignPersonnel(@RequestBody AssignRequest body) {
+        if (body.email == null || body.email.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        assignPersonnelUseCase.executeAssignPersonnel(body.email, body.role, body.farmIds);
+        return ResponseEntity.ok().build();
     }
 }

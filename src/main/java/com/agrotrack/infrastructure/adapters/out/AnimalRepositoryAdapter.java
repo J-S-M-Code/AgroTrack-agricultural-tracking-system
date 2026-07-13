@@ -108,9 +108,10 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
         animal.setIdAnimal(entity.getId());
         
         if (entity.getCollar() != null) {
+            java.util.UUID collarFarmId = entity.getCollar().getFarm() != null ? entity.getCollar().getFarm().getId() : null;
             com.agrotrack.domain.model.entities.IoTCollar domainCollar = com.agrotrack.domain.model.entities.IoTCollar.create(
                     entity.getCollar().getCodeRFID(), entity.getCollar().getModel(),
-                    entity.getCollar().getState(), entity.getCollar().getBatteryLevel()
+                    entity.getCollar().getState(), entity.getCollar().getBatteryLevel(), collarFarmId
             );
             domainCollar.setIdCollar(entity.getCollar().getId());
             animal.assignCollar(domainCollar);

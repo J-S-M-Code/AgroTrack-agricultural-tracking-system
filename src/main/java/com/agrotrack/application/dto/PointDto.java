@@ -13,6 +13,7 @@ public class PointDto {
     private String type = "Point";
     private List<Double> coordinates;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     public Point toJtsPoint() {
         if (coordinates == null || coordinates.size() < 2) {
             return null;

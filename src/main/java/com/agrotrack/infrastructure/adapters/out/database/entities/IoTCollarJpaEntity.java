@@ -35,6 +35,10 @@ public class IoTCollarJpaEntity {
     @Column(nullable = false)
     private Double batteryLevel;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "farm_id", nullable = false)
+    private FarmJpaEntity farm;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "collar_id")
     private List<GPSPositionJpaEntity> gpsHistory = new ArrayList<>();

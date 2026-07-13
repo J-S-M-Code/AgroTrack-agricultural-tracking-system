@@ -30,16 +30,20 @@ public class IoTCollar {
     @Getter
     private List<GPSPosition> gpsHistory;
 
-    private IoTCollar(String codeRFID, String model, State state, Double batteryLevel) {
+    @Getter
+    private UUID farmId;
+
+    private IoTCollar(String codeRFID, String model, State state, Double batteryLevel, UUID farmId) {
         this.codeRFID = codeRFID;
         this.model = model;
         this.state = state;
         // Si no se envía un nivel de batería inicial, asumimos que viene cargado al 100%
         this.batteryLevel = (batteryLevel != null) ? batteryLevel : 100.0;
+        this.farmId = farmId;
         this.gpsHistory = new ArrayList<>();
     }
 
-    public static IoTCollar create(String codeRFID, String model, State state, Double batteryLevel) {
+    public static IoTCollar create(String codeRFID, String model, State state, Double batteryLevel, UUID farmId) {
 
         // Validaciones solicitadas
         if (codeRFID == null || codeRFID.isBlank()) {
@@ -48,13 +52,16 @@ public class IoTCollar {
         if (state == null) {
             throw new BusinessRuleViolationsException("El estado del collar no puede ser nulo");
         }
+        if (farmId == null) {
+            throw new BusinessRuleViolationsException("El ID de la finca no puede ser nulo");
+        }
 
         // Validación extra de seguridad física (la batería debe tener lógica)
         if (batteryLevel != null && (batteryLevel < 0.0 || batteryLevel > 100.0)) {
             throw new BusinessRuleViolationsException("El nivel de batería debe ser un valor entre 0 y 100");
         }
 
-        return new IoTCollar(codeRFID, model, state, batteryLevel);
+        return new IoTCollar(codeRFID, model, state, batteryLevel, farmId);
     }
 
     // --- MÉTODOS DE COMPORTAMIENTO ---

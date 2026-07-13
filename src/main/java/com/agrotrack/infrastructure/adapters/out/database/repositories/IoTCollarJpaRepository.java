@@ -12,4 +12,5 @@ public interface IoTCollarJpaRepository extends JpaRepository<IoTCollarJpaEntity
     Optional<IoTCollarJpaEntity> findByCodeRFID(String codeRFID);
     List<IoTCollarJpaEntity> findByState(State state);
     List<IoTCollarJpaEntity> findByBatteryLevelLessThan(Double batteryThreshold);
+    List<IoTCollarJpaEntity> findByFarm_Id(UUID farmId);
 }

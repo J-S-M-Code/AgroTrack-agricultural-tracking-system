@@ -98,6 +98,21 @@ public class User {
     }
 
     public void addFarm(Farm farm) {
-        this.managedFarms.add(farm);
+        if (this.managedFarms == null) {
+            this.managedFarms = new ArrayList<>();
+        }
+        if (this.managedFarms.stream().noneMatch(f -> f.getIdFarm().equals(farm.getIdFarm()))) {
+            this.managedFarms.add(farm);
+        }
+    }
+
+    public void assignFarms(List<Farm> farms) {
+        this.managedFarms = new ArrayList<>(farms);
+    }
+
+    public void changeRole(UserRole newRole) {
+        if (newRole != null) {
+            this.role = newRole;
+        }
     }
 }

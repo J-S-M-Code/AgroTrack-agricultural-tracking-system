@@ -138,10 +138,19 @@ public class AlertRepositoryAdapter implements AlertRepositoryPort {
         // Reconstruir Cultivo (si existe)
         Crop crop = null;
         if (entity.getRelatedCrop() != null) {
+            Lot cropLot = null;
+            if (entity.getRelatedCrop().getLot() != null) {
+                cropLot = Lot.create(
+                        entity.getRelatedCrop().getLot().getName(), entity.getRelatedCrop().getLot().getHectares(),
+                        entity.getRelatedCrop().getLot().getSoilType(), entity.getRelatedCrop().getLot().getType(),
+                        entity.getRelatedCrop().getLot().getDescription(), entity.getRelatedCrop().getLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getRelatedCrop().getLot().getFarm().getId()).orElse(null)
+                );
+                cropLot.setIdLot(entity.getRelatedCrop().getLot().getId());
+            }
             crop = Crop.create(
                     entity.getRelatedCrop().getTypeCrop(), entity.getRelatedCrop().getSpecies(),
                     entity.getRelatedCrop().getVariety(), entity.getRelatedCrop().getPlantingDate(),
-                    entity.getRelatedCrop().getEstimateHarvestDate(), lot,
+                    entity.getRelatedCrop().getEstimateHarvestDate(), cropLot,
                     entity.getRelatedCrop().getImplantedSurface(), entity.getRelatedCrop().getRenspa(),
                     entity.getRelatedCrop().getPhenologicalState()
             );
@@ -151,13 +160,22 @@ public class AlertRepositoryAdapter implements AlertRepositoryPort {
         // Reconstruir Animal (si existe)
         Animal animal = null;
         if (entity.getRelatedAnimal() != null) {
+            Lot animalLot = null;
+            if (entity.getRelatedAnimal().getAssignedLot() != null) {
+                animalLot = Lot.create(
+                        entity.getRelatedAnimal().getAssignedLot().getName(), entity.getRelatedAnimal().getAssignedLot().getHectares(),
+                        entity.getRelatedAnimal().getAssignedLot().getSoilType(), entity.getRelatedAnimal().getAssignedLot().getType(),
+                        entity.getRelatedAnimal().getAssignedLot().getDescription(), entity.getRelatedAnimal().getAssignedLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getRelatedAnimal().getAssignedLot().getFarm().getId()).orElse(null)
+                );
+                animalLot.setIdLot(entity.getRelatedAnimal().getAssignedLot().getId());
+            }
             animal = Animal.create(
                     entity.getRelatedAnimal().getVisualCaravan(), entity.getRelatedAnimal().getCaravanSenasa(),
                     entity.getRelatedAnimal().getLivestockKey(), entity.getRelatedAnimal().getNumRENSPA(),
                     entity.getRelatedAnimal().getInternalManagementCaravan(), entity.getRelatedAnimal().getSpecies(),
                     entity.getRelatedAnimal().getRace(), entity.getRelatedAnimal().getSex(),
                     entity.getRelatedAnimal().getCategory(), entity.getRelatedAnimal().getBirthdate(),
-                    entity.getRelatedAnimal().getCurrentWeight(), lot
+                    entity.getRelatedAnimal().getCurrentWeight(), animalLot
             );
             animal.setIdAnimal(entity.getRelatedAnimal().getId());
         }

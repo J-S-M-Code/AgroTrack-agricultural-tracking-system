@@ -39,7 +39,7 @@ public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCas
             throw new BusinessRuleViolationsException("Ya existe una finca registrada con el CUIT: " + cuit);
         }
 
-        if (farmRepositoryPort.existsOverlappingFarm(polygonLimit, null)) {
+        if (polygonLimit != null && farmRepositoryPort.existsOverlappingFarm(polygonLimit, null)) {
             throw new BusinessRuleViolationsException("El perímetro ingresado se superpone con una finca existente en el sistema.");
         }
 

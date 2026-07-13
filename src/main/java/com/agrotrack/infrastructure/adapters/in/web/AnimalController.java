@@ -24,40 +24,43 @@ public class AnimalController {
     private final RegisterHealthEventUseCase registerHealthEventUseCase;
     private final GetAnimalByIdUseCase getAnimalByIdUseCase;
     private final com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase;
+    private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public AnimalController(RegisterAnimalUseCase registerAnimalUseCase, MoveAnimalUseCase moveAnimalUseCase,
                             RegisterHealthEventUseCase registerHealthEventUseCase, GetAnimalByIdUseCase getAnimalByIdUseCase,
-                            com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase) {
+                            com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase,
+                            com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.registerAnimalUseCase = registerAnimalUseCase;
         this.moveAnimalUseCase = moveAnimalUseCase;
         this.registerHealthEventUseCase = registerHealthEventUseCase;
         this.getAnimalByIdUseCase = getAnimalByIdUseCase;
         this.getAnimalsByFarmUseCase = getAnimalsByFarmUseCase;
+        this.mapper = mapper;
     }
 
     @GetMapping("/farm/{farmId}")
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'VETERINARIAN', 'WORKER')")
-    public ResponseEntity<java.util.List<Animal>> getAnimalsByFarm(@PathVariable UUID farmId) {
-        return ResponseEntity.ok(getAnimalsByFarmUseCase.executeGetAnimalsByFarm(farmId));
+    public ResponseEntity<java.util.List<AnimalDto>> getAnimalsByFarm(@PathVariable UUID farmId) {
+        return ResponseEntity.ok(mapper.toAnimalDtoList(getAnimalsByFarmUseCase.executeGetAnimalsByFarm(farmId)));
     }
 
     @GetMapping("/test/{farmId}")
-    public ResponseEntity<java.util.List<Animal>> testGetAnimalsByFarm(@PathVariable UUID farmId) {
+    public ResponseEntity<java.util.List<AnimalDto>> testGetAnimalsByFarm(@PathVariable UUID farmId) {
         System.out.println("Calling test endpoint for farmId: " + farmId);
         java.util.List<Animal> animals = getAnimalsByFarmUseCase.executeGetAnimalsByFarm(farmId);
         System.out.println("Found animals: " + animals.size());
-        return ResponseEntity.ok(animals);
+        return ResponseEntity.ok(mapper.toAnimalDtoList(animals));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Animal> createAnimal(@RequestBody AnimalDto dto) {
+    public ResponseEntity<AnimalDto> createAnimal(@RequestBody AnimalDto dto) {
         Animal createdAnimal = registerAnimalUseCase.executeRegisterAnimal(
                 dto.visualCaravan(), dto.caravanSenasa(), dto.livestockKey(), dto.numRENSPA(),
                 dto.internalManagementCaravan(), dto.species(), dto.race(), dto.sex(),
                 dto.category(), dto.birthdate(), dto.currentWeight(), dto.assignedLotId()
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdAnimal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toAnimalDto(createdAnimal));
     }
 
     @PutMapping("/{id}/move")
@@ -78,8 +81,9 @@ public class AnimalController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN', 'VETERINARIAN')")
-    public ResponseEntity<Animal> getAnimal(@PathVariable UUID id) {
+    public ResponseEntity<AnimalDto> getAnimal(@PathVariable UUID id) {
         return getAnimalByIdUseCase.executeGetAnimalById(id)
+                .map(mapper::toAnimalDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

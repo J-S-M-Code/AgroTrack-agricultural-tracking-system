@@ -37,10 +37,20 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 user.getRole(),
                 user.isActive(),
                 user.getCreationDate(),
-                user.getLastAccess()
+                user.getLastAccess(),
+                new java.util.ArrayList<>()
         );
 
         UserJpaEntity savedEntity = userJpaRepository.save(entity);
+        if (user.getManagedFarms() != null && !user.getManagedFarms().isEmpty()) {
+            java.util.List<com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity> farmEntities = user.getManagedFarms().stream().map(farm -> {
+                com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity fe = new com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity();
+                fe.setId(farm.getIdFarm());
+                return fe;
+            }).toList();
+            savedEntity.setManagedFarms(farmEntities);
+            savedEntity = userJpaRepository.save(savedEntity);
+        }
         user.setIdUser(savedEntity.getId());
         return user;
     }
@@ -73,9 +83,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findByFarmId(UUID farmId) {
-        // TODO: Implement relationship mapping in FarmJpaEntity/UserJpaEntity
-        // Temporarily return all users so the frontend can display them as personnel
-        return userJpaRepository.findAll().stream().map(this::mapToDomain).toList();
+        return userJpaRepository.findByManagedFarms_Id(farmId).stream().map(this::mapToDomain).toList();
     }
 
     private User mapToDomain(UserJpaEntity entity) {

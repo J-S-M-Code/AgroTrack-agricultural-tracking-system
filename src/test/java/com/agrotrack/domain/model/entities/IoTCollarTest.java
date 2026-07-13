@@ -18,7 +18,7 @@ class IoTCollarTest {
 
     @Test
     void testCreateIoTCollarSuccess() {
-        IoTCollar collar = IoTCollar.create("RFID-1234", "ModelX", State.AVAILABLE, 100.0);
+        IoTCollar collar = IoTCollar.create("RFID-1234", "ModelX", State.AVAILABLE, 100.0, null);
         
         assertNotNull(collar);
         assertEquals("RFID-1234", collar.getCodeRFID());
@@ -31,13 +31,13 @@ class IoTCollarTest {
     @Test
     void testCreateIoTCollarThrowsExceptionWhenRFIDIsBlank() {
         assertThrows(BusinessRuleViolationsException.class, () -> 
-            IoTCollar.create("", "ModelX", State.AVAILABLE, 100.0)
+            IoTCollar.create("", "ModelX", State.AVAILABLE, 100.0, null)
         );
     }
 
     @Test
     void testAddGpsPosition() {
-        IoTCollar collar = IoTCollar.create("RFID-1234", "ModelX", State.AVAILABLE, 100.0);
+        IoTCollar collar = IoTCollar.create("RFID-1234", "ModelX", State.AVAILABLE, 100.0, null);
         Point point = geometryFactory.createPoint(new Coordinate(0, 0));
         GPSPosition pos = GPSPosition.create(LocalDateTime.now(), point, false);
         
@@ -49,7 +49,7 @@ class IoTCollarTest {
 
     @Test
     void testUpdateBatteryLevel() {
-        IoTCollar collar = IoTCollar.create("RFID-1234", "ModelX", State.AVAILABLE, 100.0);
+        IoTCollar collar = IoTCollar.create("RFID-1234", "ModelX", State.AVAILABLE, 100.0, null);
         
         collar.updateBatteryLevel(50.0);
         assertEquals(50.0, collar.getBatteryLevel());
@@ -61,7 +61,7 @@ class IoTCollarTest {
 
     @Test
     void testChangeState() {
-        IoTCollar collar = IoTCollar.create("RFID-1234", "ModelX", State.AVAILABLE, 100.0);
+        IoTCollar collar = IoTCollar.create("RFID-1234", "ModelX", State.AVAILABLE, 100.0, null);
         collar.changeState(State.MAINTENANCE);
         assertEquals(State.MAINTENANCE, collar.getState());
     }
