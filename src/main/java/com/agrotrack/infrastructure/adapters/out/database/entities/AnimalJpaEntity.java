@@ -58,6 +58,10 @@ public class AnimalJpaEntity {
     @JoinColumn(name = "assigned_lot_id")
     private LotJpaEntity assignedLot;
 
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "collar_id")
+    private IoTCollarJpaEntity collar;
+
     // Magia de JPA: Maneja la FK "animal_id" en la tabla animal_movements automáticamente
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "animal_id")

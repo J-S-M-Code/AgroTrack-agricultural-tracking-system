@@ -10,5 +10,5 @@ import java.util.UUID;
 
 public interface CreateLotUseCase {
     Lot executeCreateLot(UUID farmId, String name, double hectares, SoilType soilType,
-                LotType type, String description, Polygon polygonLimit, Farm farm);
+                LotType type, String description, Polygon polygonLimit);
 }

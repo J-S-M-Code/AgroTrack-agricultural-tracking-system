@@ -6,7 +6,6 @@ import com.agrotrack.domain.model.enums.SpectralMapType;
 import com.agrotrack.domain.port.in.lot.RegisterSpectralMapUseCase;
 import com.agrotrack.domain.port.out.crop.SpectralMapRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
-import com.agrotrack.domain.port.out.storage.FileStoragePort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,17 +17,14 @@ import java.util.UUID;
 public class SpectralMapService implements RegisterSpectralMapUseCase {
 
     private final SpectralMapRepositoryPort spectralMapRepositoryPort;
-    private final FileStoragePort fileStoragePort;
     private final AsyncMapProcessor asyncMapProcessor;
     private final LotRepositoryPort lotRepositoryPort;
 
 
     public SpectralMapService(SpectralMapRepositoryPort spectralMapRepositoryPort,
-                            FileStoragePort fileStoragePort,
                             AsyncMapProcessor asyncMapProcessor,
                             LotRepositoryPort lotRepositoryPort) {
         this.spectralMapRepositoryPort = spectralMapRepositoryPort;
-        this.fileStoragePort = fileStoragePort;
         this.asyncMapProcessor = asyncMapProcessor;
         this.lotRepositoryPort = lotRepositoryPort;
     }
@@ -36,7 +32,7 @@ public class SpectralMapService implements RegisterSpectralMapUseCase {
     @Override
     @Transactional
     public SpectralMap executeRegisterSpectralMap(
-            InputStream geoTiffStream, 
+            String minioRawPath, 
             LocalDateTime flightDate, 
             SpectralMapType indexType,
             Double cloudCoverPercentage, 
@@ -50,7 +46,7 @@ public class SpectralMapService implements RegisterSpectralMapUseCase {
 
         // 1. Instanciar el objeto de dominio con todos los parámetros definidos
         SpectralMap map = SpectralMap.create(
-            null, // URL interna
+            minioRawPath, // URL interna proveniente del frontend
             flightDate,
             indexType,
             cloudCoverPercentage,
@@ -63,21 +59,10 @@ public class SpectralMapService implements RegisterSpectralMapUseCase {
         // 2. Persistir para obtener el ID autogenerado
         SpectralMap savedMap = spectralMapRepositoryPort.save(map);
 
-        // 3. Definir la ruta de almacenamiento para el archivo crudo original
-        String minioRawPath = "mapas-crudos/"+ map.getAssignedLot().getFarm().getIdFarm() + "/"
-                                + map.getAssignedLot().getIdLot()+ "/"
-                                + flightDate.toString() + "/" + savedMap.getIndexType().toString() + ".tif";
-                                
-        fileStoragePort.uploadFile(minioRawPath, geoTiffStream, "image/tiff");
-
-        // 4. Actualizar la URL interna del mapa con la ruta del archivo crudo
-        savedMap.setUrlSpectralMap(minioRawPath);
-        spectralMapRepositoryPort.save(savedMap);
-
-        // 5. Disparar el motor de paches en segundo plano
+        // 3. Disparar el motor de paches en segundo plano
         asyncMapProcessor.processAndTileMap(savedMap, minioRawPath, indexType);
 
-        // 6. Retornar de inmediato el mapa en estado PENDING para no bloquear la API
+        // 4. Retornar de inmediato el mapa en estado PENDING para no bloquear la API
         return savedMap;
     }
 }

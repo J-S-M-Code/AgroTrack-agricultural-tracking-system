@@ -96,6 +96,13 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
     }
 
     @Override
+    public List<Task> findByAssignedUserId(UUID assignedUserId) {
+        return taskJpaRepository.findByAssignedId(assignedUserId).stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<Task> findByAssignedUserIdAndStatus(UUID assignedUserId, TaskStatus status) {
         return taskJpaRepository.findByAssignedIdAndTaskStatus(assignedUserId, status).stream()
                 .map(this::mapToDomain)
@@ -150,13 +157,22 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
             lot.setIdLot(entity.getLot().getId());
         }
 
+        // Manejo de valores nulos (Legacy DB rows)
+        java.time.LocalDateTime creationDate = entity.getCreationDate() != null ? entity.getCreationDate() : java.time.LocalDateTime.now();
+        java.time.LocalDateTime dueDate = entity.getDueDate() != null ? entity.getDueDate() : creationDate;
+        com.agrotrack.domain.model.enums.Priority priority = entity.getPriority() != null ? entity.getPriority() : com.agrotrack.domain.model.enums.Priority.MEDIUM;
+        com.agrotrack.domain.model.enums.TaskStatus status = entity.getTaskStatus() != null ? entity.getTaskStatus() : com.agrotrack.domain.model.enums.TaskStatus.CREATED;
+        com.agrotrack.domain.model.enums.AccionType accionType = entity.getAccionType() != null ? entity.getAccionType() : com.agrotrack.domain.model.enums.AccionType.MAINTENANCE;
+
         // Reconstruir la Tarea Final
         Task task = Task.create(
-                entity.getTitle(), entity.getAccionType(), entity.getTaskStatus(),
-                entity.getDueDate(), entity.getPriority(), entity.getCreationDate(),
+                entity.getTitle() != null ? entity.getTitle() : "Sin Título", 
+                accionType, status,
+                dueDate, priority, creationDate,
                 entity.getCompleteDate(), creator, assigned, farm, lot,
                 entity.getPolygonLimit(), entity.getCentroid(),
-                new ArrayList<>(entity.getImages()), entity.getDescription()
+                entity.getImages() != null ? new ArrayList<>(entity.getImages()) : new ArrayList<>(), 
+                entity.getDescription()
         );
         task.setIdTask(entity.getId());
 

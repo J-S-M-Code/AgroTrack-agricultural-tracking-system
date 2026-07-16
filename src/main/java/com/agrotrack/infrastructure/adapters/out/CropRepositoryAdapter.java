@@ -62,6 +62,13 @@ public class CropRepositoryAdapter implements CropRepositoryPort {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<Crop> findByFarmId(UUID farmId) {
+        return cropJpaRepository.findByLot_Farm_Id(farmId).stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
     private Crop mapToDomain(CropJpaEntity entity) {
         // Reconstruimos un Lote básico para que el dominio no falle por nulos
         Lot lot = Lot.create(

@@ -1,16 +1,19 @@
 package com.agrotrack.application.dto;
 
 import com.agrotrack.domain.model.enums.ProductiveOrientation;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class FarmDto {
+    @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idFarm;
     private String name;
     private String companyName;
@@ -18,8 +21,8 @@ public class FarmDto {
     private String numberRENAPSA;
     private ProductiveOrientation productiveOrientation;
     private String address;
-    private Polygon polygonLimit;
-    private Point centroid;
+    private PolygonDto polygonLimit;
+    private PointDto centroid;
     private double surface;
     private String imageUrl;
 }

@@ -9,5 +9,6 @@ import java.util.UUID;
 
 public interface TaskJpaRepository extends JpaRepository<TaskJpaEntity, UUID> {
     List<TaskJpaEntity> findByFarmId(UUID farmId);
+    List<TaskJpaEntity> findByAssignedId(UUID assignedId);
     List<TaskJpaEntity> findByAssignedIdAndTaskStatus(UUID assignedId, TaskStatus taskStatus);
 }

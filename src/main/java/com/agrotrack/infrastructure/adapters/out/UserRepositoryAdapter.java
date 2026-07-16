@@ -16,9 +16,11 @@ import java.util.UUID;
 public class UserRepositoryAdapter implements UserRepositoryPort {
 
     private final UserJpaRepository userJpaRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    public UserRepositoryAdapter(UserJpaRepository userJpaRepository) {
+    public UserRepositoryAdapter(UserJpaRepository userJpaRepository, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.userJpaRepository = userJpaRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -31,14 +33,24 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 user.getPhone(),
                 user.getAddress(),
                 user.getEmail(),
-                user.getPassword().getValue(), // Extraemos el string del Value Object
+                user.getPassword().getValue().startsWith("$2a$") ? user.getPassword().getValue() : passwordEncoder.encode(user.getPassword().getValue()), // Encriptamos si no lo está
                 user.getRole(),
                 user.isActive(),
                 user.getCreationDate(),
-                user.getLastAccess()
+                user.getLastAccess(),
+                new java.util.ArrayList<>()
         );
 
         UserJpaEntity savedEntity = userJpaRepository.save(entity);
+        if (user.getManagedFarms() != null && !user.getManagedFarms().isEmpty()) {
+            java.util.List<com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity> farmEntities = user.getManagedFarms().stream().map(farm -> {
+                com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity fe = new com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity();
+                fe.setId(farm.getIdFarm());
+                return fe;
+            }).toList();
+            savedEntity.setManagedFarms(farmEntities);
+            savedEntity = userJpaRepository.save(savedEntity);
+        }
         user.setIdUser(savedEntity.getId());
         return user;
     }
@@ -71,8 +83,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findByFarmId(UUID farmId) {
-        // TODO: Implement relationship mapping in FarmJpaEntity/UserJpaEntity
-        return Collections.emptyList();
+        return userJpaRepository.findByManagedFarms_Id(farmId).stream().map(this::mapToDomain).toList();
     }
 
     private User mapToDomain(UserJpaEntity entity) {

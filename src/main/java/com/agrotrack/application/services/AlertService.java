@@ -17,6 +17,8 @@ import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
 import com.agrotrack.domain.port.out.user.UserRepositoryPort;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
+import com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase;
+import com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class AlertService implements CreateAlertUseCase {
+public class AlertService implements CreateAlertUseCase, GetAlertsByFarmUseCase, GetAlertByIdUseCase {
 
     private final AlertRepositoryPort alertRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
@@ -67,5 +69,18 @@ public class AlertService implements CreateAlertUseCase {
 
         // 4. Guardar
         return alertRepositoryPort.save(newAlert);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Alert> executeGetAlertsByFarm(UUID farmId) {
+        return alertRepositoryPort.findByFarmId(farmId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Alert executeGetAlertById(UUID alertId) {
+        return alertRepositoryPort.findById(alertId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Alerta no encontrada con ID: " + alertId));
     }
 }

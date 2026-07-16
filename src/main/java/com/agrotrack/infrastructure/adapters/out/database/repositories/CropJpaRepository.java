@@ -13,4 +13,6 @@ public interface CropJpaRepository extends JpaRepository<CropJpaEntity, UUID> {
     // Un cultivo activo es aquel que está en ese lote y su estado NO es HARVESTED (Cosechado)
     @Query("SELECT c FROM CropJpaEntity c WHERE c.lot.id = :lotId AND c.phenologicalState != 'HARVESTED'")
     List<CropJpaEntity> findActiveCropsByLotId(@Param("lotId") UUID lotId);
+
+    List<CropJpaEntity> findByLot_Farm_Id(UUID farmId);
 }

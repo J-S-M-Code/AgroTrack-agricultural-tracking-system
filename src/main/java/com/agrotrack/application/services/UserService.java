@@ -8,7 +8,12 @@ import com.agrotrack.domain.port.in.user.ChangeUserActivationUseCase;
 import com.agrotrack.domain.port.in.user.ChangeUserPasswordUseCase;
 import com.agrotrack.domain.port.in.user.RegisterUserUseCase;
 import com.agrotrack.domain.port.in.user.GetPersonnelByFarmUseCase;
+import com.agrotrack.domain.port.in.user.GetUserByIdUseCase;
+import com.agrotrack.domain.port.in.user.AssignPersonnelUseCase;
 import com.agrotrack.domain.port.out.user.UserRepositoryPort;
+import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
+import com.agrotrack.domain.model.entities.Farm;
+import com.agrotrack.domain.model.enums.UserRole;
 import com.agrotrack.application.dto.UserDto;
 import com.agrotrack.application.mapper.ApplicationDtoMapper;
 import java.util.List;
@@ -18,13 +23,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase {
+public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
+    private final FarmRepositoryPort farmRepositoryPort;
     private final ApplicationDtoMapper applicationDtoMapper;
 
-    public UserService(UserRepositoryPort userRepositoryPort, ApplicationDtoMapper applicationDtoMapper) {
+    public UserService(UserRepositoryPort userRepositoryPort, FarmRepositoryPort farmRepositoryPort, ApplicationDtoMapper applicationDtoMapper) {
         this.userRepositoryPort = userRepositoryPort;
+        this.farmRepositoryPort = farmRepositoryPort;
         this.applicationDtoMapper = applicationDtoMapper;
     }
 
@@ -80,5 +87,33 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
     public List<UserDto> executeGetPersonnelByFarm(UUID farmId) {
         List<User> users = userRepositoryPort.findByFarmId(farmId);
         return applicationDtoMapper.toUserDtoList(users);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDto executeGetUserById(UUID userId) {
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+        return applicationDtoMapper.toUserDto(user);
+    }
+
+    @Override
+    @Transactional
+    public void executeAssignPersonnel(String email, String role, List<UUID> farmIds) {
+        User user = userRepositoryPort.findByEmail(email)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con el correo: " + email));
+        
+        List<Farm> farms = farmIds.stream()
+                .map(id -> farmRepositoryPort.findById(id).orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + id)))
+                .toList();
+
+        try {
+            user.changeRole(UserRole.valueOf(role));
+        } catch (IllegalArgumentException e) {
+            throw new BusinessRuleViolationsException("Rol inválido: " + role);
+        }
+
+        user.assignFarms(farms);
+        userRepositoryPort.save(user);
     }
 }
