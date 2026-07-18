@@ -103,4 +103,19 @@ public class IoTCollar {
         // Podrías ajustar este umbral (ej. 15.0%) según las especificaciones del fabricante del collar
         return this.batteryLevel != null && this.batteryLevel <= 15.0;
     }
+
+    /**
+     * Actualiza la información principal del collar.
+     */
+    public void update(String codeRFID, String model, State state) {
+        if (codeRFID == null || codeRFID.isBlank()) {
+            throw new BusinessRuleViolationsException("El código RFID del collar no puede estar vacío");
+        }
+        if (state == null) {
+            throw new BusinessRuleViolationsException("El estado del collar no puede ser nulo");
+        }
+        this.codeRFID = codeRFID;
+        this.model = model;
+        this.state = state;
+    }
 }

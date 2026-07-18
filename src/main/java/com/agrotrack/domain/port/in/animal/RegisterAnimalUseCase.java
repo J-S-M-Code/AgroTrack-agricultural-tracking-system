@@ -11,5 +11,5 @@ import java.util.UUID;
 public interface RegisterAnimalUseCase {
     Animal executeRegisterAnimal(String visualCaravan, String caravanSenasa, String livestockKey, String numRENSPA,
                    String internalManagementCaravan, Species species, String race, Sex sex,
-                   CategoryAnimal category, LocalDateTime birthdate, double currentWeight, UUID assignedLotId);
+                   CategoryAnimal category, LocalDateTime birthdate, double currentWeight, UUID assignedLotId, UUID assignedCollarId);
 }

@@ -58,7 +58,7 @@ public class AnimalJpaEntity {
     @JoinColumn(name = "assigned_lot_id")
     private LotJpaEntity assignedLot;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "collar_id")
     private IoTCollarJpaEntity collar;
 

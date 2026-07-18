@@ -7,6 +7,7 @@ import com.agrotrack.domain.port.in.farm.CreateFarmUseCase;
 import com.agrotrack.domain.port.in.farm.UpdateFarmPerimeterUseCase;
 import com.agrotrack.domain.port.in.farm.GetFarmsUseCase;
 import com.agrotrack.domain.port.in.farm.GetFarmByIdUseCase;
+import com.agrotrack.domain.port.in.farm.UpdateFarmUseCase;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.application.dto.FarmDto;
 import com.agrotrack.application.mapper.ApplicationDtoMapper;
@@ -19,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCase, GetFarmsUseCase, GetFarmByIdUseCase {
+public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCase, GetFarmsUseCase, GetFarmByIdUseCase, UpdateFarmUseCase {
 
     private final FarmRepositoryPort farmRepositoryPort;
     private final ApplicationDtoMapper applicationDtoMapper;
@@ -90,5 +91,21 @@ public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCas
         Farm farm = farmRepositoryPort.findById(farmId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + farmId));
         return applicationDtoMapper.toFarmDto(farm);
+    }
+
+    @Override
+    @Transactional
+    public Farm executeUpdateFarm(UUID farmId, String name, String companyName, String cuit, String numberRENAPSA,
+                                  ProductiveOrientation productiveOrientation, String address, String imageUrl) {
+        Farm farm = farmRepositoryPort.findById(farmId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + farmId));
+
+        if (!farm.getCuit().equals(cuit) && farmRepositoryPort.existsByCuit(cuit)) {
+            throw new BusinessRuleViolationsException("Ya existe otra finca registrada con el CUIT: " + cuit);
+        }
+
+        farm.update(name, companyName, cuit, numberRENAPSA, productiveOrientation, address, imageUrl);
+
+        return farmRepositoryPort.save(farm);
     }
 }

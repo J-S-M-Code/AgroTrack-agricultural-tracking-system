@@ -28,16 +28,19 @@ public class IoTCollarController {
     private final UpdateCollarStateUseCase updateCollarStateUseCase;
     private final GetCollarsByFarmUseCase getCollarsByFarmUseCase;
     private final DeleteIoTCollarUseCase deleteIoTCollarUseCase;
+    private final com.agrotrack.domain.port.in.iot.UpdateIoTCollarUseCase updateIoTCollarUseCase;
 
     public IoTCollarController(RegisterIoTCollarUseCase registerIoTCollarUseCase, RegisterGPSPositionUseCase registerGPSPositionUseCase,
                                UpdateCollarBatteryUseCase updateCollarBatteryUseCase, UpdateCollarStateUseCase updateCollarStateUseCase,
-                               GetCollarsByFarmUseCase getCollarsByFarmUseCase, DeleteIoTCollarUseCase deleteIoTCollarUseCase) {
+                               GetCollarsByFarmUseCase getCollarsByFarmUseCase, DeleteIoTCollarUseCase deleteIoTCollarUseCase,
+                               com.agrotrack.domain.port.in.iot.UpdateIoTCollarUseCase updateIoTCollarUseCase) {
         this.registerIoTCollarUseCase = registerIoTCollarUseCase;
         this.registerGPSPositionUseCase = registerGPSPositionUseCase;
         this.updateCollarBatteryUseCase = updateCollarBatteryUseCase;
         this.updateCollarStateUseCase = updateCollarStateUseCase;
         this.getCollarsByFarmUseCase = getCollarsByFarmUseCase;
         this.deleteIoTCollarUseCase = deleteIoTCollarUseCase;
+        this.updateIoTCollarUseCase = updateIoTCollarUseCase;
     }
 
     @PostMapping("/api/v1/farms/{farmId}/collars")
@@ -60,6 +63,15 @@ public class IoTCollarController {
     public ResponseEntity<Void> deleteCollar(@PathVariable UUID collarId) {
         deleteIoTCollarUseCase.executeDeleteIoTCollar(collarId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/api/v1/collars/{collarId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    public ResponseEntity<IoTCollar> updateCollar(@PathVariable UUID collarId, @RequestBody IoTCollarDto dto) {
+        IoTCollar updatedCollar = updateIoTCollarUseCase.executeUpdateIoTCollar(
+                collarId, dto.codeRFID(), dto.model(), dto.state()
+        );
+        return ResponseEntity.ok(updatedCollar);
     }
 
     @PostMapping("/api/v1/collars/{collarId}/gps")

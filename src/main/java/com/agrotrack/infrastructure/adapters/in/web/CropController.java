@@ -9,6 +9,10 @@ import com.agrotrack.domain.port.in.crop.UpdatePhenologicalStateUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import com.agrotrack.domain.port.in.crop.UpdateCropUseCase;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -23,18 +27,21 @@ public class CropController {
     private final RegisterHarvestUseCase registerHarvestUseCase;
     private final com.agrotrack.domain.port.in.crop.GetCropsByFarmUseCase getCropsByFarmUseCase;
     private final com.agrotrack.domain.port.in.crop.GetCropByIdUseCase getCropByIdUseCase;
+    private final UpdateCropUseCase updateCropUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public CropController(RegisterCropUseCase registerCropUseCase, UpdatePhenologicalStateUseCase updatePhenologicalStateUseCase, 
                           RegisterHarvestUseCase registerHarvestUseCase, 
                           com.agrotrack.domain.port.in.crop.GetCropsByFarmUseCase getCropsByFarmUseCase,
                           com.agrotrack.domain.port.in.crop.GetCropByIdUseCase getCropByIdUseCase,
+                          UpdateCropUseCase updateCropUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.registerCropUseCase = registerCropUseCase;
         this.updatePhenologicalStateUseCase = updatePhenologicalStateUseCase;
         this.registerHarvestUseCase = registerHarvestUseCase;
         this.getCropsByFarmUseCase = getCropsByFarmUseCase;
         this.getCropByIdUseCase = getCropByIdUseCase;
+        this.updateCropUseCase = updateCropUseCase;
         this.mapper = mapper;
     }
 
@@ -59,6 +66,17 @@ public class CropController {
                 dto.renspa(), dto.phenologicalState()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toCropDto(createdCrop));
+    }
+
+    @PutMapping("/crops/{cropId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
+    public ResponseEntity<CropDto> updateCrop(@PathVariable UUID cropId, @RequestBody CropDto dto) {
+        Crop updatedCrop = updateCropUseCase.executeUpdateCrop(
+                cropId, dto.typeCrop(), dto.species(), dto.variety(), dto.plantingDate(),
+                dto.estimateHarvestDate(), dto.lotId(), dto.implantedSurface(),
+                dto.renspa(), dto.phenologicalState()
+        );
+        return ResponseEntity.ok(mapper.toCropDto(updatedCrop));
     }
 
     @PutMapping("/crops/{cropId}/phenological-state")

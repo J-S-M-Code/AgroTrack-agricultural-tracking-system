@@ -51,7 +51,7 @@ public class UserJpaEntity {
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_farms",
         joinColumns = @JoinColumn(name = "user_id"),

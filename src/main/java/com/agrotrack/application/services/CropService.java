@@ -19,8 +19,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.agrotrack.domain.port.in.crop.UpdateCropUseCase;
+
 @Service
-public class CropService implements RegisterCropUseCase, UpdatePhenologicalStateUseCase, RegisterHarvestUseCase, GetCropsByFarmUseCase, GetCropByIdUseCase {
+public class CropService implements RegisterCropUseCase, UpdatePhenologicalStateUseCase, RegisterHarvestUseCase, GetCropsByFarmUseCase, GetCropByIdUseCase, UpdateCropUseCase {
 
     private final CropRepositoryPort cropRepositoryPort;
     private final LotRepositoryPort lotRepositoryPort; // Necesario para validar dónde se planta
@@ -102,5 +104,22 @@ public class CropService implements RegisterCropUseCase, UpdatePhenologicalState
     public Crop executeGetCropById(UUID cropId) {
         return cropRepositoryPort.findById(cropId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Cultivo no encontrado con ID: " + cropId));
+    }
+
+    @Override
+    @Transactional
+    public Crop executeUpdateCrop(UUID cropId, TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
+                           LocalDateTime estimateHarvestDate, UUID assignedLotId, double implantedSurface,
+                           String renspa, PhenologicalState phenologicalState) {
+                           
+        Crop crop = cropRepositoryPort.findById(cropId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Cultivo no encontrado con ID: " + cropId));
+                
+        Lot lot = lotRepositoryPort.findById(assignedLotId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Lote no encontrado con ID: " + assignedLotId));
+
+        crop.update(typeCrop, species, variety, plantingDate, estimateHarvestDate, lot, implantedSurface, renspa, phenologicalState);
+
+        return cropRepositoryPort.save(crop);
     }
 }

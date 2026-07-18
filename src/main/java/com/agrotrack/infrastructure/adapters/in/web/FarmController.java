@@ -23,13 +23,16 @@ public class FarmController {
     private final CreateFarmUseCase createFarmUseCase;
     private final GetFarmsUseCase getFarmsUseCase;
     private final GetFarmByIdUseCase getFarmByIdUseCase;
+    private final com.agrotrack.domain.port.in.farm.UpdateFarmUseCase updateFarmUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public FarmController(CreateFarmUseCase createFarmUseCase, GetFarmsUseCase getFarmsUseCase,
-                          GetFarmByIdUseCase getFarmByIdUseCase, com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
+                          GetFarmByIdUseCase getFarmByIdUseCase, com.agrotrack.domain.port.in.farm.UpdateFarmUseCase updateFarmUseCase,
+                          com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.createFarmUseCase = createFarmUseCase;
         this.getFarmsUseCase = getFarmsUseCase;
         this.getFarmByIdUseCase = getFarmByIdUseCase;
+        this.updateFarmUseCase = updateFarmUseCase;
         this.mapper = mapper;
     }
 
@@ -54,6 +57,22 @@ public class FarmController {
                 .toUri();
 
         return ResponseEntity.created(location).body(mapper.toFarmDto(createdFarm));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('OWNER')")
+    public ResponseEntity<FarmDto> updateFarm(@PathVariable UUID id, @RequestBody FarmDto farmDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Farm updatedFarm = updateFarmUseCase.executeUpdateFarm(
+                id,
+                farmDto.getName(),
+                farmDto.getCompanyName(),
+                farmDto.getCuit(),
+                farmDto.getNumberRENAPSA(),
+                farmDto.getProductiveOrientation(),
+                farmDto.getAddress(),
+                farmDto.getImageUrl()
+        );
+        return ResponseEntity.ok(mapper.toFarmDto(updatedFarm));
     }
 
     @GetMapping

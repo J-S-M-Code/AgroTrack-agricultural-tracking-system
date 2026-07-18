@@ -174,4 +174,22 @@ public class Farm {
         }
         this.alerts.add(alert); // Se corrigió: en tu versión original faltaba agregarlo a la lista
     }
+
+    public void update(String name, String companyName, String cuit, String numberRENAPSA,
+                       ProductiveOrientation productiveOrientation, String address, String imageUrl) {
+        if (name == null || name.isBlank()) throw new BusinessRuleViolationsException("El campo Nombre no puede estar vacío");
+        if (companyName == null || companyName.isBlank()) throw new BusinessRuleViolationsException("El campo Nombre de la Empresa no puede estar vacío");
+        if (cuit == null || cuit.isBlank()) throw new BusinessRuleViolationsException("El campo CUIT no puede estar vacío");
+        if (numberRENAPSA == null || numberRENAPSA.isBlank()) throw new BusinessRuleViolationsException("El campo Número RENAPSA no puede estar vacío");
+        if (address == null || address.isBlank()) throw new BusinessRuleViolationsException("El campo Dirección no puede estar vacío");
+        if (productiveOrientation == null) throw new BusinessRuleViolationsException("La orientación productiva no puede ser nula");
+
+        this.name = name;
+        this.companyName = companyName;
+        this.cuit = cuit;
+        this.numberRENAPSA = numberRENAPSA;
+        this.productiveOrientation = productiveOrientation;
+        this.address = address;
+        this.imageUrl = imageUrl;
+    }
 }

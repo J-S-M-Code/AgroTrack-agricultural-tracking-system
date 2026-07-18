@@ -20,5 +20,6 @@ public record AnimalDto(
         CategoryAnimal category,
         LocalDateTime birthdate,
         double currentWeight,
-        UUID assignedLotId
+        UUID assignedLotId,
+        UUID assignedCollarId
 ) {}

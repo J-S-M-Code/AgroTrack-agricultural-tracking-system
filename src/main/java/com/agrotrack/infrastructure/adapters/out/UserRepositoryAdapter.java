@@ -25,32 +25,51 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public User save(User user) {
-        UserJpaEntity entity = new UserJpaEntity(
-                user.getIdUser(),
-                user.getName(),
-                user.getLastName(),
-                user.getDni(),
-                user.getPhone(),
-                user.getAddress(),
-                user.getEmail(),
-                user.getPassword().getValue().startsWith("$2a$") ? user.getPassword().getValue() : passwordEncoder.encode(user.getPassword().getValue()), // Encriptamos si no lo está
-                user.getRole(),
-                user.isActive(),
-                user.getCreationDate(),
-                user.getLastAccess(),
-                new java.util.ArrayList<>()
-        );
+        UserJpaEntity entity;
+        if (user.getIdUser() != null) {
+            entity = userJpaRepository.findById(user.getIdUser()).orElse(new UserJpaEntity());
+        } else {
+            entity = new UserJpaEntity();
+            entity.setManagedFarms(new java.util.ArrayList<>());
+        }
+        
+        entity.setName(user.getName());
+        entity.setLastName(user.getLastName());
+        entity.setDni(user.getDni());
+        entity.setPhone(user.getPhone());
+        entity.setAddress(user.getAddress());
+        entity.setEmail(user.getEmail());
+        
+        String pass = user.getPassword().getValue();
+        if (!pass.startsWith("$2a$")) {
+            pass = passwordEncoder.encode(pass);
+        }
+        entity.setPasswordHash(pass);
+        entity.setRole(user.getRole());
+        entity.setActive(user.isActive());
+        
+        if (user.getCreationDate() != null) {
+            entity.setCreatedAt(user.getCreationDate());
+        }
+        if (user.getLastAccess() != null) {
+            entity.setLastLogin(user.getLastAccess());
+        }
 
-        UserJpaEntity savedEntity = userJpaRepository.save(entity);
-        if (user.getManagedFarms() != null && !user.getManagedFarms().isEmpty()) {
+        if (user.getManagedFarms() != null) {
             java.util.List<com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity> farmEntities = user.getManagedFarms().stream().map(farm -> {
                 com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity fe = new com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity();
                 fe.setId(farm.getIdFarm());
                 return fe;
-            }).toList();
-            savedEntity.setManagedFarms(farmEntities);
-            savedEntity = userJpaRepository.save(savedEntity);
+            }).collect(java.util.stream.Collectors.toList());
+            if (entity.getManagedFarms() != null) {
+                entity.getManagedFarms().clear();
+                entity.getManagedFarms().addAll(farmEntities);
+            } else {
+                entity.setManagedFarms(new java.util.ArrayList<>(farmEntities));
+            }
         }
+        
+        UserJpaEntity savedEntity = userJpaRepository.save(entity);
         user.setIdUser(savedEntity.getId());
         return user;
     }
@@ -97,6 +116,18 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         );
         user.setIdUser(entity.getId());
         user.changeActivation(entity.isActive()); // Restauramos su estado real
+        
+        // Mapear fincas administradas si existen
+        if (entity.getManagedFarms() != null && !entity.getManagedFarms().isEmpty()) {
+            java.util.List<com.agrotrack.domain.model.entities.Farm> domainFarms = entity.getManagedFarms().stream().map(f -> {
+                return com.agrotrack.domain.model.entities.Farm.builder()
+                        .idFarm(f.getId())
+                        .name(f.getName())
+                        .build();
+            }).toList();
+            user.assignFarms(domainFarms);
+        }
+        
         return user;
     }
 }

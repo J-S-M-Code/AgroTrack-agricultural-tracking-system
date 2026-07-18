@@ -21,15 +21,18 @@ public class UserController {
     private final GetPersonnelByFarmUseCase getPersonnelByFarmUseCase;
     private final GetUserByIdUseCase getUserByIdUseCase;
     private final AssignPersonnelUseCase assignPersonnelUseCase;
+    private final com.agrotrack.domain.port.in.user.UpdateUserAssignmentUseCase updateUserAssignmentUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public UserController(GetPersonnelByFarmUseCase getPersonnelByFarmUseCase,
                           GetUserByIdUseCase getUserByIdUseCase,
                           AssignPersonnelUseCase assignPersonnelUseCase,
+                          com.agrotrack.domain.port.in.user.UpdateUserAssignmentUseCase updateUserAssignmentUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.getPersonnelByFarmUseCase = getPersonnelByFarmUseCase;
         this.getUserByIdUseCase = getUserByIdUseCase;
         this.assignPersonnelUseCase = assignPersonnelUseCase;
+        this.updateUserAssignmentUseCase = updateUserAssignmentUseCase;
         this.mapper = mapper;
     }
 
@@ -65,6 +68,14 @@ public class UserController {
             return ResponseEntity.badRequest().build();
         }
         assignPersonnelUseCase.executeAssignPersonnel(body.email, body.role, body.farmIds);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/assignments")
+    @PreAuthorize("hasAnyRole('OWNER')")
+    public ResponseEntity<Void> updateAssignments(@PathVariable UUID id, @RequestBody AssignRequest body) {
+        com.agrotrack.domain.model.enums.UserRole newRole = com.agrotrack.domain.model.enums.UserRole.valueOf(body.role);
+        updateUserAssignmentUseCase.executeUpdateUserAssignment(id, newRole, body.farmIds);
         return ResponseEntity.ok().build();
     }
 }
