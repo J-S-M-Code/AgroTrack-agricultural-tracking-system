@@ -131,4 +131,31 @@ public class Crop {
         }
         this.phenologicalState = newState;
     }
+
+    public void update(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
+                       LocalDateTime estimateHarvestDate, Lot assignedLot, double implantedSurface,
+                       String renspa, PhenologicalState phenologicalState) {
+        
+        if (typeCrop == null) throw new BusinessRuleViolationsException("El tipo de cultivo no puede ser nulo");
+        if (assignedLot == null) throw new BusinessRuleViolationsException("El cultivo debe estar asignado a un lote");
+        if (phenologicalState == null) throw new BusinessRuleViolationsException("El estado fenológico no puede ser nulo");
+        if (species == null || species.isBlank()) throw new BusinessRuleViolationsException("La especie no puede estar vacía");
+        if (variety == null || variety.isBlank()) throw new BusinessRuleViolationsException("La variedad no puede estar vacía");
+        if (renspa == null || renspa.isBlank()) throw new BusinessRuleViolationsException("El código RENSPA no puede estar vacío");
+        if (plantingDate == null) throw new BusinessRuleViolationsException("La fecha de plantación no puede ser nula");
+        if (estimateHarvestDate == null) throw new BusinessRuleViolationsException("La fecha estimada de cosecha no puede ser nula");
+        if (estimateHarvestDate.isBefore(plantingDate)) throw new BusinessRuleViolationsException("La fecha de cosecha estimada no puede ser anterior a la fecha de plantación");
+        if (implantedSurface <= 0) throw new BusinessRuleViolationsException("La superficie implantada debe ser mayor a 0");
+        if (implantedSurface > assignedLot.getHectares()) throw new BusinessRuleViolationsException("La superficie implantada no puede superar la superficie total del lote asignado");
+
+        this.typeCrop = typeCrop;
+        this.species = species;
+        this.variety = variety;
+        this.plantingDate = plantingDate;
+        this.estimateHarvestDate = estimateHarvestDate;
+        this.assignedLot = assignedLot;
+        this.implantedSurface = implantedSurface;
+        this.renspa = renspa;
+        this.phenologicalState = phenologicalState;
+    }
 }

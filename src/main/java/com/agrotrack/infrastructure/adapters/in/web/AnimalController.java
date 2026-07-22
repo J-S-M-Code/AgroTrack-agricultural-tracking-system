@@ -24,17 +24,20 @@ public class AnimalController {
     private final RegisterHealthEventUseCase registerHealthEventUseCase;
     private final GetAnimalByIdUseCase getAnimalByIdUseCase;
     private final com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase;
+    private final com.agrotrack.domain.port.in.animal.UpdateAnimalUseCase updateAnimalUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public AnimalController(RegisterAnimalUseCase registerAnimalUseCase, MoveAnimalUseCase moveAnimalUseCase,
                             RegisterHealthEventUseCase registerHealthEventUseCase, GetAnimalByIdUseCase getAnimalByIdUseCase,
                             com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase,
+                            com.agrotrack.domain.port.in.animal.UpdateAnimalUseCase updateAnimalUseCase,
                             com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.registerAnimalUseCase = registerAnimalUseCase;
         this.moveAnimalUseCase = moveAnimalUseCase;
         this.registerHealthEventUseCase = registerHealthEventUseCase;
         this.getAnimalByIdUseCase = getAnimalByIdUseCase;
         this.getAnimalsByFarmUseCase = getAnimalsByFarmUseCase;
+        this.updateAnimalUseCase = updateAnimalUseCase;
         this.mapper = mapper;
     }
 
@@ -58,9 +61,20 @@ public class AnimalController {
         Animal createdAnimal = registerAnimalUseCase.executeRegisterAnimal(
                 dto.visualCaravan(), dto.caravanSenasa(), dto.livestockKey(), dto.numRENSPA(),
                 dto.internalManagementCaravan(), dto.species(), dto.race(), dto.sex(),
-                dto.category(), dto.birthdate(), dto.currentWeight(), dto.assignedLotId()
+                dto.category(), dto.birthdate(), dto.currentWeight(), dto.assignedLotId(), dto.assignedCollarId()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toAnimalDto(createdAnimal));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    public ResponseEntity<AnimalDto> updateAnimal(@PathVariable UUID id, @RequestBody AnimalDto dto) {
+        Animal updatedAnimal = updateAnimalUseCase.executeUpdateAnimal(
+                id, dto.visualCaravan(), dto.caravanSenasa(), dto.livestockKey(), dto.numRENSPA(),
+                dto.internalManagementCaravan(), dto.species(), dto.race(), dto.sex(),
+                dto.category(), dto.birthdate(), dto.currentWeight(), dto.assignedLotId(), dto.assignedCollarId()
+        );
+        return ResponseEntity.ok(mapper.toAnimalDto(updatedAnimal));
     }
 
     @PutMapping("/{id}/move")

@@ -11,6 +11,7 @@ import com.agrotrack.domain.port.in.iot.GetCollarsByFarmUseCase;
 import com.agrotrack.domain.port.in.iot.DeleteIoTCollarUseCase;
 import com.agrotrack.domain.port.in.iot.UpdateCollarBatteryUseCase;
 import com.agrotrack.domain.port.in.iot.UpdateCollarStateUseCase;
+import com.agrotrack.domain.port.in.iot.UpdateIoTCollarUseCase;
 import com.agrotrack.domain.port.out.animal.AnimalRepositoryPort;
 import com.agrotrack.domain.port.out.iot.IoTCollarRepositoryPort;
 import org.locationtech.jts.geom.Point;
@@ -23,7 +24,7 @@ import java.util.UUID;
 import java.util.List;
 
 @Service
-public class IoTCollarService implements RegisterIoTCollarUseCase, RegisterGPSPositionUseCase, UpdateCollarBatteryUseCase, UpdateCollarStateUseCase, GetCollarsByFarmUseCase, DeleteIoTCollarUseCase {
+public class IoTCollarService implements RegisterIoTCollarUseCase, RegisterGPSPositionUseCase, UpdateCollarBatteryUseCase, UpdateCollarStateUseCase, GetCollarsByFarmUseCase, DeleteIoTCollarUseCase, UpdateIoTCollarUseCase {
 
     private final IoTCollarRepositoryPort ioTCollarRepositoryPort;
     private final AnimalRepositoryPort animalRepositoryPort;
@@ -98,5 +99,19 @@ public class IoTCollarService implements RegisterIoTCollarUseCase, RegisterGPSPo
 
         collar.changeState(newState);
         ioTCollarRepositoryPort.save(collar);
+    }
+
+    @Override
+    @Transactional
+    public IoTCollar executeUpdateIoTCollar(UUID collarId, String codeRFID, String model, State state) {
+        IoTCollar collar = ioTCollarRepositoryPort.findById(collarId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Collar IoT no encontrado"));
+
+        if (!collar.getCodeRFID().equals(codeRFID) && ioTCollarRepositoryPort.findByCodeRFID(codeRFID).isPresent()) {
+            throw new BusinessRuleViolationsException("Ya existe otro collar con el código RFID: " + codeRFID);
+        }
+
+        collar.update(codeRFID, model, state);
+        return ioTCollarRepositoryPort.save(collar);
     }
 }

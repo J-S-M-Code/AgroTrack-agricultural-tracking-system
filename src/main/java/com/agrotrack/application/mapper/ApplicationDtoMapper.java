@@ -23,6 +23,7 @@ import com.agrotrack.application.dto.PointDto;
 import com.agrotrack.application.dto.PolygonDto;
 
 import java.util.List;
+import java.util.UUID;
 
 @Mapper(componentModel = "spring")
 public interface ApplicationDtoMapper {
@@ -33,8 +34,14 @@ public interface ApplicationDtoMapper {
     LotDto toLotDto(Lot lot);
     List<LotDto> toLotDtoList(List<Lot> lots);
 
+    @Mapping(target = "farmIds", expression = "java(mapFarmsToIds(user.getManagedFarms()))")
     UserDto toUserDto(User user);
     List<UserDto> toUserDtoList(List<User> users);
+    
+    default List<UUID> mapFarmsToIds(List<Farm> farms) {
+        if (farms == null) return null;
+        return farms.stream().map(Farm::getIdFarm).collect(java.util.stream.Collectors.toList());
+    }
 
     @Mapping(source = "creator.idUser", target = "creatorId")
     @Mapping(source = "assigned.idUser", target = "assignedId")
@@ -55,6 +62,7 @@ public interface ApplicationDtoMapper {
     List<CropDto> toCropDtoList(List<Crop> crops);
 
     @Mapping(source = "assignedLot.idLot", target = "assignedLotId")
+    @Mapping(source = "collar.idCollar", target = "assignedCollarId")
     AnimalDto toAnimalDto(Animal animal);
     List<AnimalDto> toAnimalDtoList(List<Animal> animals);
 

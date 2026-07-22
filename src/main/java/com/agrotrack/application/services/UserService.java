@@ -10,10 +10,10 @@ import com.agrotrack.domain.port.in.user.RegisterUserUseCase;
 import com.agrotrack.domain.port.in.user.GetPersonnelByFarmUseCase;
 import com.agrotrack.domain.port.in.user.GetUserByIdUseCase;
 import com.agrotrack.domain.port.in.user.AssignPersonnelUseCase;
+import com.agrotrack.domain.port.in.user.UpdateUserAssignmentUseCase;
 import com.agrotrack.domain.port.out.user.UserRepositoryPort;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.domain.model.entities.Farm;
-import com.agrotrack.domain.model.enums.UserRole;
 import com.agrotrack.application.dto.UserDto;
 import com.agrotrack.application.mapper.ApplicationDtoMapper;
 import java.util.List;
@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase {
+public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase, UpdateUserAssignmentUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
     private final FarmRepositoryPort farmRepositoryPort;
@@ -113,6 +113,21 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
             throw new BusinessRuleViolationsException("Rol inválido: " + role);
         }
 
+        user.assignFarms(farms);
+        userRepositoryPort.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void executeUpdateUserAssignment(UUID userId, UserRole newRole, List<UUID> farmIds) {
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+
+        List<Farm> farms = farmIds.stream()
+                .map(id -> farmRepositoryPort.findById(id).orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + id)))
+                .toList();
+
+        user.changeRole(newRole);
         user.assignFarms(farms);
         userRepositoryPort.save(user);
     }

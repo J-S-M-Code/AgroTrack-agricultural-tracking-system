@@ -23,4 +23,5 @@ public class UserDto {
     private LocalDateTime creationDate;
     private LocalDateTime lastAccess;
     private boolean active;
+    private java.util.List<UUID> farmIds;
 }

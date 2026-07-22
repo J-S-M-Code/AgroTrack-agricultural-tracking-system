@@ -77,7 +77,7 @@ class AnimalServiceTest {
         Animal newAnimal = animalService.executeRegisterAnimal(
                 "VIS-01", "SENASA-123", "KEY-01", "REN-01", "INT-01",
                 Species.BOVINE, "Angus", Sex.MALE, CategoryAnimal.BULL,
-                LocalDateTime.now().minusYears(2), 500.0, initialLotId
+                LocalDateTime.now().minusYears(2), 500.0, initialLotId, null
         );
 
         assertNotNull(newAnimal);
@@ -93,7 +93,7 @@ class AnimalServiceTest {
                 animalService.executeRegisterAnimal(
                         "VIS-01", "SENASA-123", "KEY-01", "REN-01", "INT-01",
                         Species.BOVINE, "Angus", Sex.MALE, CategoryAnimal.BULL,
-                        LocalDateTime.now().minusYears(2), 500.0, initialLotId
+                        LocalDateTime.now().minusYears(2), 500.0, initialLotId, null
                 )
         );
 
@@ -109,7 +109,7 @@ class AnimalServiceTest {
                 animalService.executeRegisterAnimal(
                         "VIS-01", "SENASA-123", "KEY-01", "REN-01", "INT-01",
                         Species.BOVINE, "Angus", Sex.MALE, CategoryAnimal.BULL,
-                        LocalDateTime.now().minusYears(2), 500.0, initialLotId
+                        LocalDateTime.now().minusYears(2), 500.0, initialLotId, null
                 )
         );
     }
