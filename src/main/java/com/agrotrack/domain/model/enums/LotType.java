@@ -4,6 +4,6 @@ public enum LotType {
     PASTURE,
     WATER_ZONE,
     HANDLING_PEN,
-    PEEDING_ZONE,
-    AGREICULTURAL
+    FEEDING_ZONE,
+    AGRICULTURAL
 }

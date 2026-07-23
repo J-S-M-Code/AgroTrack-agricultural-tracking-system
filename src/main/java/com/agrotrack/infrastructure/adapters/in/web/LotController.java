@@ -19,12 +19,15 @@ public class LotController {
 
     private final CreateLotUseCase createLotUseCase;
     private final GetLotsByFarmUseCase getLotsByFarmUseCase;
+    private final com.agrotrack.domain.port.in.lot.RevokeLotUseCase revokeLotUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public LotController(CreateLotUseCase createLotUseCase, GetLotsByFarmUseCase getLotsByFarmUseCase,
+                         com.agrotrack.domain.port.in.lot.RevokeLotUseCase revokeLotUseCase,
                          com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.createLotUseCase = createLotUseCase;
         this.getLotsByFarmUseCase = getLotsByFarmUseCase;
+        this.revokeLotUseCase = revokeLotUseCase;
         this.mapper = mapper;
     }
 
@@ -54,5 +57,12 @@ public class LotController {
     public ResponseEntity<List<LotDto>> getLotsByFarm(@PathVariable UUID farmId) {
         List<LotDto> lots = getLotsByFarmUseCase.executeGetLotsByFarm(farmId);
         return ResponseEntity.ok(lots);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    public ResponseEntity<Void> revokeLot(@PathVariable UUID id, @RequestParam String reason) {
+        revokeLotUseCase.execute(id, reason);
+        return ResponseEntity.noContent().build();
     }
 }

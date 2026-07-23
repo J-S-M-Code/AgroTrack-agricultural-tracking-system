@@ -22,6 +22,14 @@ public class Lot {
     private UUID idLot;
 
     @Getter
+    @Setter
+    private boolean active = true;
+
+    @Getter
+    @Setter
+    private String deletionReason;
+
+    @Getter
     private String name;
 
     @Getter

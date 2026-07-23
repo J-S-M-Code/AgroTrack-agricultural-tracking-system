@@ -11,10 +11,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.locationtech.jts.geom.Polygon;
 
+import org.hibernate.annotations.SQLRestriction;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "lots")
+@SQLRestriction("is_active = true")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,6 +27,15 @@ public class LotJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(name = "deletion_reason")
+    private String deletionReason;
+
+    @Column(name = "deletion_date")
+    private LocalDateTime deletionDate;
 
     @Column(nullable = false)
     private String name;

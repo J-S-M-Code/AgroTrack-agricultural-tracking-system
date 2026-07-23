@@ -9,6 +9,7 @@ import com.agrotrack.domain.model.enums.SoilType;
 import com.agrotrack.domain.port.in.lot.ChangeLotStateUseCase;
 import com.agrotrack.domain.port.in.lot.CreateLotUseCase;
 import com.agrotrack.domain.port.in.lot.GetLotsByFarmUseCase;
+import com.agrotrack.domain.port.in.lot.RevokeLotUseCase;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
 import com.agrotrack.application.dto.LotDto;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetLotsByFarmUseCase {
+public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetLotsByFarmUseCase, RevokeLotUseCase {
 
     private final LotRepositoryPort lotRepositoryPort;
     private final FarmRepositoryPort farmRepositoryPort;
@@ -91,5 +92,23 @@ public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetL
     public List<LotDto> executeGetLotsByFarm(UUID farmId) {
         List<Lot> lots = lotRepositoryPort.findByFarmId(farmId);
         return applicationDtoMapper.toLotDtoList(lots);
+    }
+
+    @Override
+    @Transactional
+    public void execute(UUID lotId, String reason) {
+        Lot lot = lotRepositoryPort.findById(lotId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Lote no encontrado con ID: " + lotId));
+
+        if (!lot.isActive()) {
+            throw new BusinessRuleViolationsException("El lote ya se encuentra inactivo");
+        }
+        
+        lot.setActive(false);
+        lot.setDeletionReason(reason);
+        // Podríamos también cambiar el LotState a INACTIVE
+        lot.changeState(LotState.INACTIVE);
+        
+        lotRepositoryPort.save(lot);
     }
 }
