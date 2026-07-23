@@ -15,9 +15,17 @@ import java.util.List;
 import java.util.UUID;
 
 public class Task {
-    @Getter
     @Setter
+    @Getter
     private UUID idTask;
+
+    @Setter
+    @Getter
+    private boolean active = true;
+
+    @Setter
+    @Getter
+    private String deletionReason;
     @Getter
     private String title;
     @Getter

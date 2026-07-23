@@ -24,20 +24,26 @@ public class AnimalController {
     private final RegisterHealthEventUseCase registerHealthEventUseCase;
     private final GetAnimalByIdUseCase getAnimalByIdUseCase;
     private final com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase;
+    private final com.agrotrack.domain.port.in.animal.GetUnassignedAnimalsUseCase getUnassignedAnimalsUseCase;
     private final com.agrotrack.domain.port.in.animal.UpdateAnimalUseCase updateAnimalUseCase;
+    private final com.agrotrack.domain.port.in.animal.DeleteAnimalUseCase deleteAnimalUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public AnimalController(RegisterAnimalUseCase registerAnimalUseCase, MoveAnimalUseCase moveAnimalUseCase,
                             RegisterHealthEventUseCase registerHealthEventUseCase, GetAnimalByIdUseCase getAnimalByIdUseCase,
                             com.agrotrack.domain.port.in.animal.GetAnimalsByFarmUseCase getAnimalsByFarmUseCase,
+                            com.agrotrack.domain.port.in.animal.GetUnassignedAnimalsUseCase getUnassignedAnimalsUseCase,
                             com.agrotrack.domain.port.in.animal.UpdateAnimalUseCase updateAnimalUseCase,
+                            com.agrotrack.domain.port.in.animal.DeleteAnimalUseCase deleteAnimalUseCase,
                             com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.registerAnimalUseCase = registerAnimalUseCase;
         this.moveAnimalUseCase = moveAnimalUseCase;
         this.registerHealthEventUseCase = registerHealthEventUseCase;
         this.getAnimalByIdUseCase = getAnimalByIdUseCase;
         this.getAnimalsByFarmUseCase = getAnimalsByFarmUseCase;
+        this.getUnassignedAnimalsUseCase = getUnassignedAnimalsUseCase;
         this.updateAnimalUseCase = updateAnimalUseCase;
+        this.deleteAnimalUseCase = deleteAnimalUseCase;
         this.mapper = mapper;
     }
 
@@ -45,6 +51,12 @@ public class AnimalController {
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'VETERINARIAN', 'WORKER')")
     public ResponseEntity<java.util.List<AnimalDto>> getAnimalsByFarm(@PathVariable UUID farmId) {
         return ResponseEntity.ok(mapper.toAnimalDtoList(getAnimalsByFarmUseCase.executeGetAnimalsByFarm(farmId)));
+    }
+
+    @GetMapping("/unassigned")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'VETERINARIAN', 'WORKER')")
+    public ResponseEntity<java.util.List<AnimalDto>> getUnassignedAnimals(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
+        return ResponseEntity.ok(mapper.toAnimalDtoList(getUnassignedAnimalsUseCase.executeGetUnassignedAnimals(userDetails.getUser().getIdUser())));
     }
 
     @GetMapping("/test/{farmId}")
@@ -100,5 +112,12 @@ public class AnimalController {
                 .map(mapper::toAnimalDto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    public ResponseEntity<Void> deleteAnimal(@PathVariable UUID id, @RequestParam(required = false) String reason) {
+        deleteAnimalUseCase.executeDeleteAnimal(id, reason);
+        return ResponseEntity.ok().build();
     }
 }

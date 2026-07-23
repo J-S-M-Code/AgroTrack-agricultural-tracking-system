@@ -28,8 +28,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.agrotrack.domain.port.in.task.DeleteTaskUseCase;
+
 @Service
-public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase, GetTasksByFarmUseCase, GetTaskByIdUseCase, GetAssignedTasksUseCase {
+public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase, GetTasksByFarmUseCase, GetTaskByIdUseCase, GetAssignedTasksUseCase, DeleteTaskUseCase {
 
     private final TaskRepositoryPort taskRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
@@ -110,5 +112,16 @@ public class TaskService implements CreateTaskUseCase, UpdateTaskStatusUseCase, 
     public List<TaskDto> executeGetAssignedTasks(UUID userId) {
         List<Task> tasks = taskRepositoryPort.findByAssignedUserId(userId);
         return applicationDtoMapper.toTaskDtoList(tasks);
+    }
+
+    @Override
+    @Transactional
+    public void executeDeleteTask(UUID taskId, String reason) {
+        Task task = taskRepositoryPort.findById(taskId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Tarea no encontrada con ID: " + taskId));
+        
+        task.setActive(false);
+        task.setDeletionReason(reason);
+        taskRepositoryPort.save(task);
     }
 }

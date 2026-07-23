@@ -53,8 +53,19 @@ public class IoTCollarService implements RegisterIoTCollarUseCase, RegisterGPSPo
 
     @Override
     @Transactional
-    public void executeDeleteIoTCollar(UUID collarId) {
-        ioTCollarRepositoryPort.delete(collarId);
+    public void executeDeleteIoTCollar(UUID collarId, String deletionReason) {
+        IoTCollar collar = ioTCollarRepositoryPort.findById(collarId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Collar IoT no encontrado"));
+
+        Optional<Animal> animalOpt = animalRepositoryPort.findByCollarId(collarId);
+        if (animalOpt.isPresent()) {
+            Animal animal = animalOpt.get();
+            animal.assignCollar(null);
+            animalRepositoryPort.save(animal);
+        }
+
+        collar.markAsDeleted(deletionReason);
+        ioTCollarRepositoryPort.save(collar);
     }
 
     @Override

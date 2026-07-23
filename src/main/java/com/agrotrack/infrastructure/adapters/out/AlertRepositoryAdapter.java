@@ -62,22 +62,25 @@ public class AlertRepositoryAdapter implements AlertRepositoryPort {
         }
 
         // 5. Construir la entidad JPA
-        AlertJpaEntity entity = new AlertJpaEntity(
-                alert.getIdAlert(),
-                alert.getTitle(),
-                alert.getAlertType(),
-                alert.getPriority(),
-                alert.getRecordType(),
-                alert.getDescription(),
-                alert.getCreatedAt(),
-                authorEntity,
-                alert.getImages() != null ? new ArrayList<>(alert.getImages()) : new ArrayList<>(),
-                lotEntity,
-                cropEntity,
-                animalEntity,
-                alert.getPolygonLimit(),
-                alert.getCentroid()
-        );
+        AlertJpaEntity entity = new AlertJpaEntity();
+        if (alert.getIdAlert() != null) {
+            entity = alertJpaRepository.findById(alert.getIdAlert()).orElse(new AlertJpaEntity());
+        }
+
+        entity.setActive(alert.isActive());
+        entity.setTitle(alert.getTitle());
+        entity.setAlertType(alert.getAlertType());
+        entity.setPriority(alert.getPriority());
+        entity.setRecordType(alert.getRecordType());
+        entity.setDescription(alert.getDescription());
+        entity.setCreatedAt(alert.getCreatedAt());
+        entity.setAuthor(authorEntity);
+        entity.setImages(alert.getImages() != null ? new ArrayList<>(alert.getImages()) : new ArrayList<>());
+        entity.setRelatedLot(lotEntity);
+        entity.setRelatedCrop(cropEntity);
+        entity.setRelatedAnimal(animalEntity);
+        entity.setPolygonLimit(alert.getPolygonLimit());
+        entity.setCentroid(alert.getCentroid());
 
         // 6. Guardar en Base de Datos y asignar UUID
         AlertJpaEntity savedEntity = alertJpaRepository.save(entity);
@@ -184,10 +187,11 @@ public class AlertRepositoryAdapter implements AlertRepositoryPort {
         Alert alert = Alert.create(
                 entity.getTitle(), entity.getAlertType(), entity.getPriority(),
                 entity.getRecordType(), entity.getDescription(), entity.getCreatedAt(),
-                author, new ArrayList<>(entity.getImages()), lot, crop, animal,
+                author, entity.getImages() != null ? new ArrayList<>(entity.getImages()) : new ArrayList<>(), lot, crop, animal,
                 entity.getPolygonLimit(), entity.getCentroid()
         );
         alert.setIdAlert(entity.getId());
+        alert.setActive(entity.isActive());
 
         return alert;
     }

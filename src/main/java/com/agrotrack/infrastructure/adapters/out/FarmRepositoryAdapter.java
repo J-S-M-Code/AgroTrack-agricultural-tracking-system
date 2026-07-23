@@ -24,19 +24,21 @@ public class FarmRepositoryAdapter implements FarmRepositoryPort {
     @Override
     public Farm save(Farm farm) {
         // 1. Mapeamos la entidad "Pura" de dominio a una entidad de Base de Datos
-        FarmJpaEntity entity = new FarmJpaEntity(
-                farm.getIdFarm(),
-                farm.getName(),
-                farm.getCompanyName(),
-                farm.getCuit(),
-                farm.getNumberRENAPSA(),
-                farm.getProductiveOrientation(),
-                farm.getAddress(),
-                farm.getPolygonLimit(),
-                farm.getCentroid(),
-                farm.getSurface(),
-                farm.getImageUrl()
-        );
+        FarmJpaEntity entity = new FarmJpaEntity();
+        entity.setId(farm.getIdFarm());
+        entity.setName(farm.getName());
+        entity.setCompanyName(farm.getCompanyName());
+        entity.setCuit(farm.getCuit());
+        entity.setNumberRENAPSA(farm.getNumberRENAPSA());
+        entity.setProductiveOrientation(farm.getProductiveOrientation());
+        entity.setAddress(farm.getAddress());
+        entity.setPolygonLimit(farm.getPolygonLimit());
+        entity.setCentroid(farm.getCentroid());
+        entity.setSurface(farm.getSurface());
+        entity.setImageUrl(farm.getImageUrl());
+        entity.setActive(farm.isActive());
+        entity.setDeletionReason(farm.getDeletionReason());
+        entity.setDeletionDate(farm.getDeletionDate());
 
         // 2. Guardamos. Aquí PostgreSQL inserta la fila y genera el UUID.
         FarmJpaEntity savedEntity = farmJpaRepository.save(entity);
@@ -83,6 +85,9 @@ public class FarmRepositoryAdapter implements FarmRepositoryPort {
                 entity.getImageUrl()
         );
         farm.setIdFarm(entity.getId());
+        farm.setActive(entity.isActive());
+        farm.setDeletionReason(entity.getDeletionReason());
+        farm.setDeletionDate(entity.getDeletionDate());
         return farm;
     }
 }

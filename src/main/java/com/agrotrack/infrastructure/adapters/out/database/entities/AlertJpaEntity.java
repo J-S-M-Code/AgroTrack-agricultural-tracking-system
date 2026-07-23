@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
@@ -22,11 +23,15 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SQLRestriction("is_active = true")
 public class AlertJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean isActive = true;
 
     @Column(nullable = false)
     private String title;
@@ -62,14 +67,17 @@ public class AlertJpaEntity {
     // Relaciones (todas opcionales, depende de a qué le sacó foto el ingeniero)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lot_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private LotJpaEntity relatedLot;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "crop_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private CropJpaEntity relatedCrop;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "animal_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private AnimalJpaEntity relatedAnimal;
 
     // Geometría específica donde se vio el problema

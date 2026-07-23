@@ -31,19 +31,23 @@ public class CropRepositoryAdapter implements CropRepositoryPort {
         LotJpaEntity lotEntity = new LotJpaEntity();
         lotEntity.setId(crop.getAssignedLot().getIdLot());
 
-        CropJpaEntity entity = new CropJpaEntity(
-                crop.getIdCrop(),
-                crop.getTypeCrop(),
-                crop.getSpecies(),
-                crop.getVariety(),
-                crop.getPlantingDate(),
-                crop.getEstimateHarvestDate(),
-                crop.getEstimateHarvestDate(),
-                crop.getImplantedSurface(),
-                crop.getRenspa(),
-                crop.getPhenologicalState(),
-                lotEntity
-        );
+        CropJpaEntity entity = new CropJpaEntity();
+        if (crop.getIdCrop() != null) {
+            entity = cropJpaRepository.findById(crop.getIdCrop()).orElse(new CropJpaEntity());
+        }
+
+        entity.setActive(crop.isActive());
+        entity.setDeletionReason(crop.getDeletionReason());
+        entity.setTypeCrop(crop.getTypeCrop());
+        entity.setSpecies(crop.getSpecies());
+        entity.setVariety(crop.getVariety());
+        entity.setPlantingDate(crop.getPlantingDate());
+        entity.setEstimateHarvestDate(crop.getEstimateHarvestDate());
+        // entity.setHarvestDate(crop.getHarvestDate());
+        entity.setImplantedSurface(crop.getImplantedSurface());
+        entity.setRenspa(crop.getRenspa());
+        entity.setPhenologicalState(crop.getPhenologicalState());
+        entity.setLot(lotEntity);
 
         CropJpaEntity savedEntity = cropJpaRepository.save(entity);
         crop.setIdCrop(savedEntity.getId());
@@ -69,6 +73,13 @@ public class CropRepositoryAdapter implements CropRepositoryPort {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public List<Crop> findUnassignedCropsByUserId(UUID userId) {
+        return cropJpaRepository.findUnassignedCropsForUser(userId).stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
     private Crop mapToDomain(CropJpaEntity entity) {
         // Reconstruimos un Lote básico para que el dominio no falle por nulos
         Lot lot = Lot.create(
@@ -83,6 +94,8 @@ public class CropRepositoryAdapter implements CropRepositoryPort {
                 lot, entity.getImplantedSurface(), entity.getRenspa(), entity.getPhenologicalState()
         );
         crop.setIdCrop(entity.getId());
+        crop.setActive(entity.isActive());
+        crop.setDeletionReason(entity.getDeletionReason());
         if (entity.getHarvestDate() != null) {
             crop.setHarvestDate(entity.getHarvestDate());
         }

@@ -26,6 +26,7 @@ public class TaskController {
     private final GetTaskByIdUseCase getTaskByIdUseCase;
     private final GetTasksByFarmUseCase getTasksByFarmUseCase;
     private final UpdateTaskStatusUseCase updateTaskStatusUseCase;
+    private final com.agrotrack.domain.port.in.task.DeleteTaskUseCase deleteTaskUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public TaskController(CreateTaskUseCase createTaskUseCase,
@@ -33,12 +34,14 @@ public class TaskController {
                           GetTaskByIdUseCase getTaskByIdUseCase,
                           GetTasksByFarmUseCase getTasksByFarmUseCase,
                           UpdateTaskStatusUseCase updateTaskStatusUseCase,
+                          com.agrotrack.domain.port.in.task.DeleteTaskUseCase deleteTaskUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.createTaskUseCase = createTaskUseCase;
         this.getAssignedTasksUseCase = getAssignedTasksUseCase;
         this.getTaskByIdUseCase = getTaskByIdUseCase;
         this.getTasksByFarmUseCase = getTasksByFarmUseCase;
         this.updateTaskStatusUseCase = updateTaskStatusUseCase;
+        this.deleteTaskUseCase = deleteTaskUseCase;
         this.mapper = mapper;
     }
 
@@ -89,6 +92,13 @@ public class TaskController {
     @PreAuthorize("hasAnyRole('APPLICATOR', 'VETERINARIAN', 'WORKER', 'OWNER', 'FOREMAN')")
     public ResponseEntity<Void> updateTaskStatus(@PathVariable UUID taskId, @RequestParam TaskStatus newStatus) {
         updateTaskStatusUseCase.executeUpdateTaskStatus(taskId, newStatus);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{taskId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId, @RequestParam(required = false) String reason) {
+        deleteTaskUseCase.executeDeleteTask(taskId, reason);
         return ResponseEntity.ok().build();
     }
 }

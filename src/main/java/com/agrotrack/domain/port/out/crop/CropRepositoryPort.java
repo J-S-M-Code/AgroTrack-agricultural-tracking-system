@@ -14,4 +14,5 @@ public interface CropRepositoryPort {
     List<Crop> findActiveCropsByLotId(UUID lotId);
 
     List<Crop> findByFarmId(UUID farmId);
+    List<Crop> findUnassignedCropsByUserId(UUID userId);
 }

@@ -16,6 +16,14 @@ public class Crop {
     private UUID idCrop;
 
     @Getter
+    @Setter
+    private boolean active = true;
+
+    @Getter
+    @Setter
+    private String deletionReason;
+
+    @Getter
     private TypeCrop typeCrop;
 
     @Getter

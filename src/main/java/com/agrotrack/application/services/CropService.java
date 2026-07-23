@@ -20,9 +20,10 @@ import java.util.List;
 import java.util.UUID;
 
 import com.agrotrack.domain.port.in.crop.UpdateCropUseCase;
+import com.agrotrack.domain.port.in.crop.DeleteCropUseCase;
 
 @Service
-public class CropService implements RegisterCropUseCase, UpdatePhenologicalStateUseCase, RegisterHarvestUseCase, GetCropsByFarmUseCase, GetCropByIdUseCase, UpdateCropUseCase {
+public class CropService implements RegisterCropUseCase, UpdatePhenologicalStateUseCase, RegisterHarvestUseCase, GetCropsByFarmUseCase, GetCropByIdUseCase, UpdateCropUseCase, DeleteCropUseCase {
 
     private final CropRepositoryPort cropRepositoryPort;
     private final LotRepositoryPort lotRepositoryPort; // Necesario para validar dónde se planta
@@ -121,5 +122,16 @@ public class CropService implements RegisterCropUseCase, UpdatePhenologicalState
         crop.update(typeCrop, species, variety, plantingDate, estimateHarvestDate, lot, implantedSurface, renspa, phenologicalState);
 
         return cropRepositoryPort.save(crop);
+    }
+
+    @Override
+    @Transactional
+    public void executeDeleteCrop(UUID cropId, String reason) {
+        Crop crop = cropRepositoryPort.findById(cropId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Cultivo no encontrado con ID: " + cropId));
+        
+        crop.setActive(false);
+        crop.setDeletionReason(reason);
+        cropRepositoryPort.save(crop);
     }
 }

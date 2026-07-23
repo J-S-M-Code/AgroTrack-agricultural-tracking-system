@@ -20,6 +20,14 @@ public class Animal {
     private UUID idAnimal;
 
     @Getter
+    @Setter
+    private boolean active = true;
+
+    @Getter
+    @Setter
+    private String deletionReason;
+
+    @Getter
     private String visualCaravan;
 
     @Getter

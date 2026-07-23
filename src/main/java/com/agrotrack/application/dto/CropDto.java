@@ -9,6 +9,9 @@ import java.util.UUID;
 public record CropDto(
         UUID idCrop,
         UUID lotId,
+        String lotName,
+        UUID farmId,
+        String farmName,
         TypeCrop typeCrop,
         String species,
         String variety,

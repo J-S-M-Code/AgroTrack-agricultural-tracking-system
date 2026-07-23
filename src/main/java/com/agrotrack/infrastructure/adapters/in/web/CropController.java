@@ -26,22 +26,28 @@ public class CropController {
     private final UpdatePhenologicalStateUseCase updatePhenologicalStateUseCase;
     private final RegisterHarvestUseCase registerHarvestUseCase;
     private final com.agrotrack.domain.port.in.crop.GetCropsByFarmUseCase getCropsByFarmUseCase;
+    private final com.agrotrack.domain.port.in.crop.GetUnassignedCropsUseCase getUnassignedCropsUseCase;
     private final com.agrotrack.domain.port.in.crop.GetCropByIdUseCase getCropByIdUseCase;
     private final UpdateCropUseCase updateCropUseCase;
+    private final com.agrotrack.domain.port.in.crop.DeleteCropUseCase deleteCropUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public CropController(RegisterCropUseCase registerCropUseCase, UpdatePhenologicalStateUseCase updatePhenologicalStateUseCase, 
                           RegisterHarvestUseCase registerHarvestUseCase, 
                           com.agrotrack.domain.port.in.crop.GetCropsByFarmUseCase getCropsByFarmUseCase,
+                          com.agrotrack.domain.port.in.crop.GetUnassignedCropsUseCase getUnassignedCropsUseCase,
                           com.agrotrack.domain.port.in.crop.GetCropByIdUseCase getCropByIdUseCase,
                           UpdateCropUseCase updateCropUseCase,
+                          com.agrotrack.domain.port.in.crop.DeleteCropUseCase deleteCropUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.registerCropUseCase = registerCropUseCase;
         this.updatePhenologicalStateUseCase = updatePhenologicalStateUseCase;
         this.registerHarvestUseCase = registerHarvestUseCase;
         this.getCropsByFarmUseCase = getCropsByFarmUseCase;
+        this.getUnassignedCropsUseCase = getUnassignedCropsUseCase;
         this.getCropByIdUseCase = getCropByIdUseCase;
         this.updateCropUseCase = updateCropUseCase;
+        this.deleteCropUseCase = deleteCropUseCase;
         this.mapper = mapper;
     }
 
@@ -49,6 +55,12 @@ public class CropController {
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'WORKER')")
     public ResponseEntity<java.util.List<CropDto>> getCropsByFarm(@PathVariable UUID farmId) {
         return ResponseEntity.ok(mapper.toCropDtoList(getCropsByFarmUseCase.executeGetCropsByFarm(farmId)));
+    }
+
+    @GetMapping("/crops/unassigned")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'WORKER')")
+    public ResponseEntity<java.util.List<CropDto>> getUnassignedCrops(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
+        return ResponseEntity.ok(mapper.toCropDtoList(getUnassignedCropsUseCase.executeGetUnassignedCrops(userDetails.getUser().getIdUser())));
     }
 
     @GetMapping("/crops/{id}")
@@ -90,6 +102,13 @@ public class CropController {
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
     public ResponseEntity<Void> registerHarvest(@PathVariable UUID cropId, @RequestParam LocalDateTime actualHarvestDate) {
         registerHarvestUseCase.executeRegisterHarvest(cropId, actualHarvestDate);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/crops/{cropId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
+    public ResponseEntity<Void> deleteCrop(@PathVariable UUID cropId, @RequestParam(required = false) String reason) {
+        deleteCropUseCase.executeDeleteCrop(cropId, reason);
         return ResponseEntity.ok().build();
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/alerts")
@@ -16,15 +17,18 @@ public class AlertController {
     private final CreateAlertUseCase createAlertUseCase;
     private final com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase;
     private final com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase;
+    private final com.agrotrack.domain.port.in.alert.DeleteAlertUseCase deleteAlertUseCase;
     private final ApplicationDtoMapper mapper;
 
     public AlertController(CreateAlertUseCase createAlertUseCase,
                            com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase,
                            com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase,
+                           com.agrotrack.domain.port.in.alert.DeleteAlertUseCase deleteAlertUseCase,
                            ApplicationDtoMapper mapper) {
         this.createAlertUseCase = createAlertUseCase;
         this.getAlertsByFarmUseCase = getAlertsByFarmUseCase;
         this.getAlertByIdUseCase = getAlertByIdUseCase;
+        this.deleteAlertUseCase = deleteAlertUseCase;
         this.mapper = mapper;
     }
 
@@ -51,5 +55,12 @@ public class AlertController {
                 dto.centroid() != null ? dto.centroid().toJtsPoint() : null
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toAlertDto(createdAlert));
+    }
+
+    @DeleteMapping("/{alertId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    public ResponseEntity<Void> deleteAlert(@PathVariable UUID alertId) {
+        deleteAlertUseCase.executeDeleteAlert(alertId);
+        return ResponseEntity.ok().build();
     }
 }

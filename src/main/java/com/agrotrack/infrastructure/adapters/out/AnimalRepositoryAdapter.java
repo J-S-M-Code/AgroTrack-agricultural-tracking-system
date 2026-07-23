@@ -39,24 +39,28 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
             collarJpaEntity.setId(animal.getCollar().getIdCollar());
         }
 
-        AnimalJpaEntity entity = new AnimalJpaEntity(
-                animal.getIdAnimal(),
-                animal.getVisualCaravan(),
-                animal.getCaravanSenasa(),
-                animal.getLivestockKey(),
-                animal.getNumRENSPA(),
-                animal.getInternalManagementCaravan(),
-                animal.getSpecies(),
-                animal.getRace(),
-                animal.getSex(),
-                animal.getCategory(),
-                animal.getBirthdate(),
-                animal.getCurrentWeight(),
-                lotEntity,
-                collarJpaEntity,
-                new ArrayList<>(), // Se delega al cascade o al repositorio de movimientos
-                new ArrayList<>()  // Se delega al cascade o al repositorio de salud
-        );
+        AnimalJpaEntity entity = new AnimalJpaEntity();
+        if (animal.getIdAnimal() != null) {
+            entity = animalJpaRepository.findById(animal.getIdAnimal()).orElse(new AnimalJpaEntity());
+        }
+        
+        entity.setActive(animal.isActive());
+        entity.setDeletionReason(animal.getDeletionReason());
+        entity.setVisualCaravan(animal.getVisualCaravan());
+        entity.setCaravanSenasa(animal.getCaravanSenasa());
+        entity.setLivestockKey(animal.getLivestockKey());
+        entity.setNumRENSPA(animal.getNumRENSPA());
+        entity.setInternalManagementCaravan(animal.getInternalManagementCaravan());
+        entity.setSpecies(animal.getSpecies());
+        entity.setRace(animal.getRace());
+        entity.setSex(animal.getSex());
+        entity.setCategory(animal.getCategory());
+        entity.setBirthdate(animal.getBirthdate());
+        entity.setCurrentWeight(animal.getCurrentWeight());
+        entity.setAssignedLot(lotEntity);
+        entity.setCollar(collarJpaEntity);
+        if (entity.getMovementHistory() == null) entity.setMovementHistory(new ArrayList<>());
+        if (entity.getHealthHistory() == null) entity.setHealthHistory(new ArrayList<>());
 
         AnimalJpaEntity savedEntity = animalJpaRepository.save(entity);
         animal.setIdAnimal(savedEntity.getId());
@@ -88,6 +92,11 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
         return animalJpaRepository.findByAssignedLot_Farm_Id(farmId).stream().map(this::mapToDomain).toList();
     }
 
+    @Override
+    public java.util.List<Animal> findUnassignedByUserId(UUID userId) {
+        return animalJpaRepository.findUnassignedAnimalsForUser(userId).stream().map(this::mapToDomain).toList();
+    }
+
     private Animal mapToDomain(AnimalJpaEntity entity) {
         Lot lot = null;
         if (entity.getAssignedLot() != null) {
@@ -106,6 +115,8 @@ public class AnimalRepositoryAdapter implements AnimalRepositoryPort {
                 entity.getCurrentWeight(), lot
         );
         animal.setIdAnimal(entity.getId());
+        animal.setActive(entity.isActive());
+        animal.setDeletionReason(entity.getDeletionReason());
         
         if (entity.getCollar() != null) {
             java.util.UUID collarFarmId = entity.getCollar().getFarm() != null ? entity.getCollar().getFarm().getId() : null;

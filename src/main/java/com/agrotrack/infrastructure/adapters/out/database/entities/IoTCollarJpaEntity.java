@@ -7,9 +7,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Table(name = "iot_collars")
@@ -17,13 +19,22 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SQLRestriction("is_active = true")
 public class IoTCollarJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean isActive = true;
+
+    @Column(length = 500)
+    private String deletionReason;
+
+    private LocalDateTime deletionDate;
+
+    @Column(nullable = false)
     private String codeRFID;
 
     private String model;

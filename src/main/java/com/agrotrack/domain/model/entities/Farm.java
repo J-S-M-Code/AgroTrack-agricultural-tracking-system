@@ -1,5 +1,6 @@
 package com.agrotrack.domain.model.entities;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -60,6 +61,19 @@ public class Farm {
 
     @Getter
     private List<Alert> alerts;
+
+    @Getter
+    @Setter
+    @Builder.Default
+    private boolean isActive = true;
+
+    @Getter
+    @Setter
+    private String deletionReason;
+
+    @Getter
+    @Setter
+    private LocalDateTime deletionDate;
 
     private Farm(String name, String companyName, String cuit, String numberRENAPSA,
                  ProductiveOrientation productiveOrientation, String address,
@@ -191,5 +205,14 @@ public class Farm {
         this.productiveOrientation = productiveOrientation;
         this.address = address;
         this.imageUrl = imageUrl;
+    }
+
+    public void markAsDeleted(String reason) {
+        if (reason == null || reason.isBlank()) {
+            throw new BusinessRuleViolationsException("Se debe proveer un motivo de eliminación");
+        }
+        this.isActive = false;
+        this.deletionReason = reason;
+        this.deletionDate = LocalDateTime.now();
     }
 }

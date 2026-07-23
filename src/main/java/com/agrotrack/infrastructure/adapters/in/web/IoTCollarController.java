@@ -11,6 +11,9 @@ import com.agrotrack.domain.port.in.iot.GetCollarsByFarmUseCase;
 import com.agrotrack.domain.port.in.iot.DeleteIoTCollarUseCase;
 import com.agrotrack.domain.port.in.iot.UpdateCollarBatteryUseCase;
 import com.agrotrack.domain.port.in.iot.UpdateCollarStateUseCase;
+import com.agrotrack.domain.port.out.animal.AnimalRepositoryPort;
+import com.agrotrack.domain.model.entities.Animal;
+import com.agrotrack.domain.model.enums.State;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class IoTCollarController {
@@ -29,11 +33,13 @@ public class IoTCollarController {
     private final GetCollarsByFarmUseCase getCollarsByFarmUseCase;
     private final DeleteIoTCollarUseCase deleteIoTCollarUseCase;
     private final com.agrotrack.domain.port.in.iot.UpdateIoTCollarUseCase updateIoTCollarUseCase;
+    private final AnimalRepositoryPort animalRepositoryPort;
 
     public IoTCollarController(RegisterIoTCollarUseCase registerIoTCollarUseCase, RegisterGPSPositionUseCase registerGPSPositionUseCase,
                                UpdateCollarBatteryUseCase updateCollarBatteryUseCase, UpdateCollarStateUseCase updateCollarStateUseCase,
                                GetCollarsByFarmUseCase getCollarsByFarmUseCase, DeleteIoTCollarUseCase deleteIoTCollarUseCase,
-                               com.agrotrack.domain.port.in.iot.UpdateIoTCollarUseCase updateIoTCollarUseCase) {
+                               com.agrotrack.domain.port.in.iot.UpdateIoTCollarUseCase updateIoTCollarUseCase,
+                               AnimalRepositoryPort animalRepositoryPort) {
         this.registerIoTCollarUseCase = registerIoTCollarUseCase;
         this.registerGPSPositionUseCase = registerGPSPositionUseCase;
         this.updateCollarBatteryUseCase = updateCollarBatteryUseCase;
@@ -41,6 +47,7 @@ public class IoTCollarController {
         this.getCollarsByFarmUseCase = getCollarsByFarmUseCase;
         this.deleteIoTCollarUseCase = deleteIoTCollarUseCase;
         this.updateIoTCollarUseCase = updateIoTCollarUseCase;
+        this.animalRepositoryPort = animalRepositoryPort;
     }
 
     @PostMapping("/api/v1/farms/{farmId}/collars")
@@ -54,16 +61,37 @@ public class IoTCollarController {
 
     @GetMapping("/api/v1/farms/{farmId}/collars")
     @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<List<IoTCollar>> getCollarsByFarm(@PathVariable UUID farmId) {
-        return ResponseEntity.ok(getCollarsByFarmUseCase.executeGetCollarsByFarm(farmId));
+    public ResponseEntity<List<IoTCollarResponse>> getCollarsByFarm(@PathVariable UUID farmId) {
+        List<IoTCollar> collars = getCollarsByFarmUseCase.executeGetCollarsByFarm(farmId);
+        List<IoTCollarResponse> dtos = collars.stream().map(collar -> {
+             Optional<Animal> animal = animalRepositoryPort.findByCollarId(collar.getIdCollar());
+             String assignedCaravan = animal.map(Animal::getInternalManagementCaravan).orElse(null);
+             return new IoTCollarResponse(collar, assignedCaravan);
+        }).toList();
+        return ResponseEntity.ok(dtos);
+    }
+
+    public record IoTCollarResponse(
+            UUID idCollar,
+            String codeRFID,
+            String model,
+            State state,
+            Double batteryLevel,
+            String assignedAnimalCaravan
+    ) {
+        public IoTCollarResponse(IoTCollar c, String caravan) {
+            this(c.getIdCollar(), c.getCodeRFID(), c.getModel(), c.getState(), c.getBatteryLevel(), caravan);
+        }
     }
 
     @DeleteMapping("/api/v1/collars/{collarId}")
     @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> deleteCollar(@PathVariable UUID collarId) {
-        deleteIoTCollarUseCase.executeDeleteIoTCollar(collarId);
+    public ResponseEntity<Void> deleteCollar(@PathVariable UUID collarId, @RequestBody DeleteReasonDto reasonDto) {
+        deleteIoTCollarUseCase.executeDeleteIoTCollar(collarId, reasonDto.reason());
         return ResponseEntity.noContent().build();
     }
+
+    public record DeleteReasonDto(String reason) {}
 
     @PutMapping("/api/v1/collars/{collarId}")
     @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")

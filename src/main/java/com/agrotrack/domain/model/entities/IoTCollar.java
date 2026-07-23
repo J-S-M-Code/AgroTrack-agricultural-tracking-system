@@ -5,6 +5,7 @@ import com.agrotrack.domain.model.enums.State; // Asegúrate de tener este enum 
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +33,18 @@ public class IoTCollar {
 
     @Getter
     private UUID farmId;
+
+    @Getter
+    @Setter
+    private boolean isActive = true;
+
+    @Getter
+    @Setter
+    private String deletionReason;
+
+    @Getter
+    @Setter
+    private LocalDateTime deletionDate;
 
     private IoTCollar(String codeRFID, String model, State state, Double batteryLevel, UUID farmId) {
         this.codeRFID = codeRFID;
@@ -117,5 +130,15 @@ public class IoTCollar {
         this.codeRFID = codeRFID;
         this.model = model;
         this.state = state;
+    }
+
+    /**
+     * Marca el collar como eliminado lógicamente.
+     */
+    public void markAsDeleted(String reason) {
+        this.isActive = false;
+        this.deletionReason = reason;
+        this.deletionDate = LocalDateTime.now();
+        this.state = State.INACTIVE;
     }
 }

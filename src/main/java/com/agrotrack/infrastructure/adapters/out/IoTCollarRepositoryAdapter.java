@@ -37,6 +37,9 @@ public class IoTCollarRepositoryAdapter implements IoTCollarRepositoryPort {
         entity.setModel(collar.getModel());
         entity.setState(collar.getState());
         entity.setBatteryLevel(collar.getBatteryLevel());
+        entity.setActive(collar.isActive());
+        entity.setDeletionReason(collar.getDeletionReason());
+        entity.setDeletionDate(collar.getDeletionDate());
         
         if (collar.getFarmId() != null) {
             FarmJpaEntity farm = farmJpaRepository.findById(collar.getFarmId())
@@ -97,6 +100,9 @@ public class IoTCollarRepositoryAdapter implements IoTCollarRepositoryPort {
         UUID farmId = entity.getFarm() != null ? entity.getFarm().getId() : null;
         IoTCollar collar = IoTCollar.create(entity.getCodeRFID(), entity.getModel(), entity.getState(), entity.getBatteryLevel(), farmId);
         collar.setIdCollar(entity.getId());
+        collar.setActive(entity.isActive());
+        collar.setDeletionReason(entity.getDeletionReason());
+        collar.setDeletionDate(entity.getDeletionDate());
         
         if (entity.getGpsHistory() != null) {
             for (GPSPositionJpaEntity gpsJpa : entity.getGpsHistory()) {
