@@ -26,7 +26,7 @@ class CropTest {
         Farm farm = Farm.create("Finca", "Empresa", "CUIT", "RENAPSA", com.agrotrack.domain.model.enums.ProductiveOrientation.AGRICULTURAL, "Address", farmPolygon, farmPolygon.getCentroid(), 100.0, "url");
         
         Polygon lotPolygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(1,1), new Coordinate(1,5), new Coordinate(5,5), new Coordinate(5,1), new Coordinate(1,1)});
-        assignedLot = Lot.create("Lote 1", 10.5, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon, farm);
+        assignedLot = Lot.create("Lote 1", 10.5, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", lotPolygon, farm);
     }
 
     @Test

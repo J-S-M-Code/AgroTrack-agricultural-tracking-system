@@ -63,7 +63,7 @@ class LotServiceTest {
         });
 
         // Act
-        Lot result = lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon);
+        Lot result = lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", lotPolygon);
 
         // Assert
         assertNotNull(result.getIdLot());
@@ -82,7 +82,7 @@ class LotServiceTest {
 
         // Act & Assert
         assertThrows(BusinessRuleViolationsException.class, () -> 
-            lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon)
+            lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", lotPolygon)
         );
     }
 
@@ -96,7 +96,7 @@ class LotServiceTest {
 
         // Act & Assert
         Exception exception = assertThrows(BusinessRuleViolationsException.class, () -> 
-            lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon)
+            lotService.executeCreateLot(farmId, "Lote 1", 10.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", lotPolygon)
         );
         assertTrue(exception.getMessage().contains("fuera") || exception.getMessage().contains("dentro"));
     }

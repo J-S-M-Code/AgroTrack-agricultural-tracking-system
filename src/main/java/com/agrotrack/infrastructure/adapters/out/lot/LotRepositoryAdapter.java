@@ -64,6 +64,13 @@ public class LotRepositoryAdapter implements LotRepositoryPort {
     }
 
     @Override
+    public List<Lot> findUnassignedLotsByUserId(UUID userId) {
+        return lotJpaRepository.findUnassignedLotsForUser(userId).stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public boolean existsOverlappingLot(Polygon newPerimeter, UUID excludeLotId) {
         return lotJpaRepository.existsOverlappingLot(newPerimeter, excludeLotId);
     }

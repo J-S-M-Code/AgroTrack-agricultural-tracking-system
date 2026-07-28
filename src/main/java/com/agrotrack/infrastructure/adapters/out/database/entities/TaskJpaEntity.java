@@ -74,6 +74,7 @@ public class TaskJpaEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lot_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private LotJpaEntity lot;
 
     // Geometrías para indicar un punto o área específica dentro del lote/finca

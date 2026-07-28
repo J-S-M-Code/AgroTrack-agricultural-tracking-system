@@ -4,14 +4,18 @@ import com.agrotrack.application.dto.LotDto;
 import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.port.in.lot.CreateLotUseCase;
 import com.agrotrack.domain.port.in.lot.GetLotsByFarmUseCase;
+import com.agrotrack.domain.port.in.lot.GetUnassignedLotsUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/lots")
@@ -19,14 +23,17 @@ public class LotController {
 
     private final CreateLotUseCase createLotUseCase;
     private final GetLotsByFarmUseCase getLotsByFarmUseCase;
+    private final GetUnassignedLotsUseCase getUnassignedLotsUseCase;
     private final com.agrotrack.domain.port.in.lot.RevokeLotUseCase revokeLotUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public LotController(CreateLotUseCase createLotUseCase, GetLotsByFarmUseCase getLotsByFarmUseCase,
+                         GetUnassignedLotsUseCase getUnassignedLotsUseCase,
                          com.agrotrack.domain.port.in.lot.RevokeLotUseCase revokeLotUseCase,
                          com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.createLotUseCase = createLotUseCase;
         this.getLotsByFarmUseCase = getLotsByFarmUseCase;
+        this.getUnassignedLotsUseCase = getUnassignedLotsUseCase;
         this.revokeLotUseCase = revokeLotUseCase;
         this.mapper = mapper;
     }
@@ -57,6 +64,18 @@ public class LotController {
     public ResponseEntity<List<LotDto>> getLotsByFarm(@PathVariable UUID farmId) {
         List<LotDto> lots = getLotsByFarmUseCase.executeGetLotsByFarm(farmId);
         return ResponseEntity.ok(lots);
+    }
+
+    @GetMapping("/unassigned")
+    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    public ResponseEntity<List<LotDto>> getUnassignedLots() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UUID userId = UUID.fromString(authentication.getName());
+        List<LotDto> unassignedLots = getUnassignedLotsUseCase.executeGetUnassignedLots(userId)
+                .stream()
+                .map(mapper::toLotDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(unassignedLots);
     }
 
     @DeleteMapping("/{id}")

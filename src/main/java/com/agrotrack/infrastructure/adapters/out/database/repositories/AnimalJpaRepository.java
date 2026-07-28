@@ -16,6 +16,6 @@ public interface AnimalJpaRepository extends JpaRepository<AnimalJpaEntity, UUID
             "JOIN lots l ON a.assigned_lot_id = l.id " +
             "JOIN farms f ON l.farm_id = f.id " +
             "JOIN user_farms uf ON f.id = uf.farm_id " +
-            "WHERE uf.user_id = :userId AND f.is_active = false", nativeQuery = true)
+            "WHERE uf.user_id = :userId AND (f.is_active = false OR l.is_active = false)", nativeQuery = true)
     java.util.List<AnimalJpaEntity> findUnassignedAnimalsForUser(@org.springframework.data.repository.query.Param("userId") UUID userId);
 }

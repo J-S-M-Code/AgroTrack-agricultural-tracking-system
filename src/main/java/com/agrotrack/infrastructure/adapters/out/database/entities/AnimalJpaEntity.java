@@ -64,6 +64,7 @@ public class AnimalJpaEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_lot_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private LotJpaEntity assignedLot;
 
     @OneToOne(fetch = FetchType.LAZY)

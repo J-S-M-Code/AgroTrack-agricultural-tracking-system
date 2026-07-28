@@ -11,5 +11,6 @@ public interface LotRepositoryPort {
     Lot save(Lot lot);
     Optional<Lot> findById(UUID id);
     List<Lot> findByFarmId(UUID farmId);
+    List<Lot> findUnassignedLotsByUserId(UUID userId);
     boolean existsOverlappingLot(Polygon newPerimeter, UUID excludeLotId);
 }

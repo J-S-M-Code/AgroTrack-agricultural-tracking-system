@@ -81,7 +81,7 @@ class LotRepositoryAdapterIT {
     @Test
     void testSaveAndFindById() {
         // Arrange
-        Lot lot = Lot.create("Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon, farm);
+        Lot lot = Lot.create("Lote 1", 10.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", lotPolygon, farm);
 
         // Act
         Lot saved = lotAdapter.save(lot);
@@ -97,7 +97,7 @@ class LotRepositoryAdapterIT {
     @Test
     void testExistsOverlappingLot() {
         // Arrange
-        Lot lot1 = Lot.create("Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon, farm);
+        Lot lot1 = Lot.create("Lote 1", 10.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", lotPolygon, farm);
         lotAdapter.save(lot1);
 
         Polygon overlappingPolygon = geometryFactory.createPolygon(new Coordinate[]{

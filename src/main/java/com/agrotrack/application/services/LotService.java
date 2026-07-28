@@ -9,6 +9,7 @@ import com.agrotrack.domain.model.enums.SoilType;
 import com.agrotrack.domain.port.in.lot.ChangeLotStateUseCase;
 import com.agrotrack.domain.port.in.lot.CreateLotUseCase;
 import com.agrotrack.domain.port.in.lot.GetLotsByFarmUseCase;
+import com.agrotrack.domain.port.in.lot.GetUnassignedLotsUseCase;
 import com.agrotrack.domain.port.in.lot.RevokeLotUseCase;
 import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
@@ -22,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
-public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetLotsByFarmUseCase, RevokeLotUseCase {
+public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetLotsByFarmUseCase, RevokeLotUseCase, GetUnassignedLotsUseCase {
 
     private final LotRepositoryPort lotRepositoryPort;
     private final FarmRepositoryPort farmRepositoryPort;
@@ -92,6 +93,11 @@ public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetL
     public List<LotDto> executeGetLotsByFarm(UUID farmId) {
         List<Lot> lots = lotRepositoryPort.findByFarmId(farmId);
         return applicationDtoMapper.toLotDtoList(lots);
+    }
+
+    @Override
+    public List<Lot> executeGetUnassignedLots(UUID userId) {
+        return lotRepositoryPort.findUnassignedLotsByUserId(userId);
     }
 
     @Override
