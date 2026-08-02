@@ -22,8 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import com.agrotrack.domain.port.in.lot.UpdateLotUseCase;
+
 @Service
-public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetLotsByFarmUseCase, RevokeLotUseCase, GetUnassignedLotsUseCase {
+public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetLotsByFarmUseCase, RevokeLotUseCase, GetUnassignedLotsUseCase, UpdateLotUseCase {
 
     private final LotRepositoryPort lotRepositoryPort;
     private final FarmRepositoryPort farmRepositoryPort;
@@ -44,12 +46,14 @@ public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetL
                 .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + farmId));
 
         // 1. Validar que el Lote no se superponga con otro Lote existente
-        if (lotRepositoryPort.existsOverlappingLot(polygonLimit, null)) {
+        if (lotRepositoryPort.existsOverlappingLot(polygonLimit, null, type)) {
             throw new BusinessRuleViolationsException("El perímetro ingresado se superpone con un lote ya existente.");
         }
 
         // 2. ¡Magia Geospacial! Validar que el lote esté físicamente DENTRO de la finca
-        if (!farm.getPolygonLimit().contains(polygonLimit)) {
+        // Agregamos una pequeña tolerancia (aprox 5 metros = 0.00005 grados) para absorber errores de redondeo al hacer snap a los bordes
+        double toleranceInDegrees = 0.00005;
+        if (!farm.getPolygonLimit().buffer(toleranceInDegrees).contains(polygonLimit)) {
             throw new BusinessRuleViolationsException("El perímetro del lote debe estar completamente dentro de los límites de la finca.");
         }
 
@@ -106,15 +110,37 @@ public class LotService implements CreateLotUseCase, ChangeLotStateUseCase, GetL
         Lot lot = lotRepositoryPort.findById(lotId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Lote no encontrado con ID: " + lotId));
 
-        if (!lot.isActive()) {
+        if (lot.getState() == LotState.INACTIVE) {
             throw new BusinessRuleViolationsException("El lote ya se encuentra inactivo");
         }
         
-        lot.setActive(false);
         lot.setDeletionReason(reason);
-        // Podríamos también cambiar el LotState a INACTIVE
         lot.changeState(LotState.INACTIVE);
         
         lotRepositoryPort.save(lot);
+    }
+
+    @Override
+    @Transactional
+    public Lot executeUpdateLot(UUID idLot, String name, double hectares, SoilType soilType,
+                                LotType type, String description, Polygon polygonLimit) {
+        Lot lot = lotRepositoryPort.findById(idLot)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Lote no encontrado con ID: " + idLot));
+
+        // Validar que el nuevo polígono esté físicamente DENTRO de la finca
+        Farm farm = lot.getFarm();
+        double toleranceInDegrees = 0.00005;
+        if (!farm.getPolygonLimit().buffer(toleranceInDegrees).contains(polygonLimit)) {
+            throw new BusinessRuleViolationsException("El perímetro del lote debe estar completamente dentro de los límites de la finca.");
+        }
+
+        // Validar que no se superponga con otros lotes (excluyendo el lote actual)
+        if (lotRepositoryPort.existsOverlappingLot(polygonLimit, idLot, type)) {
+            throw new BusinessRuleViolationsException("El perímetro ingresado se superpone con un lote ya existente.");
+        }
+
+        lot.update(name, hectares, soilType, type, description, polygonLimit);
+
+        return lotRepositoryPort.save(lot);
     }
 }

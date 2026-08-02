@@ -22,7 +22,8 @@ public interface LotJpaRepository extends JpaRepository<LotJpaEntity, UUID> {
     // Validación PostGIS para evitar que dos lotes se pisen entre sí
     @Query("SELECT COUNT(l) > 0 FROM LotJpaEntity l WHERE " +
             "ST_Intersects(l.polygonLimit, :newPerimeter) = true " +
-            "AND (:excludeLotId IS NULL OR l.id != :excludeLotId)")
+            "AND (:excludeLotId IS NULL OR l.id != :excludeLotId) " +
+            "AND l.type IN (com.agrotrack.domain.model.enums.LotType.PASTURE, com.agrotrack.domain.model.enums.LotType.AGRICULTURAL)")
     boolean existsOverlappingLot(@Param("newPerimeter") Polygon newPerimeter,
                                  @Param("excludeLotId") UUID excludeLotId);
 }

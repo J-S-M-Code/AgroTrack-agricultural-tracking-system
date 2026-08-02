@@ -25,16 +25,19 @@ public class LotController {
     private final GetLotsByFarmUseCase getLotsByFarmUseCase;
     private final GetUnassignedLotsUseCase getUnassignedLotsUseCase;
     private final com.agrotrack.domain.port.in.lot.RevokeLotUseCase revokeLotUseCase;
+    private final com.agrotrack.domain.port.in.lot.UpdateLotUseCase updateLotUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public LotController(CreateLotUseCase createLotUseCase, GetLotsByFarmUseCase getLotsByFarmUseCase,
                          GetUnassignedLotsUseCase getUnassignedLotsUseCase,
                          com.agrotrack.domain.port.in.lot.RevokeLotUseCase revokeLotUseCase,
+                         com.agrotrack.domain.port.in.lot.UpdateLotUseCase updateLotUseCase,
                          com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.createLotUseCase = createLotUseCase;
         this.getLotsByFarmUseCase = getLotsByFarmUseCase;
         this.getUnassignedLotsUseCase = getUnassignedLotsUseCase;
         this.revokeLotUseCase = revokeLotUseCase;
+        this.updateLotUseCase = updateLotUseCase;
         this.mapper = mapper;
     }
 
@@ -59,6 +62,21 @@ public class LotController {
         return ResponseEntity.created(location).body(mapper.toLotDto(createdLot));
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    public ResponseEntity<LotDto> updateLot(@PathVariable UUID id, @RequestBody LotDto lotDto) {
+        Lot updatedLot = updateLotUseCase.executeUpdateLot(
+                id,
+                lotDto.getName(),
+                lotDto.getHectares(),
+                lotDto.getSoilType(),
+                lotDto.getType(),
+                lotDto.getDescription(),
+                lotDto.getPolygonLimit() != null ? lotDto.getPolygonLimit().toJtsPolygon() : null
+        );
+        return ResponseEntity.ok(mapper.toLotDto(updatedLot));
+    }
+
     @GetMapping("/farm/{farmId}")
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
     public ResponseEntity<List<LotDto>> getLotsByFarm(@PathVariable UUID farmId) {
@@ -68,9 +86,8 @@ public class LotController {
 
     @GetMapping("/unassigned")
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
-    public ResponseEntity<List<LotDto>> getUnassignedLots() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString(authentication.getName());
+    public ResponseEntity<List<LotDto>> getUnassignedLots(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
+        UUID userId = userDetails.getUser().getIdUser();
         List<LotDto> unassignedLots = getUnassignedLotsUseCase.executeGetUnassignedLots(userId)
                 .stream()
                 .map(mapper::toLotDto)

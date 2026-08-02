@@ -72,9 +72,7 @@ public class Crop {
         if (typeCrop == null) {
             throw new BusinessRuleViolationsException("El tipo de cultivo no puede ser nulo");
         }
-        if (assignedLot == null) {
-            throw new BusinessRuleViolationsException("El cultivo debe estar asignado a un lote");
-        }
+        // assignedLot can be null if the crop is orphaned
         if (phenologicalState == null) {
             throw new BusinessRuleViolationsException("El estado fenológico no puede ser nulo");
         }
@@ -106,7 +104,7 @@ public class Crop {
             throw new BusinessRuleViolationsException("La superficie implantada debe ser mayor a 0");
         }
         // Validacion cruzada opcional: Verificar que la superficie implantada no supere la del lote
-        if (implantedSurface > assignedLot.getHectares()) {
+        if (assignedLot != null && implantedSurface > assignedLot.getHectares()) {
             throw new BusinessRuleViolationsException("La superficie implantada no puede superar la superficie total del lote asignado");
         }
 
@@ -145,7 +143,7 @@ public class Crop {
                        String renspa, PhenologicalState phenologicalState) {
         
         if (typeCrop == null) throw new BusinessRuleViolationsException("El tipo de cultivo no puede ser nulo");
-        if (assignedLot == null) throw new BusinessRuleViolationsException("El cultivo debe estar asignado a un lote");
+        // assignedLot can be null if the crop is orphaned
         if (phenologicalState == null) throw new BusinessRuleViolationsException("El estado fenológico no puede ser nulo");
         if (species == null || species.isBlank()) throw new BusinessRuleViolationsException("La especie no puede estar vacía");
         if (variety == null || variety.isBlank()) throw new BusinessRuleViolationsException("La variedad no puede estar vacía");
@@ -154,7 +152,7 @@ public class Crop {
         if (estimateHarvestDate == null) throw new BusinessRuleViolationsException("La fecha estimada de cosecha no puede ser nula");
         if (estimateHarvestDate.isBefore(plantingDate)) throw new BusinessRuleViolationsException("La fecha de cosecha estimada no puede ser anterior a la fecha de plantación");
         if (implantedSurface <= 0) throw new BusinessRuleViolationsException("La superficie implantada debe ser mayor a 0");
-        if (implantedSurface > assignedLot.getHectares()) throw new BusinessRuleViolationsException("La superficie implantada no puede superar la superficie total del lote asignado");
+        if (assignedLot != null && implantedSurface > assignedLot.getHectares()) throw new BusinessRuleViolationsException("La superficie implantada no puede superar la superficie total del lote asignado");
 
         this.typeCrop = typeCrop;
         this.species = species;

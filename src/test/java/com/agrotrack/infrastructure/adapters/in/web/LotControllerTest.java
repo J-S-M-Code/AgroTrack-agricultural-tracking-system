@@ -37,6 +37,9 @@ class LotControllerTest {
     @Mock
     private GetLotsByFarmUseCase getLotsByFarmUseCase;
 
+    @Mock
+    private com.agrotrack.application.mapper.ApplicationDtoMapper applicationDtoMapper;
+
     @InjectMocks
     private LotController lotController;
 
@@ -64,11 +67,14 @@ class LotControllerTest {
         LotDto lotDto = LotDto.builder().name("New Lot").hectares(10.5).build();
 
         Lot mockLot = org.mockito.Mockito.mock(Lot.class);
-        when(mockLot.getIdLot()).thenReturn(UUID.randomUUID());
+        UUID mockId = UUID.randomUUID();
+        when(mockLot.getIdLot()).thenReturn(mockId);
 
         when(createLotUseCase.executeCreateLot(
                 any(), any(), org.mockito.ArgumentMatchers.anyDouble(), any(), any(), any(), any()
         )).thenReturn(mockLot);
+        
+        when(applicationDtoMapper.toLotDto(mockLot)).thenReturn(LotDto.builder().idLot(mockId).name("New Lot").build());
 
         mockMvc.perform(post("/api/v1/lots/farm/" + farmId)
                 .contentType(MediaType.APPLICATION_JSON)

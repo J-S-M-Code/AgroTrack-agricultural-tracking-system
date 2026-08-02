@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "lots")
-@SQLRestriction("is_active = true")
+@SQLRestriction("state = 'ACTIVE'")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,9 +27,6 @@ public class LotJpaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
-    @Column(name = "is_active", nullable = false, columnDefinition = "boolean default true")
-    private boolean isActive = true;
 
     @Column(name = "deletion_reason")
     private String deletionReason;
