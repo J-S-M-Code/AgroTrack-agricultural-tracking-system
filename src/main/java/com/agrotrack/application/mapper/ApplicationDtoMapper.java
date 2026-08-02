@@ -44,9 +44,13 @@ public interface ApplicationDtoMapper {
     }
 
     @Mapping(source = "creator.idUser", target = "creatorId")
+    @Mapping(source = "creator.name", target = "creatorName")
     @Mapping(source = "assigned.idUser", target = "assignedId")
+    @Mapping(source = "assigned.name", target = "assignedName")
     @Mapping(source = "relatedFarm.idFarm", target = "relatedFarmId")
+    @Mapping(source = "relatedFarm.name", target = "farmName")
     @Mapping(source = "relatedLot.idLot", target = "relatedLotId")
+    @Mapping(source = "relatedLot.name", target = "lotName")
     TaskDto toTaskDto(Task task);
     List<TaskDto> toTaskDtoList(List<Task> tasks);
 
@@ -58,11 +62,18 @@ public interface ApplicationDtoMapper {
     List<AlertDto> toAlertDtoList(List<Alert> alerts);
 
     @Mapping(source = "assignedLot.idLot", target = "lotId")
+    @Mapping(source = "assignedLot.name", target = "lotName")
+    @Mapping(source = "assignedLot.farm.idFarm", target = "farmId")
+    @Mapping(source = "assignedLot.farm.name", target = "farmName")
     CropDto toCropDto(Crop crop);
     List<CropDto> toCropDtoList(List<Crop> crops);
 
     @Mapping(source = "assignedLot.idLot", target = "assignedLotId")
+    @Mapping(source = "assignedLot.name", target = "lotName")
+    @Mapping(source = "assignedLot.farm.idFarm", target = "farmId")
+    @Mapping(source = "assignedLot.farm.name", target = "farmName")
     @Mapping(source = "collar.idCollar", target = "assignedCollarId")
+    @Mapping(source = "collar.codeRFID", target = "collarName")
     AnimalDto toAnimalDto(Animal animal);
     List<AnimalDto> toAnimalDtoList(List<Animal> animals);
 

@@ -26,8 +26,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.agrotrack.domain.port.in.alert.DeleteAlertUseCase;
+
 @Service
-public class AlertService implements CreateAlertUseCase, GetAlertsByFarmUseCase, GetAlertByIdUseCase {
+public class AlertService implements CreateAlertUseCase, GetAlertsByFarmUseCase, GetAlertByIdUseCase, DeleteAlertUseCase {
 
     private final AlertRepositoryPort alertRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
@@ -53,6 +55,9 @@ public class AlertService implements CreateAlertUseCase, GetAlertsByFarmUseCase,
                          Polygon polygonLimit, Point centroid) {
 
         // 1. Buscar al autor
+        if (authorId == null) {
+            throw new BusinessRuleViolationsException("El ID del autor no puede ser nulo");
+        }
         User author = userRepositoryPort.findById(authorId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Autor de la alerta no encontrado"));
 
@@ -82,5 +87,15 @@ public class AlertService implements CreateAlertUseCase, GetAlertsByFarmUseCase,
     public Alert executeGetAlertById(UUID alertId) {
         return alertRepositoryPort.findById(alertId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Alerta no encontrada con ID: " + alertId));
+    }
+
+    @Override
+    @Transactional
+    public void executeDeleteAlert(UUID alertId) {
+        Alert alert = alertRepositoryPort.findById(alertId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Alerta no encontrada con ID: " + alertId));
+        
+        alert.setActive(false);
+        alertRepositoryPort.save(alert);
     }
 }

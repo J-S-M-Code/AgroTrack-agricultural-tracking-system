@@ -15,4 +15,11 @@ public interface CropJpaRepository extends JpaRepository<CropJpaEntity, UUID> {
     List<CropJpaEntity> findActiveCropsByLotId(@Param("lotId") UUID lotId);
 
     List<CropJpaEntity> findByLot_Farm_Id(UUID farmId);
+
+    @Query(value = "SELECT c.* FROM crops c " +
+            "JOIN lots l ON c.lot_id = l.id " +
+            "JOIN farms f ON l.farm_id = f.id " +
+            "JOIN user_farms uf ON f.id = uf.farm_id " +
+            "WHERE uf.user_id = :userId AND f.is_active = false", nativeQuery = true)
+    List<CropJpaEntity> findUnassignedCropsForUser(@Param("userId") UUID userId);
 }

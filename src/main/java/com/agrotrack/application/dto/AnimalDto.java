@@ -21,5 +21,9 @@ public record AnimalDto(
         LocalDateTime birthdate,
         double currentWeight,
         UUID assignedLotId,
-        UUID assignedCollarId
+        String lotName,
+        UUID farmId,
+        String farmName,
+        UUID assignedCollarId,
+        String collarName
 ) {}

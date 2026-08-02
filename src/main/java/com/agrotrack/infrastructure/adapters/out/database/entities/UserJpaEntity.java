@@ -28,13 +28,13 @@ public class UserJpaEntity {
     @Column(nullable = false)
     private String lastName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String dni;
 
     private String phone;
     private String address;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     // Aquí guardamos el valor interno del Value Object Password

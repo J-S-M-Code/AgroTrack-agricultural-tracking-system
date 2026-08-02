@@ -5,6 +5,7 @@ import com.agrotrack.domain.model.entities.Farm;
 import com.agrotrack.domain.port.in.farm.CreateFarmUseCase;
 import com.agrotrack.domain.port.in.farm.GetFarmByIdUseCase;
 import com.agrotrack.domain.port.in.farm.GetFarmsUseCase;
+import com.agrotrack.domain.port.in.farm.DeleteFarmUseCase;
 import com.agrotrack.infrastructure.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,15 +25,18 @@ public class FarmController {
     private final GetFarmsUseCase getFarmsUseCase;
     private final GetFarmByIdUseCase getFarmByIdUseCase;
     private final com.agrotrack.domain.port.in.farm.UpdateFarmUseCase updateFarmUseCase;
+    private final DeleteFarmUseCase deleteFarmUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public FarmController(CreateFarmUseCase createFarmUseCase, GetFarmsUseCase getFarmsUseCase,
                           GetFarmByIdUseCase getFarmByIdUseCase, com.agrotrack.domain.port.in.farm.UpdateFarmUseCase updateFarmUseCase,
+                          DeleteFarmUseCase deleteFarmUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.createFarmUseCase = createFarmUseCase;
         this.getFarmsUseCase = getFarmsUseCase;
         this.getFarmByIdUseCase = getFarmByIdUseCase;
         this.updateFarmUseCase = updateFarmUseCase;
+        this.deleteFarmUseCase = deleteFarmUseCase;
         this.mapper = mapper;
     }
 
@@ -86,5 +90,18 @@ public class FarmController {
     @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN')")
     public ResponseEntity<FarmDto> getFarmDetails(@PathVariable UUID id) {
         return ResponseEntity.ok(getFarmByIdUseCase.executeGetFarmById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('OWNER')")
+    public ResponseEntity<Void> deleteFarm(@PathVariable UUID id, @RequestBody DeleteReasonDto reasonDto) {
+        deleteFarmUseCase.executeDeleteFarm(id, reasonDto.getReason());
+        return ResponseEntity.ok().build();
+    }
+
+    public static class DeleteReasonDto {
+        private String reason;
+        public String getReason() { return reason; }
+        public void setReason(String reason) { this.reason = reason; }
     }
 }

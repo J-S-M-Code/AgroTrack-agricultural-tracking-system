@@ -20,6 +20,9 @@ public class Alert {
     @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idAlert;
     @Getter
+    @Setter
+    private boolean active = true;
+    @Getter
     private String title;
     @Getter
     private AlertType alertType;

@@ -57,24 +57,28 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
         }
 
         // 5. Construir la entidad JPA
-        TaskJpaEntity entity = new TaskJpaEntity(
-                task.getIdTask(),
-                task.getTitle(),
-                task.getAccionType(),
-                task.getTaskStatus(),
-                task.getDueDate(),
-                task.getPriority(),
-                task.getCreationDate(),
-                task.getCompleteDate(),
-                creatorEntity,
-                assignedEntity,
-                farmEntity,
-                lotEntity,
-                task.getPolygonLimit(),
-                task.getCentroid(),
-                task.getImages() != null ? new ArrayList<>(task.getImages()) : new ArrayList<>(),
-                task.getDescription()
-        );
+        TaskJpaEntity entity = new TaskJpaEntity();
+        if (task.getIdTask() != null) {
+            entity = taskJpaRepository.findById(task.getIdTask()).orElse(new TaskJpaEntity());
+        }
+
+        entity.setActive(task.isActive());
+        entity.setDeletionReason(task.getDeletionReason());
+        entity.setTitle(task.getTitle());
+        entity.setAccionType(task.getAccionType());
+        entity.setTaskStatus(task.getTaskStatus());
+        entity.setDueDate(task.getDueDate());
+        entity.setPriority(task.getPriority());
+        entity.setCreationDate(task.getCreationDate());
+        entity.setCompleteDate(task.getCompleteDate());
+        entity.setCreator(creatorEntity);
+        entity.setAssigned(assignedEntity);
+        entity.setFarm(farmEntity);
+        entity.setLot(lotEntity);
+        entity.setPolygonLimit(task.getPolygonLimit());
+        entity.setCentroid(task.getCentroid());
+        entity.setImages(task.getImages() != null ? new ArrayList<>(task.getImages()) : new ArrayList<>());
+        entity.setDescription(task.getDescription());
 
         // 6. Guardar en Base de Datos y asignar UUID
         TaskJpaEntity savedEntity = taskJpaRepository.save(entity);
@@ -175,6 +179,8 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
                 entity.getDescription()
         );
         task.setIdTask(entity.getId());
+        task.setActive(entity.isActive());
+        task.setDeletionReason(entity.getDeletionReason());
 
         return task;
     }

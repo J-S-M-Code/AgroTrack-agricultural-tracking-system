@@ -7,12 +7,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.locationtech.jts.geom.Point;
+import org.hibernate.annotations.SQLRestriction;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "farms")
+@SQLRestriction("is_active = true")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,7 +33,7 @@ public class FarmJpaEntity {
     @Column(nullable = false)
     private String companyName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String cuit;
 
     private String numberRENAPSA;
@@ -50,4 +54,13 @@ public class FarmJpaEntity {
     private double surface;
 
     private String imageUrl;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
+    @Column(name = "deletion_reason")
+    private String deletionReason;
+
+    @Column(name = "deletion_date")
+    private LocalDateTime deletionDate;
 }

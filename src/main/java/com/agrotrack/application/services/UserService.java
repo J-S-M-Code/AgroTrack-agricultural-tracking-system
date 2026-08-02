@@ -22,8 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import com.agrotrack.domain.port.in.user.DeleteUserUseCase;
+
 @Service
-public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase, UpdateUserAssignmentUseCase {
+public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase, UpdateUserAssignmentUseCase, DeleteUserUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
     private final FarmRepositoryPort farmRepositoryPort;
@@ -129,6 +131,17 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
 
         user.changeRole(newRole);
         user.assignFarms(farms);
+        userRepositoryPort.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void executeDeleteUser(UUID userId) {
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+        
+        user.changeActivation(false);
+        user.assignFarms(List.of()); // Limpiar fincas
         userRepositoryPort.save(user);
     }
 }

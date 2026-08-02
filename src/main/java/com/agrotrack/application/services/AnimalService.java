@@ -28,8 +28,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.agrotrack.domain.port.in.animal.DeleteAnimalUseCase;
+
 @Service
-public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, RegisterHealthEventUseCase, GetAnimalsByFarmUseCase, GetAnimalByIdUseCase, UpdateAnimalUseCase {
+public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, RegisterHealthEventUseCase, GetAnimalsByFarmUseCase, GetAnimalByIdUseCase, UpdateAnimalUseCase, DeleteAnimalUseCase {
 
     private final AnimalRepositoryPort animalRepositoryPort;
     private final LotRepositoryPort lotRepositoryPort;
@@ -183,5 +185,31 @@ public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, 
         }
 
         return animalRepositoryPort.save(animal);
+    }
+
+    @Override
+    @Transactional
+    public void executeDeleteAnimal(UUID animalId, String reason) {
+        Animal animal = animalRepositoryPort.findById(animalId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Animal no encontrado"));
+        
+        animal.setActive(false);
+        animal.setDeletionReason(reason);
+        
+        // Desvincular collar si lo tiene
+        if (animal.getCollar() != null) {
+            com.agrotrack.domain.model.entities.IoTCollar collar = animal.getCollar();
+            animal.assignCollar(null);
+            iotCollarRepositoryPort.save(collar);
+        }
+        
+        // Cerrar movimiento activo
+        animalMovementRepositoryPort.findActiveMovementByAnimalId(animalId)
+                .ifPresent(activeMovement -> {
+                    activeMovement.closeMovement(LocalDateTime.now());
+                    animalMovementRepositoryPort.save(activeMovement);
+                });
+
+        animalRepositoryPort.save(animal);
     }
 }
