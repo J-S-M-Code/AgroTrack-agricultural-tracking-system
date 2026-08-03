@@ -65,7 +65,7 @@ class UserRepositoryAdapterIT {
         assertTrue(retrieved.isPresent());
         assertEquals("juan@test.com", retrieved.get().getEmail());
         assertEquals("Juan", retrieved.get().getName());
-        assertEquals(UserRole.WORKER, retrieved.get().getRole());
+
     }
 
     @Test

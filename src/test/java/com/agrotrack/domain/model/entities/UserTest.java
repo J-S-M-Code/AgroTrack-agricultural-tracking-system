@@ -23,8 +23,7 @@ class UserTest {
                 "1122334455",
                 "Calle Falsa 123",
                 "juan@example.com",
-                password,
-                UserRole.WORKER
+                password
         );
 
         // Assert
