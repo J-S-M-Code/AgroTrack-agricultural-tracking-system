@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -52,19 +53,25 @@ public class CropController {
     }
 
     @GetMapping("/crops/farm/{farmId}")
-    @PreAuthorize("hasPermission(#farmId, 'WORKER')")
-    public ResponseEntity<java.util.List<CropDto>> getCropsByFarm(@PathVariable UUID farmId) {
-        return ResponseEntity.ok(mapper.toCropDtoList(getCropsByFarmUseCase.executeGetCropsByFarm(farmId)));
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<List<CropDto>> getCropsByFarm(@PathVariable UUID farmId) {
+        List<CropDto> crops = mapper.toCropDtoList(getCropsByFarmUseCase.executeGetCropsByFarm(farmId));
+        return ResponseEntity.ok(crops);
     }
 
     @GetMapping("/crops/unassigned")
-    @PreAuthorize("hasPermission('ANY_FARM', 'WORKER')")
-    public ResponseEntity<java.util.List<CropDto>> getUnassignedCrops(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
-        return ResponseEntity.ok(mapper.toCropDtoList(getUnassignedCropsUseCase.executeGetUnassignedCrops(userDetails.getUser().getIdUser())));
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')")
+    public ResponseEntity<List<CropDto>> getUnassignedCrops(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
+        UUID userId = userDetails.getUser().getIdUser();
+        List<CropDto> unassignedCrops = getUnassignedCropsUseCase.executeGetUnassignedCrops(userId)
+                .stream()
+                .map(mapper::toCropDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(unassignedCrops);
     }
 
     @GetMapping("/crops/{id}")
-    @PreAuthorize("hasPermission(#farmId, 'WORKER')")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<CropDto> getCropById(@PathVariable UUID id, @RequestParam UUID farmId) {
         return ResponseEntity.ok(mapper.toCropDto(getCropByIdUseCase.executeGetCropById(id)));
     }

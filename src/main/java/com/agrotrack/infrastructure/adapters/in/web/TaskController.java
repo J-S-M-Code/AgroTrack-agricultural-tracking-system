@@ -69,27 +69,27 @@ public class TaskController {
     }
 
     @GetMapping("/assigned")
-    @PreAuthorize("hasPermission('ANY_FARM', 'WORKER')") // Keeping global fallback or require farmId
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')") // Keeping global fallback or require farmId
     public ResponseEntity<List<TaskDto>> getAssignedTasks(@AuthenticationPrincipal CustomUserDetails userDetails) {
         List<TaskDto> dtos = getAssignedTasksUseCase.executeGetAssignedTasks(userDetails.getUser().getIdUser());
         return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasPermission(#farmId, 'WORKER')")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<List<TaskDto>> getTasksByFarm(@PathVariable UUID farmId) {
         List<TaskDto> dtos = getTasksByFarmUseCase.executeGetTasksByFarm(farmId);
         return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasPermission('ANY_FARM', 'WORKER')") // This would ideally require farmId
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')") // This would ideally require farmId
     public ResponseEntity<TaskDto> getTaskById(@PathVariable UUID id) {
         return ResponseEntity.ok(getTaskByIdUseCase.executeGetTaskById(id));
     }
 
     @PatchMapping("/{taskId}/status")
-    @PreAuthorize("hasPermission('ANY_FARM', 'WORKER')") // Same, requires farmId ideally
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')") // Same, requires farmId ideally
     public ResponseEntity<Void> updateTaskStatus(@PathVariable UUID taskId, @RequestParam TaskStatus newStatus) {
         updateTaskStatusUseCase.executeUpdateTaskStatus(taskId, newStatus);
         return ResponseEntity.ok().build();

@@ -60,7 +60,7 @@ public class IoTCollarController {
     }
 
     @GetMapping("/api/v1/farms/{farmId}/collars")
-    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<List<IoTCollarResponse>> getCollarsByFarm(@PathVariable UUID farmId) {
         List<IoTCollar> collars = getCollarsByFarmUseCase.executeGetCollarsByFarm(farmId);
         List<IoTCollarResponse> dtos = collars.stream().map(collar -> {

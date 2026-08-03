@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.UUID;
+import java.util.List;
 
 public interface FarmJpaRepository extends JpaRepository<FarmJpaEntity, UUID> {
 
@@ -19,4 +20,7 @@ public interface FarmJpaRepository extends JpaRepository<FarmJpaEntity, UUID> {
             "AND (:excludeFarmId IS NULL OR f.id != :excludeFarmId)")
     boolean existsOverlappingFarm(@Param("newPerimeter") Polygon newPerimeter,
                                   @Param("excludeFarmId") UUID excludeFarmId);
+
+    @Query("SELECT ufa.farm FROM UserFarmAccessJpaEntity ufa WHERE ufa.user.id = :userId AND ufa.farm.isActive = true")
+    List<FarmJpaEntity> findFarmsByUserId(@Param("userId") UUID userId);
 }

@@ -66,8 +66,7 @@ public class FarmRepositoryAdapter implements FarmRepositoryPort {
 
     @Override
     public List<Farm> findByUserId(UUID userId) {
-        // TODO: Implement relationship mapping in FarmJpaEntity/UserJpaEntity
-        return farmJpaRepository.findAll().stream().map(this::mapToDomain).toList();
+        return farmJpaRepository.findFarmsByUserId(userId).stream().map(this::mapToDomain).toList();
     }
 
     // --- Método auxiliar para cuando recuperamos datos de la BD ---

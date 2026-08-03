@@ -78,14 +78,14 @@ public class LotController {
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasPermission(#farmId, 'WORKER')")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<List<LotDto>> getLotsByFarm(@PathVariable UUID farmId) {
         List<LotDto> lots = getLotsByFarmUseCase.executeGetLotsByFarm(farmId);
         return ResponseEntity.ok(lots);
     }
 
     @GetMapping("/unassigned")
-    @PreAuthorize("hasPermission('ANY_FARM', 'WORKER')") // Not well supported, but keeping it
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')") // Not well supported, but keeping it
     public ResponseEntity<List<LotDto>> getUnassignedLots(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
         UUID userId = userDetails.getUser().getIdUser();
         List<LotDto> unassignedLots = getUnassignedLotsUseCase.executeGetUnassignedLots(userId)

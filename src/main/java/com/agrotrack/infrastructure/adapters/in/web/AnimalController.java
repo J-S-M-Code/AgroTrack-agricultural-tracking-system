@@ -48,13 +48,13 @@ public class AnimalController {
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasPermission(#farmId, 'WORKER')")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<java.util.List<AnimalDto>> getAnimalsByFarm(@PathVariable UUID farmId) {
         return ResponseEntity.ok(mapper.toAnimalDtoList(getAnimalsByFarmUseCase.executeGetAnimalsByFarm(farmId)));
     }
 
     @GetMapping("/unassigned")
-    @PreAuthorize("hasPermission('ANY_FARM', 'WORKER')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')")
     public ResponseEntity<java.util.List<AnimalDto>> getUnassignedAnimals(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
         return ResponseEntity.ok(mapper.toAnimalDtoList(getUnassignedAnimalsUseCase.executeGetUnassignedAnimals(userDetails.getUser().getIdUser())));
     }

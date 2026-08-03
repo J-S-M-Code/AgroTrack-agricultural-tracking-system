@@ -66,7 +66,7 @@ public class UserController {
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasPermission(#farmId, 'OWNER')")
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
     public ResponseEntity<List<UserDto>> getPersonnelByFarm(@PathVariable UUID farmId) {
         List<UserDto> users = getPersonnelByFarmUseCase.executeGetPersonnelByFarm(farmId);
         return ResponseEntity.ok(users);
