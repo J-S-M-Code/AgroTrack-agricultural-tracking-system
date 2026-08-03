@@ -23,6 +23,7 @@ public class UserController {
     private final AssignPersonnelUseCase assignPersonnelUseCase;
     private final com.agrotrack.domain.port.in.user.UpdateUserAssignmentUseCase updateUserAssignmentUseCase;
     private final com.agrotrack.domain.port.in.user.DeleteUserUseCase deleteUserUseCase;
+    private final com.agrotrack.domain.port.in.user.GetFarmContextUseCase getFarmContextUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public UserController(GetPersonnelByFarmUseCase getPersonnelByFarmUseCase,
@@ -30,12 +31,14 @@ public class UserController {
                           AssignPersonnelUseCase assignPersonnelUseCase,
                           com.agrotrack.domain.port.in.user.UpdateUserAssignmentUseCase updateUserAssignmentUseCase,
                           com.agrotrack.domain.port.in.user.DeleteUserUseCase deleteUserUseCase,
+                          com.agrotrack.domain.port.in.user.GetFarmContextUseCase getFarmContextUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.getPersonnelByFarmUseCase = getPersonnelByFarmUseCase;
         this.getUserByIdUseCase = getUserByIdUseCase;
         this.assignPersonnelUseCase = assignPersonnelUseCase;
         this.updateUserAssignmentUseCase = updateUserAssignmentUseCase;
         this.deleteUserUseCase = deleteUserUseCase;
+        this.getFarmContextUseCase = getFarmContextUseCase;
         this.mapper = mapper;
     }
 
@@ -43,6 +46,17 @@ public class UserController {
     public ResponseEntity<UserDto> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         com.agrotrack.domain.model.entities.User user = userDetails.getUser();
         return ResponseEntity.ok(mapper.toUserDto(user));
+    }
+    
+    @GetMapping("/me/context")
+    public ResponseEntity<com.agrotrack.application.dto.FarmContextDto> getMyContext(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam UUID farmId) {
+        com.agrotrack.domain.model.entities.User user = userDetails.getUser();
+        if (user.getRoleForFarm(farmId).isEmpty()) {
+            return ResponseEntity.status(403).build();
+        }
+        return ResponseEntity.ok(getFarmContextUseCase.executeGetFarmContext(user.getIdUser(), farmId));
     }
     
     @GetMapping("/{id}")

@@ -115,6 +115,11 @@ public class AlertRepositoryAdapter implements AlertRepositoryPort {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public long countByFarmId(UUID farmId) {
+        return alertJpaRepository.countByFarmId(farmId);
+    }
+
     // --- Método auxiliar para convertir de Base de Datos a Dominio ---
     private Alert mapToDomain(AlertJpaEntity entity) {
 

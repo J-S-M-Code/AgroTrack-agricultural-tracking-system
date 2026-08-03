@@ -113,6 +113,11 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public long countPendingByFarmAndUser(UUID farmId, UUID assignedUserId) {
+        return taskJpaRepository.countByFarmIdAndAssignedIdAndTaskStatus(farmId, assignedUserId, TaskStatus.CREATED);
+    }
+
     // --- Método auxiliar para convertir de Base de Datos a Dominio ---
     private Task mapToDomain(TaskJpaEntity entity) {
 

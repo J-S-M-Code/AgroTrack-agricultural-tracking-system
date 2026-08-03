@@ -13,4 +13,5 @@ public interface TaskRepositoryPort {
     List<Task> findByFarmId(UUID farmId);
     List<Task> findByAssignedUserId(UUID assignedUserId);
     List<Task> findByAssignedUserIdAndStatus(UUID assignedUserId, TaskStatus status);
+    long countPendingByFarmAndUser(UUID farmId, UUID assignedUserId);
 }

@@ -52,14 +52,23 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         }
 
         UserRole userRoleInFarm = optionalRole.get();
-        UserRole requiredRole = UserRole.valueOf(requiredRoleStr);
+        if ("ANY".equals(requiredRoleStr)) {
+            return true; // The user has at least some role on the farm (checked above)
+        }
 
-        // Jerarquía de roles: OWNER > FOREMAN > (AGRONOMIST, VETERINARIAN, etc)
+        UserRole requiredRole;
+        try {
+            requiredRole = UserRole.valueOf(requiredRoleStr);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+
+        // Jerarquía de roles: OWNER y FOREMAN son especiales
         if (userRoleInFarm == UserRole.OWNER) {
             return true;
         }
 
-        if (userRoleInFarm == UserRole.FOREMAN && requiredRole != UserRole.OWNER) {
+        if (userRoleInFarm == UserRole.FOREMAN && requiredRole != UserRole.OWNER && requiredRole != UserRole.AGRONOMIST) {
             return true;
         }
 

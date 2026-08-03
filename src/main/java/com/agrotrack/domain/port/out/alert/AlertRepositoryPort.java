@@ -13,4 +13,5 @@ public interface AlertRepositoryPort {
     List<Alert> findByLotId(UUID lotId);
     List<Alert> findActiveAlertsByPriority(Priority priority);
     List<Alert> findByFarmId(UUID farmId);
+    long countByFarmId(UUID farmId);
 }

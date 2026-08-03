@@ -15,7 +15,7 @@ public interface LotJpaRepository extends JpaRepository<LotJpaEntity, UUID> {
 
     @Query(value = "SELECT l.* FROM lots l " +
             "JOIN farms f ON l.farm_id = f.id " +
-            "JOIN user_farms uf ON f.id = uf.farm_id " +
+            "JOIN user_farm_access uf ON f.id = uf.farm_id " +
             "WHERE uf.user_id = :userId AND f.is_active = false", nativeQuery = true)
     List<LotJpaEntity> findUnassignedLotsForUser(@Param("userId") UUID userId);
 
