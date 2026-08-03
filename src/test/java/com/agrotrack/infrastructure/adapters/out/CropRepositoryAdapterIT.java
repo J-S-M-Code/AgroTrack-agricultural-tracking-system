@@ -77,7 +77,7 @@ class CropRepositoryAdapterIT {
                 ProductiveOrientation.AGRICULTURAL, "Dir", polygon, polygon.getCentroid(), 100.0, "url");
         Farm savedFarm = farmRepositoryAdapter.save(farm);
 
-        Lot lot = Lot.create("Lote Crop", 50.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", polygon, savedFarm);
+        Lot lot = Lot.create("Lote Crop", 50.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", polygon, savedFarm);
         savedLot = lotRepositoryAdapter.save(lot);
 
         entityManager.flush();

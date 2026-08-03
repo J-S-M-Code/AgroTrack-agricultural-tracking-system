@@ -6,5 +6,6 @@ public enum SoilType {
     SILTY,
     LOAMY,
     SANDY_LOAM,
-    CLAY_LOAM
+    CLAY_LOAM,
+    UNKNOWN
 }

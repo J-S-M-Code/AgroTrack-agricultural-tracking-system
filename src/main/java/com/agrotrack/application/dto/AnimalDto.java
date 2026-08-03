@@ -25,5 +25,6 @@ public record AnimalDto(
         UUID farmId,
         String farmName,
         UUID assignedCollarId,
-        String collarName
+        String collarName,
+        Boolean active
 ) {}

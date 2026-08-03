@@ -28,7 +28,7 @@ class LotTest {
                 "Lote 1", 
                 10.5, 
                 SoilType.CLAYEY, 
-                LotType.AGREICULTURAL, 
+                LotType.AGRICULTURAL, 
                 "Lote de prueba", 
                 lotPolygon, 
                 farm
@@ -39,7 +39,7 @@ class LotTest {
         assertEquals("Lote 1", lot.getName());
         assertEquals(10.5, lot.getHectares());
         assertEquals(SoilType.CLAYEY, lot.getSoilType());
-        assertEquals(LotType.AGREICULTURAL, lot.getType());
+        assertEquals(LotType.AGRICULTURAL, lot.getType());
         assertEquals(LotState.ACTIVE, lot.getState());
         assertEquals(farm, lot.getFarm());
         assertNotNull(lot.getAnimals());
@@ -52,7 +52,7 @@ class LotTest {
         Farm farm = Farm.create("Finca", "Empresa", "CUIT", "RENAPSA", com.agrotrack.domain.model.enums.ProductiveOrientation.AGRICULTURAL, "Address", polygon, polygon.getCentroid(), 100.0, "url");
         
         Exception exception = assertThrows(BusinessRuleViolationsException.class, () -> 
-            Lot.create("", 10.5, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", polygon, farm)
+            Lot.create("", 10.5, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", polygon, farm)
         );
         assertTrue(exception.getMessage().contains("El campo Nombre no puede estar vacío"));
     }
@@ -61,7 +61,7 @@ class LotTest {
     void testChangeState() {
         Polygon polygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(0,0), new Coordinate(0,1), new Coordinate(1,1), new Coordinate(1,0), new Coordinate(0,0)});
         Farm farm = Farm.create("Finca", "Empresa", "CUIT", "RENAPSA", com.agrotrack.domain.model.enums.ProductiveOrientation.AGRICULTURAL, "Address", polygon, polygon.getCentroid(), 100.0, "url");
-        Lot lot = Lot.create("Lote 1", 10.5, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", polygon, farm);
+        Lot lot = Lot.create("Lote 1", 10.5, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", polygon, farm);
         
         lot.changeState(LotState.INACTIVE);
         assertEquals(LotState.INACTIVE, lot.getState());

@@ -11,5 +11,6 @@ public interface LotRepositoryPort {
     Lot save(Lot lot);
     Optional<Lot> findById(UUID id);
     List<Lot> findByFarmId(UUID farmId);
-    boolean existsOverlappingLot(Polygon newPerimeter, UUID excludeLotId);
+    List<Lot> findUnassignedLotsByUserId(UUID userId);
+    boolean existsOverlappingLot(Polygon newPerimeter, UUID excludeLotId, com.agrotrack.domain.model.enums.LotType newType);
 }

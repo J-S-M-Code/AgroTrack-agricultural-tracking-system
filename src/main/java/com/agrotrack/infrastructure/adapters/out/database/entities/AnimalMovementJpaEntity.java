@@ -23,6 +23,7 @@ public class AnimalMovementJpaEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "origin_lot_id", nullable = false)
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private LotJpaEntity originLot;
 
     @Column(nullable = false)

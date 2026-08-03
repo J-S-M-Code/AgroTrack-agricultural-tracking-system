@@ -41,6 +41,9 @@ class FarmControllerTest {
     @Mock
     private GetFarmsUseCase getFarmsUseCase;
 
+    @Mock
+    private com.agrotrack.application.mapper.ApplicationDtoMapper applicationDtoMapper;
+
     @InjectMocks
     private FarmController farmController;
 
@@ -81,12 +84,15 @@ class FarmControllerTest {
     void testCreateFarm_ShouldReturn201() throws Exception {
         FarmDto farmDto = FarmDto.builder().name("New Farm").build();
         Farm mockFarm = org.mockito.Mockito.mock(Farm.class);
-        when(mockFarm.getIdFarm()).thenReturn(UUID.randomUUID());
+        UUID mockId = UUID.randomUUID();
+        when(mockFarm.getIdFarm()).thenReturn(mockId);
 
         when(createFarmUseCase.executeCreateFarm(
                 any(), any(), any(), any(),
                 any(), any(), any(), org.mockito.ArgumentMatchers.anyDouble(), any()
         )).thenReturn(mockFarm);
+        
+        when(applicationDtoMapper.toFarmDto(mockFarm)).thenReturn(FarmDto.builder().idFarm(mockId).name("New Farm").build());
 
         mockMvc.perform(post("/api/v1/farms")
                 .contentType(MediaType.APPLICATION_JSON)

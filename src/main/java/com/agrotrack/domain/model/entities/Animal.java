@@ -125,9 +125,7 @@ public class Animal {
         if (category == null) {
             throw new BusinessRuleViolationsException("Debe seleccionar la categoría del animal");
         }
-        if (assignedLot == null) {
-            throw new BusinessRuleViolationsException("El animal debe estar asignado a un lote");
-        }
+        // assignedLot can be null if the animal is orphaned
 
         // Validaciones de Fecha y Números
         if (birthdate == null) {
@@ -183,9 +181,7 @@ public class Animal {
     }
 
     public void moveToLot(Lot newLot, AnimalMovement newMovement) {
-        if (newLot == null) {
-            throw new BusinessRuleViolationsException("El nuevo lote no puede ser nulo");
-        }
+        // assignedLot can be null if the animal is orphaned
         if (newMovement == null) {
             throw new BusinessRuleViolationsException("El registro del movimiento no puede ser nulo");
         }

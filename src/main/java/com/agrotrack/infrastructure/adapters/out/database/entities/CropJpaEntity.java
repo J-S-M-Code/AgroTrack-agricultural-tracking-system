@@ -59,5 +59,6 @@ public class CropJpaEntity {
     // Relación con Lot
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lot_id", nullable = false)
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private LotJpaEntity lot;
 }

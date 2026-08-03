@@ -82,11 +82,14 @@ public class CropRepositoryAdapter implements CropRepositoryPort {
 
     private Crop mapToDomain(CropJpaEntity entity) {
         // Reconstruimos un Lote básico para que el dominio no falle por nulos
-        Lot lot = Lot.create(
-                entity.getLot().getName(), entity.getLot().getHectares(), entity.getLot().getSoilType(),
-                entity.getLot().getType(), entity.getLot().getDescription(), entity.getLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getLot().getFarm().getId()).orElse(null)
-        );
-        lot.setIdLot(entity.getLot().getId());
+        Lot lot = null;
+        if (entity.getLot() != null) {
+            lot = Lot.create(
+                    entity.getLot().getName(), entity.getLot().getHectares(), entity.getLot().getSoilType(),
+                    entity.getLot().getType(), entity.getLot().getDescription(), entity.getLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getLot().getFarm().getId()).orElse(null)
+            );
+            lot.setIdLot(entity.getLot().getId());
+        }
 
         Crop crop = Crop.create(
                 entity.getTypeCrop(), entity.getSpecies(), entity.getVariety(),

@@ -81,7 +81,7 @@ class LotRepositoryAdapterIT {
     @Test
     void testSaveAndFindById() {
         // Arrange
-        Lot lot = Lot.create("Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon, farm);
+        Lot lot = Lot.create("Lote 1", 10.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", lotPolygon, farm);
 
         // Act
         Lot saved = lotAdapter.save(lot);
@@ -97,7 +97,7 @@ class LotRepositoryAdapterIT {
     @Test
     void testExistsOverlappingLot() {
         // Arrange
-        Lot lot1 = Lot.create("Lote 1", 10.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", lotPolygon, farm);
+        Lot lot1 = Lot.create("Lote 1", 10.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", lotPolygon, farm);
         lotAdapter.save(lot1);
 
         Polygon overlappingPolygon = geometryFactory.createPolygon(new Coordinate[]{
@@ -109,8 +109,8 @@ class LotRepositoryAdapterIT {
         });
 
         // Act & Assert
-        assertTrue(lotAdapter.existsOverlappingLot(overlappingPolygon, null), "Debería detectar superposición");
-        assertFalse(lotAdapter.existsOverlappingLot(notOverlappingPolygon, null), "No debería detectar superposición");
-        assertFalse(lotAdapter.existsOverlappingLot(lotPolygon, lot1.getIdLot()), "No debería chocar consigo misma");
+        assertTrue(lotAdapter.existsOverlappingLot(overlappingPolygon, null, LotType.AGRICULTURAL), "Debería detectar superposición");
+        assertFalse(lotAdapter.existsOverlappingLot(notOverlappingPolygon, null, LotType.AGRICULTURAL), "No debería detectar superposición");
+        assertFalse(lotAdapter.existsOverlappingLot(lotPolygon, lot1.getIdLot(), LotType.AGRICULTURAL), "No debería chocar consigo misma");
     }
 }

@@ -17,6 +17,7 @@ import java.util.UUID;
 public class LotDto {
     @com.fasterxml.jackson.annotation.JsonProperty("id")
     private UUID idLot;
+    private UUID farmId;
     private String name;
     private double hectares;
     private SoilType soilType;

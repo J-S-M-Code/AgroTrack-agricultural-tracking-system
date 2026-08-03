@@ -67,6 +67,9 @@ public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, 
         if (assignedLotId != null) {
             initialLot = lotRepositoryPort.findById(assignedLotId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Lote no encontrado con ID: " + assignedLotId));
+            if (initialLot.getType() == com.agrotrack.domain.model.enums.LotType.AGRICULTURAL) {
+                throw new BusinessRuleViolationsException("Un animal no puede ser asignado a un lote de cultivo (AGRICULTURAL).");
+            }
         }
 
         // 3. Crear el animal
@@ -93,6 +96,9 @@ public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, 
                 .orElseThrow(() -> new BusinessRuleViolationsException("Animal no encontrado"));
         Lot destinationLot = lotRepositoryPort.findById(destinationLotId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Lote de destino no encontrado"));
+        if (destinationLot.getType() == com.agrotrack.domain.model.enums.LotType.AGRICULTURAL) {
+            throw new BusinessRuleViolationsException("Un animal no puede ser movido a un lote de cultivo (AGRICULTURAL).");
+        }
         User user = userRepositoryPort.findById(registeredByUserId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Usuario registrador no encontrado"));
 
@@ -165,6 +171,9 @@ public class AnimalService implements RegisterAnimalUseCase, MoveAnimalUseCase, 
         if (assignedLotId != null) {
             assignedLot = lotRepositoryPort.findById(assignedLotId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Lote no encontrado"));
+            if (assignedLot.getType() == com.agrotrack.domain.model.enums.LotType.AGRICULTURAL) {
+                throw new BusinessRuleViolationsException("Un animal no puede ser asignado a un lote de cultivo (AGRICULTURAL).");
+            }
         }
 
         com.agrotrack.domain.model.entities.IoTCollar oldCollar = animal.getCollar();

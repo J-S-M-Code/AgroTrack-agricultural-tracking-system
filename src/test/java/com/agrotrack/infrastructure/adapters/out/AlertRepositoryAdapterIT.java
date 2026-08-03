@@ -84,7 +84,7 @@ class AlertRepositoryAdapterIT {
                 ProductiveOrientation.AGRICULTURAL, "Dir", samplePolygon, samplePolygon.getCentroid(), 100.0, "url");
         Farm savedFarm = farmRepositoryAdapter.save(farm);
 
-        Lot lot = Lot.create("Lote Alert", 50.0, SoilType.CLAYEY, LotType.AGREICULTURAL, "Desc", samplePolygon, savedFarm);
+        Lot lot = Lot.create("Lote Alert", 50.0, SoilType.CLAYEY, LotType.AGRICULTURAL, "Desc", samplePolygon, savedFarm);
         savedLot = lotRepositoryAdapter.save(lot);
 
         entityManager.flush();

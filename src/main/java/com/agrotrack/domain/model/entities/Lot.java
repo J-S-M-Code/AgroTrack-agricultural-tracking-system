@@ -22,6 +22,10 @@ public class Lot {
     private UUID idLot;
 
     @Getter
+    @Setter
+    private String deletionReason;
+
+    @Getter
     private String name;
 
     @Getter
@@ -104,6 +108,33 @@ public class Lot {
     }
 
     // --- MÉTODOS DE COMPORTAMIENTO ---
+
+    public void update(String name, double hectares, SoilType soilType, LotType type, String description, Polygon polygonLimit) {
+        if (name == null || name.isBlank()) {
+            throw new BusinessRuleViolationsException("El campo Nombre no puede estar vacío");
+        }
+        if (hectares <= 0) {
+            throw new BusinessRuleViolationsException("La cantidad de hectáreas debe ser mayor a 0");
+        }
+        if (soilType == null) {
+            throw new BusinessRuleViolationsException("El tipo de suelo no puede ser nulo");
+        }
+        if (type == null) {
+            throw new BusinessRuleViolationsException("El tipo de lote no puede ser nulo");
+        }
+        if (polygonLimit == null || polygonLimit.isEmpty()) {
+            throw new BusinessRuleViolationsException("El perímetro del lote no puede estar vacío");
+        }
+        if (!polygonLimit.isValid()) {
+            throw new BusinessRuleViolationsException("La geometría del polígono es inválida");
+        }
+        this.name = name;
+        this.hectares = hectares;
+        this.soilType = soilType;
+        this.type = type;
+        this.description = description;
+        this.polygonLimit = polygonLimit;
+    }
 
     public void modifyPolygonLimit(Polygon newPolygonLimit) {
         if (newPolygonLimit == null || newPolygonLimit.isEmpty()) {

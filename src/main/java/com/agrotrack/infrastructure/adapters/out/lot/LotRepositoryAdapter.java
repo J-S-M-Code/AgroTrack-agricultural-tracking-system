@@ -37,6 +37,7 @@ public class LotRepositoryAdapter implements LotRepositoryPort {
         entity.setDescription(lot.getDescription());
         entity.setPolygonLimit(lot.getPolygonLimit());
         entity.setState(lot.getState());
+        entity.setDeletionReason(lot.getDeletionReason());
         // Mapear la Farm al JPA Entity si existe
         if (lot.getFarm() != null) {
             FarmJpaEntity farmEntity = new FarmJpaEntity();
@@ -62,7 +63,17 @@ public class LotRepositoryAdapter implements LotRepositoryPort {
     }
 
     @Override
-    public boolean existsOverlappingLot(Polygon newPerimeter, UUID excludeLotId) {
+    public List<Lot> findUnassignedLotsByUserId(UUID userId) {
+        return lotJpaRepository.findUnassignedLotsForUser(userId).stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean existsOverlappingLot(Polygon newPerimeter, UUID excludeLotId, com.agrotrack.domain.model.enums.LotType newType) {
+        if (newType != com.agrotrack.domain.model.enums.LotType.PASTURE && newType != com.agrotrack.domain.model.enums.LotType.AGRICULTURAL) {
+            return false;
+        }
         return lotJpaRepository.existsOverlappingLot(newPerimeter, excludeLotId);
     }
 
@@ -73,6 +84,7 @@ public class LotRepositoryAdapter implements LotRepositoryPort {
         );
         lot.setIdLot(entity.getId());
         lot.changeState(entity.getState());
+        lot.setDeletionReason(entity.getDeletionReason());
         return lot;
     }
 }

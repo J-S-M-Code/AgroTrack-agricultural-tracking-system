@@ -31,6 +31,7 @@ public interface ApplicationDtoMapper {
     FarmDto toFarmDto(Farm farm);
     List<FarmDto> toFarmDtoList(List<Farm> farms);
 
+    @org.mapstruct.Mapping(source = "farm.idFarm", target = "farmId")
     LotDto toLotDto(Lot lot);
     List<LotDto> toLotDtoList(List<Lot> lots);
 
