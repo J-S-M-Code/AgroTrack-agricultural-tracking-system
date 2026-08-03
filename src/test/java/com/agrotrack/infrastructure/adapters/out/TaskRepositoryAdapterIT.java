@@ -71,7 +71,7 @@ class TaskRepositoryAdapterIT {
 
     @BeforeEach
     void setUp() {
-        User user = User.create("Test", "User", "45678912", "555", "Addr", "taskuser@test.com", new Password("Secret@2026"), UserRole.WORKER);
+        User user = User.create("Test", "User", "45678912", "555", "Addr", "taskuser@test.com", new Password("Secret@2026"));
         savedUser = userRepositoryAdapter.save(user);
 
         Polygon polygon = geometryFactory.createPolygon(new Coordinate[]{

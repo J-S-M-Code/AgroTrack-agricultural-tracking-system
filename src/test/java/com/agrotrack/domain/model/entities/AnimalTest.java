@@ -100,7 +100,7 @@ class AnimalTest {
 
         Polygon lotPolygon2 = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(2,2), new Coordinate(2,6), new Coordinate(6,6), new Coordinate(6,2), new Coordinate(2,2)});
         Lot newLot = Lot.create("Lote 2", 15.0, SoilType.SANDY, LotType.PASTURE, "Desc", lotPolygon2, assignedLot.getFarm());
-        User user = User.create("Pepe", "Perez", "12345678", "555-1234", "Addr", "pepe@test.com", new Password("Password987!"), UserRole.WORKER);
+        User user = User.create("Pepe", "Perez", "12345678", "555-1234", "Addr", "pepe@test.com", new Password("Password987!"));
         AnimalMovement movement = AnimalMovement.create(assignedLot, LocalDateTime.now().minusDays(1), user);
         animal.moveToLot(newLot, movement);
 

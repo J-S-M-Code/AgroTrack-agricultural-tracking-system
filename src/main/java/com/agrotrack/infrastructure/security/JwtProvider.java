@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.UUID;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtProvider {
@@ -31,10 +33,18 @@ public class JwtProvider {
     public String generateToken(Authentication authentication) {
         CustomUserDetails userPrincipal = (CustomUserDetails) authentication.getPrincipal();
 
+        Map<String, String> farmRoles = (userPrincipal.getUser().getFarmAccesses() != null) 
+            ? userPrincipal.getUser().getFarmAccesses().stream()
+                .collect(Collectors.toMap(
+                        fa -> fa.getFarmId().toString(),
+                        fa -> fa.getRole().name()
+                ))
+            : java.util.Collections.emptyMap();
+
         return Jwts.builder()
                 .subject((userPrincipal.getUser().getIdUser().toString()))
                 .claim("email", userPrincipal.getUsername())
-                .claim("role", userPrincipal.getUser().getRole().name())
+                .claim("farmRoles", farmRoles)
                 .issuedAt(new Date())
                 .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(getSigningKey())

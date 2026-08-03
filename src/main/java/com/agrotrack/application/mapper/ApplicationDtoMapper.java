@@ -35,13 +35,13 @@ public interface ApplicationDtoMapper {
     LotDto toLotDto(Lot lot);
     List<LotDto> toLotDtoList(List<Lot> lots);
 
-    @Mapping(target = "farmIds", expression = "java(mapFarmsToIds(user.getManagedFarms()))")
+    @Mapping(target = "farmIds", expression = "java(mapFarmAccessesToIds(user.getFarmAccesses()))")
     UserDto toUserDto(User user);
     List<UserDto> toUserDtoList(List<User> users);
     
-    default List<UUID> mapFarmsToIds(List<Farm> farms) {
-        if (farms == null) return null;
-        return farms.stream().map(Farm::getIdFarm).collect(java.util.stream.Collectors.toList());
+    default List<UUID> mapFarmAccessesToIds(List<com.agrotrack.domain.model.entities.FarmAccess> farmAccesses) {
+        if (farmAccesses == null) return null;
+        return farmAccesses.stream().map(com.agrotrack.domain.model.entities.FarmAccess::getFarmId).collect(java.util.stream.Collectors.toList());
     }
 
     @Mapping(source = "creator.idUser", target = "creatorId")

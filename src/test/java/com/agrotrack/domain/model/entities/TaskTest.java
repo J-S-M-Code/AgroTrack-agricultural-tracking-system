@@ -21,8 +21,8 @@ class TaskTest {
     @Test
     void testCreateTaskSuccess() {
         // Arrange
-        User creator = User.create("Juan", "Perez", "123", "123", "Dir", "c@c.com", new Password("SecurePass1!"), UserRole.OWNER);
-        User assigned = User.create("Ana", "Gomez", "456", "456", "Dir", "a@c.com", new Password("SecurePass1!"), UserRole.WORKER);
+        User creator = User.create("Juan", "Perez", "123", "123", "Dir", "c@c.com", new Password("SecurePass1!"));
+        User assigned = User.create("Ana", "Gomez", "456", "456", "Dir", "a@c.com", new Password("SecurePass1!"));
         
         Polygon polygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(0,0), new Coordinate(0,10), new Coordinate(10,10), new Coordinate(10,0), new Coordinate(0,0)});
         Farm farm = Farm.create("Finca", "Empresa", "CUIT", "RENAPSA", com.agrotrack.domain.model.enums.ProductiveOrientation.AGRICULTURAL, "Address", polygon, polygon.getCentroid(), 100.0, "url");
@@ -63,8 +63,8 @@ class TaskTest {
 
     @Test
     void testUpdateStatus() {
-        User creator = User.create("Juan", "Perez", "123", "123", "Dir", "c@c.com", new Password("SecurePass1!"), UserRole.OWNER);
-        User assigned = User.create("Ana", "Gomez", "456", "456", "Dir", "a@c.com", new Password("SecurePass1!"), UserRole.WORKER);
+        User creator = User.create("Juan", "Perez", "123", "123", "Dir", "c@c.com", new Password("SecurePass1!"));
+        User assigned = User.create("Ana", "Gomez", "456", "456", "Dir", "a@c.com", new Password("SecurePass1!"));
         Polygon polygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(0,0), new Coordinate(0,10), new Coordinate(10,10), new Coordinate(10,0), new Coordinate(0,0)});
         Farm farm = Farm.create("Finca", "Empresa", "CUIT", "RENAPSA", com.agrotrack.domain.model.enums.ProductiveOrientation.AGRICULTURAL, "Address", polygon, polygon.getCentroid(), 100.0, "url");
 
@@ -77,8 +77,8 @@ class TaskTest {
 
     @Test
     void testCreateTaskThrowsExceptionWhenDueDateBeforeCreation() {
-        User creator = User.create("Juan", "Perez", "123", "123", "Dir", "c@c.com", new Password("SecurePass1!"), UserRole.OWNER);
-        User assigned = User.create("Ana", "Gomez", "456", "456", "Dir", "a@c.com", new Password("SecurePass1!"), UserRole.WORKER);
+        User creator = User.create("Juan", "Perez", "123", "123", "Dir", "c@c.com", new Password("SecurePass1!"));
+        User assigned = User.create("Ana", "Gomez", "456", "456", "Dir", "a@c.com", new Password("SecurePass1!"));
         Polygon polygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(0,0), new Coordinate(0,10), new Coordinate(10,10), new Coordinate(10,0), new Coordinate(0,0)});
         Farm farm = Farm.create("Finca", "Empresa", "CUIT", "RENAPSA", com.agrotrack.domain.model.enums.ProductiveOrientation.AGRICULTURAL, "Address", polygon, polygon.getCentroid(), 100.0, "url");
 

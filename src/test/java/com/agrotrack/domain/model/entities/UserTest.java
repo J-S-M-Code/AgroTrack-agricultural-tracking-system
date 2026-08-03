@@ -35,7 +35,7 @@ class UserTest {
         assertEquals("12345678", user.getDni());
         assertEquals("juan@example.com", user.getEmail());
         assertEquals("SecurePass489!", user.getPassword().getValue());
-        assertEquals(UserRole.WORKER, user.getRole());
+        // removed getRole assertion
         assertTrue(user.isActive(), "El usuario debe estar activo por defecto al crearse");
         assertNotNull(user.getCreationDate());
     }
@@ -43,7 +43,7 @@ class UserTest {
     @Test
     void testChangeActivation() {
         // Arrange
-        User user = User.create("A", "B", "1", "1", "A", "E", new Password("ValidPass1!"), UserRole.WORKER);
+        User user = User.create("A", "B", "1", "1", "A", "E", new Password("ValidPass1!"));
         assertTrue(user.isActive());
 
         // Act
@@ -56,7 +56,7 @@ class UserTest {
     @Test
     void testUpdateLastAccess() {
         // Arrange
-        User user = User.create("A", "B", "1", "1", "A", "E", new Password("ValidPass1!"), UserRole.WORKER);
+        User user = User.create("A", "B", "1", "1", "A", "E", new Password("ValidPass1!"));
         LocalDateTime oldAccess = user.getLastAccess();
 
         // Act
