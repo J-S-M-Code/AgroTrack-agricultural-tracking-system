@@ -52,26 +52,26 @@ public class CropController {
     }
 
     @GetMapping("/crops/farm/{farmId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'WORKER')")
+    @PreAuthorize("hasPermission(#farmId, 'WORKER')")
     public ResponseEntity<java.util.List<CropDto>> getCropsByFarm(@PathVariable UUID farmId) {
         return ResponseEntity.ok(mapper.toCropDtoList(getCropsByFarmUseCase.executeGetCropsByFarm(farmId)));
     }
 
     @GetMapping("/crops/unassigned")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'WORKER')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'WORKER')")
     public ResponseEntity<java.util.List<CropDto>> getUnassignedCrops(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
         return ResponseEntity.ok(mapper.toCropDtoList(getUnassignedCropsUseCase.executeGetUnassignedCrops(userDetails.getUser().getIdUser())));
     }
 
     @GetMapping("/crops/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'WORKER')")
-    public ResponseEntity<CropDto> getCropById(@PathVariable UUID id) {
+    @PreAuthorize("hasPermission(#farmId, 'WORKER')")
+    public ResponseEntity<CropDto> getCropById(@PathVariable UUID id, @RequestParam UUID farmId) {
         return ResponseEntity.ok(mapper.toCropDto(getCropByIdUseCase.executeGetCropById(id)));
     }
 
     @PostMapping("/lots/{lotId}/crops")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
-    public ResponseEntity<CropDto> createCrop(@PathVariable UUID lotId, @RequestBody CropDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'AGRONOMIST')")
+    public ResponseEntity<CropDto> createCrop(@PathVariable UUID lotId, @RequestBody CropDto dto, @RequestParam UUID farmId) {
         Crop createdCrop = registerCropUseCase.executeRegisterCrop(
                 dto.typeCrop(), dto.species(), dto.variety(), dto.plantingDate(),
                 dto.estimateHarvestDate(), lotId, dto.implantedSurface(),
@@ -81,8 +81,8 @@ public class CropController {
     }
 
     @PutMapping("/crops/{cropId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
-    public ResponseEntity<CropDto> updateCrop(@PathVariable UUID cropId, @RequestBody CropDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'AGRONOMIST')")
+    public ResponseEntity<CropDto> updateCrop(@PathVariable UUID cropId, @RequestBody CropDto dto, @RequestParam UUID farmId) {
         Crop updatedCrop = updateCropUseCase.executeUpdateCrop(
                 cropId, dto.typeCrop(), dto.species(), dto.variety(), dto.plantingDate(),
                 dto.estimateHarvestDate(), dto.lotId(), dto.implantedSurface(),
@@ -92,22 +92,22 @@ public class CropController {
     }
 
     @PutMapping("/crops/{cropId}/phenological-state")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
-    public ResponseEntity<Void> updatePhenologicalState(@PathVariable UUID cropId, @RequestParam PhenologicalState state) {
+    @PreAuthorize("hasPermission(#farmId, 'AGRONOMIST')")
+    public ResponseEntity<Void> updatePhenologicalState(@PathVariable UUID cropId, @RequestParam PhenologicalState state, @RequestParam UUID farmId) {
         updatePhenologicalStateUseCase.executeUpdatePhenologicalState(cropId, state);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/crops/{cropId}/harvest")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
-    public ResponseEntity<Void> registerHarvest(@PathVariable UUID cropId, @RequestParam LocalDateTime actualHarvestDate) {
+    @PreAuthorize("hasPermission(#farmId, 'AGRONOMIST')")
+    public ResponseEntity<Void> registerHarvest(@PathVariable UUID cropId, @RequestParam LocalDateTime actualHarvestDate, @RequestParam UUID farmId) {
         registerHarvestUseCase.executeRegisterHarvest(cropId, actualHarvestDate);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/crops/{cropId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
-    public ResponseEntity<Void> deleteCrop(@PathVariable UUID cropId, @RequestParam(required = false) String reason) {
+    @PreAuthorize("hasPermission(#farmId, 'AGRONOMIST')")
+    public ResponseEntity<Void> deleteCrop(@PathVariable UUID cropId, @RequestParam(required = false) String reason, @RequestParam UUID farmId) {
         deleteCropUseCase.executeDeleteCrop(cropId, reason);
         return ResponseEntity.ok().build();
     }

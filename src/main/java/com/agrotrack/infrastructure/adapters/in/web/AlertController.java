@@ -33,20 +33,20 @@ public class AlertController {
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
+    @PreAuthorize("hasPermission(#farmId, 'APPLICATOR')")
     public ResponseEntity<java.util.List<AlertDto>> getAlertsByFarm(@PathVariable java.util.UUID farmId) {
         return ResponseEntity.ok(mapper.toAlertDtoList(getAlertsByFarmUseCase.executeGetAlertsByFarm(farmId)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
-    public ResponseEntity<AlertDto> getAlertById(@PathVariable java.util.UUID id) {
+    @PreAuthorize("hasPermission(#farmId, 'APPLICATOR')")
+    public ResponseEntity<AlertDto> getAlertById(@PathVariable java.util.UUID id, @RequestParam UUID farmId) {
         return ResponseEntity.ok(mapper.toAlertDto(getAlertByIdUseCase.executeGetAlertById(id)));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
-    public ResponseEntity<AlertDto> createAlert(@RequestBody AlertDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'APPLICATOR')")
+    public ResponseEntity<AlertDto> createAlert(@RequestBody AlertDto dto, @RequestParam UUID farmId) {
         Alert createdAlert = createAlertUseCase.execute(
                 dto.title(), dto.alertType(), dto.priority(), dto.recordType(),
                 dto.description(), dto.createdAt(), dto.authorId(), dto.images(),
@@ -58,8 +58,8 @@ public class AlertController {
     }
 
     @DeleteMapping("/{alertId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> deleteAlert(@PathVariable UUID alertId) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> deleteAlert(@PathVariable UUID alertId, @RequestParam UUID farmId) {
         deleteAlertUseCase.executeDeleteAlert(alertId);
         return ResponseEntity.ok().build();
     }

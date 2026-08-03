@@ -60,13 +60,13 @@ public class UserController {
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'OWNER')")
     public ResponseEntity<UserDto> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(getUserByIdUseCase.executeGetUserById(id));
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST')")
+    @PreAuthorize("hasPermission(#farmId, 'OWNER')")
     public ResponseEntity<List<UserDto>> getPersonnelByFarm(@PathVariable UUID farmId) {
         List<UserDto> users = getPersonnelByFarmUseCase.executeGetPersonnelByFarm(farmId);
         return ResponseEntity.ok(users);
@@ -79,25 +79,39 @@ public class UserController {
     }
 
     @PostMapping("/assign")
-    @PreAuthorize("hasAnyRole('OWNER')")
-    public ResponseEntity<Void> assignPersonnel(@RequestBody AssignRequest body) {
+    @PreAuthorize("hasPermission('ANY_FARM', 'OWNER')")
+    public ResponseEntity<Void> assignPersonnel(@RequestBody AssignRequest body, @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (body.email == null || body.email.isBlank()) {
             return ResponseEntity.badRequest().build();
+        }
+        com.agrotrack.domain.model.entities.User caller = userDetails.getUser();
+        for (UUID farmId : body.farmIds) {
+            java.util.Optional<com.agrotrack.domain.model.enums.UserRole> role = caller.getRoleForFarm(farmId);
+            if (role.isEmpty() || role.get() != com.agrotrack.domain.model.enums.UserRole.OWNER) {
+                return ResponseEntity.status(403).build();
+            }
         }
         assignPersonnelUseCase.executeAssignPersonnel(body.email, body.role, body.farmIds);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}/assignments")
-    @PreAuthorize("hasAnyRole('OWNER')")
-    public ResponseEntity<Void> updateAssignments(@PathVariable UUID id, @RequestBody AssignRequest body) {
+    @PreAuthorize("hasPermission('ANY_FARM', 'OWNER')")
+    public ResponseEntity<Void> updateAssignments(@PathVariable UUID id, @RequestBody AssignRequest body, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        com.agrotrack.domain.model.entities.User caller = userDetails.getUser();
+        for (UUID farmId : body.farmIds) {
+            java.util.Optional<com.agrotrack.domain.model.enums.UserRole> role = caller.getRoleForFarm(farmId);
+            if (role.isEmpty() || role.get() != com.agrotrack.domain.model.enums.UserRole.OWNER) {
+                return ResponseEntity.status(403).build();
+            }
+        }
         com.agrotrack.domain.model.enums.UserRole newRole = com.agrotrack.domain.model.enums.UserRole.valueOf(body.role);
         updateUserAssignmentUseCase.executeUpdateUserAssignment(id, newRole, body.farmIds);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'OWNER')")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
         deleteUserUseCase.executeDeleteUser(id);
         return ResponseEntity.ok().build();

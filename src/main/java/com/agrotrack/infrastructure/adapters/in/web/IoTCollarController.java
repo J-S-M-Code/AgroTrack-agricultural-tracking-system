@@ -51,7 +51,7 @@ public class IoTCollarController {
     }
 
     @PostMapping("/api/v1/farms/{farmId}/collars")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
     public ResponseEntity<IoTCollar> createCollar(@PathVariable UUID farmId, @RequestBody IoTCollarDto dto) {
         IoTCollar collar = registerIoTCollarUseCase.executeRegisterIoTCollar(
                 dto.codeRFID(), dto.model(), dto.state(), dto.batteryLevel(), farmId
@@ -60,7 +60,7 @@ public class IoTCollarController {
     }
 
     @GetMapping("/api/v1/farms/{farmId}/collars")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
     public ResponseEntity<List<IoTCollarResponse>> getCollarsByFarm(@PathVariable UUID farmId) {
         List<IoTCollar> collars = getCollarsByFarmUseCase.executeGetCollarsByFarm(farmId);
         List<IoTCollarResponse> dtos = collars.stream().map(collar -> {
@@ -85,8 +85,8 @@ public class IoTCollarController {
     }
 
     @DeleteMapping("/api/v1/collars/{collarId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> deleteCollar(@PathVariable UUID collarId, @RequestBody DeleteReasonDto reasonDto) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> deleteCollar(@PathVariable UUID collarId, @RequestBody DeleteReasonDto reasonDto, @RequestParam UUID farmId) {
         deleteIoTCollarUseCase.executeDeleteIoTCollar(collarId, reasonDto.reason());
         return ResponseEntity.noContent().build();
     }
@@ -94,8 +94,8 @@ public class IoTCollarController {
     public record DeleteReasonDto(String reason) {}
 
     @PutMapping("/api/v1/collars/{collarId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<IoTCollar> updateCollar(@PathVariable UUID collarId, @RequestBody IoTCollarDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<IoTCollar> updateCollar(@PathVariable UUID collarId, @RequestBody IoTCollarDto dto, @RequestParam UUID farmId) {
         IoTCollar updatedCollar = updateIoTCollarUseCase.executeUpdateIoTCollar(
                 collarId, dto.codeRFID(), dto.model(), dto.state()
         );
@@ -104,9 +104,9 @@ public class IoTCollarController {
 
     @PostMapping("/api/v1/collars/{collarId}/gps")
     // Este endpoint podría no tener PreAuthorize de usuario si es llamado por un Webhook/IoT device,
-    // o tener un Rol especial para dispositivos IoT. Por ahora dejamos OWNER/FOREMAN para consistencia.
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> registerGPS(@PathVariable UUID collarId, @RequestBody GPSPositionDto dto) {
+    // o tener un Rol especial para dispositivos IoT. Por ahora dejamos FOREMAN para consistencia.
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> registerGPS(@PathVariable UUID collarId, @RequestBody GPSPositionDto dto, @RequestParam UUID farmId) {
         // Mapeo manual de lat/lon a Point JTS se debe hacer aquí, o se asume que el backend lo manejará
         // Para simplificar, usaremos un factoría de JTS Point en el controller o servicio.
         org.locationtech.jts.geom.GeometryFactory geometryFactory = new org.locationtech.jts.geom.GeometryFactory();
@@ -117,15 +117,15 @@ public class IoTCollarController {
     }
 
     @PutMapping("/api/v1/collars/{collarId}/battery")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> updateBattery(@PathVariable UUID collarId, @RequestBody CollarBatteryDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> updateBattery(@PathVariable UUID collarId, @RequestBody CollarBatteryDto dto, @RequestParam UUID farmId) {
         updateCollarBatteryUseCase.executeUpdateCollarBattery(collarId, dto.batteryLevel());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/api/v1/collars/{collarId}/state")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> updateState(@PathVariable UUID collarId, @RequestBody CollarStateDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> updateState(@PathVariable UUID collarId, @RequestBody CollarStateDto dto, @RequestParam UUID farmId) {
         updateCollarStateUseCase.executeUpdateCollarState(collarId, dto.state());
         return ResponseEntity.ok().build();
     }

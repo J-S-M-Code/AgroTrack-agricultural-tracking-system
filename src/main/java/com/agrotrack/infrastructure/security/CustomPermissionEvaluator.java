@@ -39,6 +39,23 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
         }
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         User user = userDetails.getUser();
+        if ("ANY_FARM".equals(farmIdStr)) {
+            // Verificar si el usuario tiene el rol requerido en ALGUNA finca
+            if (user.getFarmAccesses() == null) return false;
+            return user.getFarmAccesses().stream().map(com.agrotrack.domain.model.entities.FarmAccess::getRole).anyMatch(role -> {
+                if ("ANY".equals(requiredRoleStr)) return true;
+                UserRole requiredRole;
+                try {
+                    requiredRole = UserRole.valueOf(requiredRoleStr);
+                } catch (IllegalArgumentException e) {
+                    return false;
+                }
+                if (role == UserRole.OWNER) return true;
+                if (role == UserRole.FOREMAN && requiredRole != UserRole.OWNER && requiredRole != UserRole.AGRONOMIST) return true;
+                return role == requiredRole;
+            });
+        }
+
         UUID farmId;
         try {
             farmId = UUID.fromString(farmIdStr);

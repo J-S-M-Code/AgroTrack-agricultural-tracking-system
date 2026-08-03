@@ -20,8 +20,8 @@ public class SpectralMapController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'APPLICATOR')")
-    public ResponseEntity<SpectralMapDto> registerMap(@PathVariable UUID lotId, @RequestBody SpectralMapDto request) {
+    @PreAuthorize("hasPermission(#farmId, 'AGRONOMIST')") // APPLICATOR is normally worker level, AGRONOMIST or OWNER register maps
+    public ResponseEntity<SpectralMapDto> registerMap(@PathVariable UUID lotId, @RequestBody SpectralMapDto request, @RequestParam UUID farmId) {
         // El frontend subió el archivo a MinIO y nos envía los metadatos y la ruta cruda (minioRawPath)
         SpectralMap savedMap = registerSpectralMapUseCase.executeRegisterSpectralMap(
                 request.getMinioRawPath(),

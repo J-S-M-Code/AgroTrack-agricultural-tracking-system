@@ -124,14 +124,16 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         user.changeActivation(entity.isActive()); // Restauramos su estado real
         
         if (entity.getFarmAccesses() != null && !entity.getFarmAccesses().isEmpty()) {
-            java.util.List<FarmAccess> domainAccesses = entity.getFarmAccesses().stream().map(fa -> {
-                String farmName = (fa.getFarm() != null) ? fa.getFarm().getName() : null;
-                return FarmAccess.builder()
-                        .farmId(fa.getFarm().getId())
-                        .farmName(farmName)
-                        .role(fa.getRole())
-                        .build();
-            }).toList();
+            java.util.List<FarmAccess> domainAccesses = entity.getFarmAccesses().stream()
+                .filter(fa -> fa.getFarm() != null) // Filtramos fincas que fueron eliminadas lógicamente
+                .map(fa -> {
+                    String farmName = fa.getFarm().getName();
+                    return FarmAccess.builder()
+                            .farmId(fa.getFarm().getId())
+                            .farmName(farmName)
+                            .role(fa.getRole())
+                            .build();
+                }).toList();
             user.assignFarmAccesses(domainAccesses);
         }
         

@@ -27,6 +27,7 @@ public class UserFarmAccessJpaEntity {
 
     @ManyToOne(fetch = FetchType.EAGER) // Traer de una vez para saber el nombre de la finca
     @JoinColumn(name = "farm_id", nullable = false)
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private FarmJpaEntity farm;
 
     @Enumerated(EnumType.STRING)
