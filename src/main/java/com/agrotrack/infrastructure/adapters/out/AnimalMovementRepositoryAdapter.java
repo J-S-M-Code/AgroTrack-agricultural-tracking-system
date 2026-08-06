@@ -73,7 +73,7 @@ public class AnimalMovementRepositoryAdapter implements AnimalMovementRepository
                 entity.getRegisteredBy().getName(), entity.getRegisteredBy().getLastName(),
                 entity.getRegisteredBy().getDni(), entity.getRegisteredBy().getPhone(),
                 entity.getRegisteredBy().getAddress(), entity.getRegisteredBy().getEmail(),
-                new Password("Dummy@2026"), entity.getRegisteredBy().getRole()
+                new Password("Dummy@2026")
         );
         user.setIdUser(entity.getRegisteredBy().getId());
 

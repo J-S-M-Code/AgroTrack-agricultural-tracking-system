@@ -1,6 +1,5 @@
 package com.agrotrack.infrastructure.adapters.out.database.entities;
 
-import com.agrotrack.domain.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -41,21 +40,12 @@ public class UserJpaEntity {
     @Column(nullable = false)
     private String passwordHash;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UserRole role;
-
     private boolean isActive;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-        name = "user_farms",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "farm_id")
-    )
-    private java.util.List<FarmJpaEntity> managedFarms = new java.util.ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private java.util.List<UserFarmAccessJpaEntity> farmAccesses = new java.util.ArrayList<>();
 }

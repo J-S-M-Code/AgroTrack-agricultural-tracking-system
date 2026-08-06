@@ -16,7 +16,7 @@ class HealthEventTest {
 
     @BeforeEach
     void setUp() {
-        veterinarian = User.create("Vet", "Doc", "12345678", "55555", "Clinica", "vet@test.com", new Password("Password987!"), UserRole.VETERINARIAN);
+        veterinarian = User.create("Vet", "Doc", "12345678", "55555", "Clinica", "vet@test.com", new Password("Password987!"));
     }
 
     @Test

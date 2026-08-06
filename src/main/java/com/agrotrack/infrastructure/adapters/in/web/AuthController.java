@@ -57,8 +57,7 @@ public class AuthController {
                 request.getPhone(),
                 request.getAddress(),
                 request.getEmail(),
-                request.getPassword(),
-                request.getRole()
+                request.getPassword()
         );
 
         // Una vez registrado, lo autenticamos directamente para devolverle el token

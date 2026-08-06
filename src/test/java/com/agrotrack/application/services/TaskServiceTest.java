@@ -57,8 +57,8 @@ class TaskServiceTest {
         UUID assignedId = UUID.randomUUID();
         UUID farmId = UUID.randomUUID();
 
-        User creator = User.create("Juan", "P", "1", "1", "D", "e@e.com", new Password("SecurePass1!"), UserRole.OWNER);
-        User assigned = User.create("Ana", "G", "2", "2", "D", "a@a.com", new Password("SecurePass1!"), UserRole.WORKER);
+        User creator = User.create("Juan", "P", "1", "1", "D", "e@e.com", new Password("SecurePass1!"));
+        User assigned = User.create("Ana", "G", "2", "2", "D", "a@a.com", new Password("SecurePass1!"));
         
         Polygon farmPolygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(0,0), new Coordinate(0,10), new Coordinate(10,10), new Coordinate(10,0), new Coordinate(0,0)});
         Farm farm = Farm.create("Finca", "Empresa", "CUIT", "RENAPSA", com.agrotrack.domain.model.enums.ProductiveOrientation.AGRICULTURAL, "Address", farmPolygon, farmPolygon.getCentroid(), 100.0, "url");

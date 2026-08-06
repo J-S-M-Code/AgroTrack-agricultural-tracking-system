@@ -72,7 +72,7 @@ class AlertRepositoryAdapterIT {
 
     @BeforeEach
     void setUp() {
-        User user = User.create("Test", "User", "45678912", "555", "Addr", "alertuser@test.com", new Password("Secret@2026"), UserRole.WORKER);
+        User user = User.create("Test", "User", "45678912", "555", "Addr", "alertuser@test.com", new Password("Secret@2026"));
         savedUser = userRepositoryAdapter.save(user);
 
         samplePolygon = geometryFactory.createPolygon(new Coordinate[]{

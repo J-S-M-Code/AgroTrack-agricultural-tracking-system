@@ -39,8 +39,7 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
 
     @Override
     @Transactional
-    public User executeRegisterUser(String name, String lastName, String dni, String phone,
-                        String address, String email, String rawPassword, UserRole role) {
+    public User executeRegisterUser(String name, String lastName, String dni, String phone, String address, String email, String rawPassword) {
 
         // 1. Validar unicidad (regla de negocio que requiere de la base de datos)
         if (userRepositoryPort.existsByEmail(email)) {
@@ -51,7 +50,7 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
         Password password = new Password(rawPassword);
 
         // 3. Crear el usuario (su estado 'active' y las fechas nacen solas según tu constructor)
-        User newUser = User.create(name, lastName, dni, phone, address, email, password, role);
+        User newUser = User.create(name, lastName, dni, phone, address, email, password);
 
         // 4. Guardar y retornar con su UUID asignado por el adaptador
         return userRepositoryPort.save(newUser);
@@ -110,12 +109,14 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
                 .toList();
 
         try {
-            user.changeRole(UserRole.valueOf(role));
+            UserRole assignedRole = UserRole.valueOf(role);
+            List<com.agrotrack.domain.model.entities.FarmAccess> accesses = farms.stream()
+                .map(f -> com.agrotrack.domain.model.entities.FarmAccess.builder().farmId(f.getIdFarm()).farmName(f.getName()).role(assignedRole).build())
+                .toList();
+            user.assignFarmAccesses(accesses);
         } catch (IllegalArgumentException e) {
             throw new BusinessRuleViolationsException("Rol inválido: " + role);
         }
-
-        user.assignFarms(farms);
         userRepositoryPort.save(user);
     }
 
@@ -129,8 +130,10 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
                 .map(id -> farmRepositoryPort.findById(id).orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + id)))
                 .toList();
 
-        user.changeRole(newRole);
-        user.assignFarms(farms);
+        List<com.agrotrack.domain.model.entities.FarmAccess> accesses = farms.stream()
+                .map(f -> com.agrotrack.domain.model.entities.FarmAccess.builder().farmId(f.getIdFarm()).farmName(f.getName()).role(newRole).build())
+                .toList();
+        user.assignFarmAccesses(accesses);
         userRepositoryPort.save(user);
     }
 
@@ -141,7 +144,7 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
                 .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
         
         user.changeActivation(false);
-        user.assignFarms(List.of()); // Limpiar fincas
+        user.assignFarmAccesses(List.of()); // Limpiar fincas
         userRepositoryPort.save(user);
     }
 }

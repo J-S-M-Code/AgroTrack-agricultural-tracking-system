@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -37,8 +38,6 @@ public class User {
     private Password password;
 
     @Getter
-    private UserRole role;
-    @Getter
     private LocalDateTime creationDate;
     @Setter
     @Getter
@@ -46,9 +45,9 @@ public class User {
     @Getter
     private boolean active;
     @Getter
-    private List<Farm> managedFarms;
+    private List<FarmAccess> farmAccesses;
 
-    private User(String name, String lastName, String dni, String phone, String address, String email, Password password, UserRole role) {
+    private User(String name, String lastName, String dni, String phone, String address, String email, Password password) {
         this.name = name;
         this.lastName = lastName;
         this.dni = dni;
@@ -56,14 +55,13 @@ public class User {
         this.address = address;
         this.email = email;
         this.password = password;
-        this.role = role;
         this.creationDate = LocalDateTime.now();
         this.lastAccess = LocalDateTime.now();
         this.active = true;
-        this.managedFarms = new ArrayList<>();
+        this.farmAccesses = new ArrayList<>();
     }
 
-    public static User create(String name, String lastName, String dni, String phone, String address, String email, Password password, UserRole role){
+    public static User create(String name, String lastName, String dni, String phone, String address, String email, Password password){
         if (name == null || name.isBlank()){
             throw new BusinessRuleViolationsException("El campo Nombre no puede estar vacio.");
         }
@@ -82,7 +80,7 @@ public class User {
         if (email == null || email.isBlank()){
             throw new BusinessRuleViolationsException("El campo Email no puede estar vacio.");
         }
-        return new User(name, lastName, dni, phone, address, email, password, role);
+        return new User(name, lastName, dni, phone, address, email, password);
     }
 
     public void changeActivation(boolean newStatus) {
@@ -97,22 +95,24 @@ public class User {
         return this.password.getValue().equals(password);
     }
 
-    public void addFarm(Farm farm) {
-        if (this.managedFarms == null) {
-            this.managedFarms = new ArrayList<>();
+    public void addFarmAccess(FarmAccess farmAccess) {
+        if (this.farmAccesses == null) {
+            this.farmAccesses = new ArrayList<>();
         }
-        if (this.managedFarms.stream().noneMatch(f -> f.getIdFarm().equals(farm.getIdFarm()))) {
-            this.managedFarms.add(farm);
+        if (this.farmAccesses.stream().noneMatch(fa -> fa.getFarmId().equals(farmAccess.getFarmId()))) {
+            this.farmAccesses.add(farmAccess);
         }
     }
 
-    public void assignFarms(List<Farm> farms) {
-        this.managedFarms = new ArrayList<>(farms);
+    public void assignFarmAccesses(List<FarmAccess> farmAccesses) {
+        this.farmAccesses = new ArrayList<>(farmAccesses);
     }
 
-    public void changeRole(UserRole newRole) {
-        if (newRole != null) {
-            this.role = newRole;
-        }
+    public Optional<UserRole> getRoleForFarm(UUID farmId) {
+        if (this.farmAccesses == null) return Optional.empty();
+        return this.farmAccesses.stream()
+                .filter(fa -> fa.getFarmId().equals(farmId))
+                .map(FarmAccess::getRole)
+                .findFirst();
     }
 }

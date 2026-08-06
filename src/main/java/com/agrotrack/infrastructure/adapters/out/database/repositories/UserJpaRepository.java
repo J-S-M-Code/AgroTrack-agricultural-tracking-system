@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface UserJpaRepository extends JpaRepository<UserJpaEntity, UUID> {
     Optional<UserJpaEntity> findByEmail(String email);
     boolean existsByEmail(String email);
-    java.util.List<UserJpaEntity> findByManagedFarms_Id(UUID farmId);
+    java.util.List<UserJpaEntity> findByFarmAccesses_Farm_Id(UUID farmId);
 }

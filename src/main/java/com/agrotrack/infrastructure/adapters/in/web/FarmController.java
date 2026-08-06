@@ -41,7 +41,7 @@ public class FarmController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("isAuthenticated()") // Cualquier usuario logueado puede crear una finca, se convertirá en OWNER automáticamente.
     public ResponseEntity<FarmDto> createFarm(@RequestBody FarmDto farmDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Farm createdFarm = createFarmUseCase.executeCreateFarm(
                 farmDto.getName(),
@@ -64,7 +64,7 @@ public class FarmController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasPermission(#id, 'Farm', 'OWNER')")
     public ResponseEntity<FarmDto> updateFarm(@PathVariable UUID id, @RequestBody FarmDto farmDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Farm updatedFarm = updateFarmUseCase.executeUpdateFarm(
                 id,
@@ -80,20 +80,20 @@ public class FarmController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    @PreAuthorize("isAuthenticated()") // La capa de servicio solo devuelve las fincas del usuario
     public ResponseEntity<List<FarmDto>> getMyFarms(@AuthenticationPrincipal CustomUserDetails userDetails) {
         List<FarmDto> userFarms = getFarmsUseCase.executeGetFarmsByUser(userDetails.getUser().getIdUser());
         return ResponseEntity.ok(userFarms);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN')")
+    @PreAuthorize("hasPermission(#id, 'Farm', 'ANY')") // Requiere acceso a la finca
     public ResponseEntity<FarmDto> getFarmDetails(@PathVariable UUID id) {
         return ResponseEntity.ok(getFarmByIdUseCase.executeGetFarmById(id));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER')")
+    @PreAuthorize("hasPermission(#id, 'Farm', 'OWNER')")
     public ResponseEntity<Void> deleteFarm(@PathVariable UUID id, @RequestBody DeleteReasonDto reasonDto) {
         deleteFarmUseCase.executeDeleteFarm(id, reasonDto.getReason());
         return ResponseEntity.ok().build();

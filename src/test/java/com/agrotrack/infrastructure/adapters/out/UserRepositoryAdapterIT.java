@@ -55,7 +55,7 @@ class UserRepositoryAdapterIT {
     @Test
     void testSaveAndFindById() {
         // Arrange
-        User user = User.create("Juan", "Perez", "12345678", "555-1234", "Address", "juan@test.com", new Password("SecurePass1!"), UserRole.WORKER);
+        User user = User.create("Juan", "Perez", "12345678", "555-1234", "Address", "juan@test.com", new Password("SecurePass1!"));
 
         // Act
         User saved = adapter.save(user);
@@ -65,13 +65,13 @@ class UserRepositoryAdapterIT {
         assertTrue(retrieved.isPresent());
         assertEquals("juan@test.com", retrieved.get().getEmail());
         assertEquals("Juan", retrieved.get().getName());
-        assertEquals(UserRole.WORKER, retrieved.get().getRole());
+
     }
 
     @Test
     void testExistsByEmail() {
         // Arrange
-        User user = User.create("Ana", "Gomez", "87654321", "555-4321", "Address 2", "ana@test.com", new Password("SecurePass1!"), UserRole.OWNER);
+        User user = User.create("Ana", "Gomez", "87654321", "555-4321", "Address 2", "ana@test.com", new Password("SecurePass1!"));
         adapter.save(user);
 
         // Act & Assert

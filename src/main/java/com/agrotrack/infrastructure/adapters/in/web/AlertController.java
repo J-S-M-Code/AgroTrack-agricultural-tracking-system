@@ -33,20 +33,39 @@ public class AlertController {
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
-    public ResponseEntity<java.util.List<AlertDto>> getAlertsByFarm(@PathVariable java.util.UUID farmId) {
-        return ResponseEntity.ok(mapper.toAlertDtoList(getAlertsByFarmUseCase.executeGetAlertsByFarm(farmId)));
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<java.util.List<AlertDto>> getAlertsByFarm(@PathVariable java.util.UUID farmId, 
+                                                                    @org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
+        java.util.Optional<com.agrotrack.domain.model.enums.UserRole> roleOpt = userDetails.getUser().getRoleForFarm(farmId);
+        if (roleOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        com.agrotrack.domain.model.enums.UserRole role = roleOpt.get();
+        java.util.List<Alert> allAlerts = getAlertsByFarmUseCase.executeGetAlertsByFarm(farmId);
+        
+        java.util.List<Alert> filteredAlerts = allAlerts.stream().filter(alert -> {
+            if (role == com.agrotrack.domain.model.enums.UserRole.OWNER || role == com.agrotrack.domain.model.enums.UserRole.FOREMAN) {
+                return true;
+            } else if (role == com.agrotrack.domain.model.enums.UserRole.AGRONOMIST) {
+                return alert.getRelatedAnimal() == null; 
+            } else if (role == com.agrotrack.domain.model.enums.UserRole.VETERINARIAN) {
+                return alert.getRelatedCrop() == null && alert.getRelatedLot() == null; 
+            }
+            return false;
+        }).collect(java.util.stream.Collectors.toList());
+        
+        return ResponseEntity.ok(mapper.toAlertDtoList(filteredAlerts));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
-    public ResponseEntity<AlertDto> getAlertById(@PathVariable java.util.UUID id) {
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<AlertDto> getAlertById(@PathVariable java.util.UUID id, @RequestParam UUID farmId) {
         return ResponseEntity.ok(mapper.toAlertDto(getAlertByIdUseCase.executeGetAlertById(id)));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR')")
-    public ResponseEntity<AlertDto> createAlert(@RequestBody AlertDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<AlertDto> createAlert(@RequestBody AlertDto dto, @RequestParam UUID farmId) {
         Alert createdAlert = createAlertUseCase.execute(
                 dto.title(), dto.alertType(), dto.priority(), dto.recordType(),
                 dto.description(), dto.createdAt(), dto.authorId(), dto.images(),
@@ -58,8 +77,8 @@ public class AlertController {
     }
 
     @DeleteMapping("/{alertId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> deleteAlert(@PathVariable UUID alertId) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> deleteAlert(@PathVariable UUID alertId, @RequestParam UUID farmId) {
         deleteAlertUseCase.executeDeleteAlert(alertId);
         return ResponseEntity.ok().build();
     }

@@ -48,13 +48,13 @@ public class AnimalController {
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'VETERINARIAN', 'WORKER')")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<java.util.List<AnimalDto>> getAnimalsByFarm(@PathVariable UUID farmId) {
         return ResponseEntity.ok(mapper.toAnimalDtoList(getAnimalsByFarmUseCase.executeGetAnimalsByFarm(farmId)));
     }
 
     @GetMapping("/unassigned")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'VETERINARIAN', 'WORKER')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')")
     public ResponseEntity<java.util.List<AnimalDto>> getUnassignedAnimals(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
         return ResponseEntity.ok(mapper.toAnimalDtoList(getUnassignedAnimalsUseCase.executeGetUnassignedAnimals(userDetails.getUser().getIdUser())));
     }
@@ -68,8 +68,8 @@ public class AnimalController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<AnimalDto> createAnimal(@RequestBody AnimalDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<AnimalDto> createAnimal(@RequestBody AnimalDto dto, @RequestParam UUID farmId) {
         Animal createdAnimal = registerAnimalUseCase.executeRegisterAnimal(
                 dto.visualCaravan(), dto.caravanSenasa(), dto.livestockKey(), dto.numRENSPA(),
                 dto.internalManagementCaravan(), dto.species(), dto.race(), dto.sex(),
@@ -79,8 +79,8 @@ public class AnimalController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<AnimalDto> updateAnimal(@PathVariable UUID id, @RequestBody AnimalDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<AnimalDto> updateAnimal(@PathVariable UUID id, @RequestBody AnimalDto dto, @RequestParam UUID farmId) {
         Animal updatedAnimal = updateAnimalUseCase.executeUpdateAnimal(
                 id, dto.visualCaravan(), dto.caravanSenasa(), dto.livestockKey(), dto.numRENSPA(),
                 dto.internalManagementCaravan(), dto.species(), dto.race(), dto.sex(),
@@ -90,15 +90,15 @@ public class AnimalController {
     }
 
     @PutMapping("/{id}/move")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> moveAnimal(@PathVariable UUID id, @RequestParam UUID destinationLotId, @RequestParam UUID registeredByUserId) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> moveAnimal(@PathVariable UUID id, @RequestParam UUID destinationLotId, @RequestParam UUID registeredByUserId, @RequestParam UUID farmId) {
         moveAnimalUseCase.executeMoveAnimal(id, destinationLotId, LocalDateTime.now(), registeredByUserId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{id}/health-events")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN', 'VETERINARIAN')")
-    public ResponseEntity<Void> registerHealthEvent(@PathVariable UUID id, @RequestBody HealthEventDto dto) {
+    @PreAuthorize("hasPermission(#farmId, 'VETERINARIAN')")
+    public ResponseEntity<Void> registerHealthEvent(@PathVariable UUID id, @RequestBody HealthEventDto dto, @RequestParam UUID farmId) {
         registerHealthEventUseCase.executeRegisterHealthEvent(
                 id, dto.date(), dto.type(), dto.treatment(), dto.numAct(), dto.observation(), dto.veterinarianId()
         );
@@ -106,8 +106,8 @@ public class AnimalController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN', 'VETERINARIAN')")
-    public ResponseEntity<AnimalDto> getAnimal(@PathVariable UUID id) {
+    @PreAuthorize("hasPermission(#farmId, 'VETERINARIAN')")
+    public ResponseEntity<AnimalDto> getAnimal(@PathVariable UUID id, @RequestParam UUID farmId) {
         return getAnimalByIdUseCase.executeGetAnimalById(id)
                 .map(mapper::toAnimalDto)
                 .map(ResponseEntity::ok)
@@ -115,8 +115,8 @@ public class AnimalController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> deleteAnimal(@PathVariable UUID id, @RequestParam(required = false) String reason) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> deleteAnimal(@PathVariable UUID id, @RequestParam(required = false) String reason, @RequestParam UUID farmId) {
         deleteAnimalUseCase.executeDeleteAnimal(id, reason);
         return ResponseEntity.ok().build();
     }

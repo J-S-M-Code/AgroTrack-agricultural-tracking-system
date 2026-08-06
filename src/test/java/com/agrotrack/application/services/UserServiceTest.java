@@ -42,7 +42,7 @@ class UserServiceTest {
         });
 
         // Act
-        User result = userService.executeRegisterUser("Juan", "Perez", "123", "456", "Dir", "test@test.com", "SecurePass1!", UserRole.WORKER);
+        User result = userService.executeRegisterUser("Juan", "Perez", "123", "456", "Dir", "test@test.com", "SecurePass1!");
 
         // Assert
         assertNotNull(result.getIdUser());
@@ -57,7 +57,7 @@ class UserServiceTest {
 
         // Act & Assert
         assertThrows(BusinessRuleViolationsException.class, () -> 
-            userService.executeRegisterUser("Juan", "Perez", "123", "456", "Dir", "test@test.com", "SecurePass1!", UserRole.WORKER)
+            userService.executeRegisterUser("Juan", "Perez", "123", "456", "Dir", "test@test.com", "SecurePass1!")
         );
     }
 
@@ -65,7 +65,7 @@ class UserServiceTest {
     void executeChangeUserActivation_Success() {
         // Arrange
         UUID userId = UUID.randomUUID();
-        User user = User.create("Juan", "P", "1", "1", "D", "e@e.com", new Password("SecurePass1!"), UserRole.WORKER);
+        User user = User.create("Juan", "P", "1", "1", "D", "e@e.com", new Password("SecurePass1!"));
         assertTrue(user.isActive());
         
         when(userRepositoryPort.findById(userId)).thenReturn(Optional.of(user));

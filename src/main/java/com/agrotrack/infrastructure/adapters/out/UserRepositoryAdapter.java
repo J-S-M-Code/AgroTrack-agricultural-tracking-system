@@ -2,8 +2,10 @@ package com.agrotrack.infrastructure.adapters.out;
 
 import com.agrotrack.domain.model.entities.Password;
 import com.agrotrack.domain.model.entities.User;
+import com.agrotrack.domain.model.entities.FarmAccess;
 import com.agrotrack.domain.port.out.user.UserRepositoryPort;
 import com.agrotrack.infrastructure.adapters.out.database.entities.UserJpaEntity;
+import com.agrotrack.infrastructure.adapters.out.database.entities.UserFarmAccessJpaEntity;
 import com.agrotrack.infrastructure.adapters.out.database.repositories.UserJpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -30,7 +32,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
             entity = userJpaRepository.findById(user.getIdUser()).orElse(new UserJpaEntity());
         } else {
             entity = new UserJpaEntity();
-            entity.setManagedFarms(new java.util.ArrayList<>());
+            entity.setFarmAccesses(new java.util.ArrayList<>());
         }
         
         entity.setName(user.getName());
@@ -45,7 +47,6 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
             pass = passwordEncoder.encode(pass);
         }
         entity.setPasswordHash(pass);
-        entity.setRole(user.getRole());
         entity.setActive(user.isActive());
         
         if (user.getCreationDate() != null) {
@@ -55,17 +56,22 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
             entity.setLastLogin(user.getLastAccess());
         }
 
-        if (user.getManagedFarms() != null) {
-            java.util.List<com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity> farmEntities = user.getManagedFarms().stream().map(farm -> {
+        if (user.getFarmAccesses() != null) {
+            java.util.List<UserFarmAccessJpaEntity> accessEntities = user.getFarmAccesses().stream().map(fa -> {
+                UserFarmAccessJpaEntity access = new UserFarmAccessJpaEntity();
+                access.setRole(fa.getRole());
+                access.setUser(entity); // link back
                 com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity fe = new com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity();
-                fe.setId(farm.getIdFarm());
-                return fe;
+                fe.setId(fa.getFarmId());
+                access.setFarm(fe);
+                return access;
             }).collect(java.util.stream.Collectors.toList());
-            if (entity.getManagedFarms() != null) {
-                entity.getManagedFarms().clear();
-                entity.getManagedFarms().addAll(farmEntities);
+            
+            if (entity.getFarmAccesses() != null) {
+                entity.getFarmAccesses().clear();
+                entity.getFarmAccesses().addAll(accessEntities);
             } else {
-                entity.setManagedFarms(new java.util.ArrayList<>(farmEntities));
+                entity.setFarmAccesses(new java.util.ArrayList<>(accessEntities));
             }
         }
         
@@ -102,7 +108,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public List<User> findByFarmId(UUID farmId) {
-        return userJpaRepository.findByManagedFarms_Id(farmId).stream().map(this::mapToDomain).toList();
+        return userJpaRepository.findByFarmAccesses_Farm_Id(farmId).stream().map(this::mapToDomain).toList();
     }
 
     private User mapToDomain(UserJpaEntity entity) {
@@ -112,20 +118,23 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
         User user = User.create(
                 entity.getName(), entity.getLastName(), entity.getDni(),
                 entity.getPhone(), entity.getAddress(), entity.getEmail(),
-                password, entity.getRole()
+                password
         );
         user.setIdUser(entity.getId());
         user.changeActivation(entity.isActive()); // Restauramos su estado real
         
-        // Mapear fincas administradas si existen
-        if (entity.getManagedFarms() != null && !entity.getManagedFarms().isEmpty()) {
-            java.util.List<com.agrotrack.domain.model.entities.Farm> domainFarms = entity.getManagedFarms().stream().map(f -> {
-                return com.agrotrack.domain.model.entities.Farm.builder()
-                        .idFarm(f.getId())
-                        .name(f.getName())
-                        .build();
-            }).toList();
-            user.assignFarms(domainFarms);
+        if (entity.getFarmAccesses() != null && !entity.getFarmAccesses().isEmpty()) {
+            java.util.List<FarmAccess> domainAccesses = entity.getFarmAccesses().stream()
+                .filter(fa -> fa.getFarm() != null) // Filtramos fincas que fueron eliminadas lógicamente
+                .map(fa -> {
+                    String farmName = fa.getFarm().getName();
+                    return FarmAccess.builder()
+                            .farmId(fa.getFarm().getId())
+                            .farmName(farmName)
+                            .role(fa.getRole())
+                            .build();
+                }).toList();
+            user.assignFarmAccesses(domainAccesses);
         }
         
         return user;

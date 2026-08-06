@@ -113,6 +113,11 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public long countPendingByFarmAndUser(UUID farmId, UUID assignedUserId) {
+        return taskJpaRepository.countByFarmIdAndAssignedIdAndTaskStatus(farmId, assignedUserId, TaskStatus.CREATED);
+    }
+
     // --- Método auxiliar para convertir de Base de Datos a Dominio ---
     private Task mapToDomain(TaskJpaEntity entity) {
 
@@ -121,7 +126,7 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
                 entity.getCreator().getName(), entity.getCreator().getLastName(),
                 entity.getCreator().getDni(), entity.getCreator().getPhone(),
                 entity.getCreator().getAddress(), entity.getCreator().getEmail(),
-                new Password("Dummy@2026"), entity.getCreator().getRole()
+                new Password("Dummy@2026")
         );
         creator.setIdUser(entity.getCreator().getId());
 
@@ -132,7 +137,7 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
                     entity.getAssigned().getName(), entity.getAssigned().getLastName(),
                     entity.getAssigned().getDni(), entity.getAssigned().getPhone(),
                     entity.getAssigned().getAddress(), entity.getAssigned().getEmail(),
-                    new Password("Dummy@2026"), entity.getAssigned().getRole()
+                    new Password("Dummy@2026")
             );
             assigned.setIdUser(entity.getAssigned().getId());
         }

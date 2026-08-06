@@ -62,7 +62,7 @@ class FarmControllerTest {
                         User mockUserInner = org.mockito.Mockito.mock(User.class);
                         // We use a fixed UUID for testing
                         org.mockito.Mockito.lenient().when(mockUserInner.getIdUser()).thenReturn(UUID.fromString("00000000-0000-0000-0000-000000000000"));
-                        org.mockito.Mockito.lenient().when(mockUserInner.getRole()).thenReturn(com.agrotrack.domain.model.enums.UserRole.OWNER);
+
                         return new CustomUserDetails(mockUserInner);
                     }
                 })

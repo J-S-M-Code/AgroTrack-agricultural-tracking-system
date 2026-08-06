@@ -42,7 +42,7 @@ public class LotController {
     }
 
     @PostMapping("/farm/{farmId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
     public ResponseEntity<LotDto> createLot(@PathVariable UUID farmId, @RequestBody LotDto lotDto) {
         Lot createdLot = createLotUseCase.executeCreateLot(
                 farmId,
@@ -63,7 +63,7 @@ public class LotController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
+    @PreAuthorize("hasPermission(#lotDto.farmId, 'FOREMAN')")
     public ResponseEntity<LotDto> updateLot(@PathVariable UUID id, @RequestBody LotDto lotDto) {
         Lot updatedLot = updateLotUseCase.executeUpdateLot(
                 id,
@@ -78,14 +78,14 @@ public class LotController {
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<List<LotDto>> getLotsByFarm(@PathVariable UUID farmId) {
         List<LotDto> lots = getLotsByFarmUseCase.executeGetLotsByFarm(farmId);
         return ResponseEntity.ok(lots);
     }
 
     @GetMapping("/unassigned")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')") // Not well supported, but keeping it
     public ResponseEntity<List<LotDto>> getUnassignedLots(@org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
         UUID userId = userDetails.getUser().getIdUser();
         List<LotDto> unassignedLots = getUnassignedLotsUseCase.executeGetUnassignedLots(userId)
@@ -96,8 +96,9 @@ public class LotController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> revokeLot(@PathVariable UUID id, @RequestParam String reason) {
+    @PreAuthorize("hasPermission(#farmId, 'OWNER')")
+    public ResponseEntity<Void> revokeLot(@PathVariable UUID id, @RequestParam String reason, @RequestParam UUID farmId) {
+        // We added farmId to the signature for security validation
         revokeLotUseCase.execute(id, reason);
         return ResponseEntity.noContent().build();
     }

@@ -13,4 +13,7 @@ public interface AlertJpaRepository extends JpaRepository<AlertJpaEntity, UUID> 
 
     @org.springframework.data.jpa.repository.Query("SELECT a FROM AlertJpaEntity a LEFT JOIN a.relatedLot l LEFT JOIN a.relatedCrop c LEFT JOIN c.lot cl LEFT JOIN a.relatedAnimal an LEFT JOIN an.assignedLot anl WHERE l.farm.id = :farmId OR cl.farm.id = :farmId OR anl.farm.id = :farmId")
     List<AlertJpaEntity> findByFarmId(@org.springframework.data.repository.query.Param("farmId") UUID farmId);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM AlertJpaEntity a LEFT JOIN a.relatedLot l LEFT JOIN a.relatedCrop c LEFT JOIN c.lot cl LEFT JOIN a.relatedAnimal an LEFT JOIN an.assignedLot anl WHERE l.farm.id = :farmId OR cl.farm.id = :farmId OR anl.farm.id = :farmId")
+    long countByFarmId(@org.springframework.data.repository.query.Param("farmId") UUID farmId);
 }

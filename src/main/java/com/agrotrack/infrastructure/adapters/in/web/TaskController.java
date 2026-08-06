@@ -46,7 +46,7 @@ public class TaskController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN', 'AGRONOMIST', 'VETERINARIAN')")
+    @PreAuthorize("hasPermission(#taskDto.relatedFarmId, 'VETERINARIAN')") // VETERINARIAN or higher (AGRONOMIST, FOREMAN, OWNER)
     public ResponseEntity<TaskDto> createTask(@RequestBody TaskDto taskDto, @AuthenticationPrincipal CustomUserDetails userDetails) {
         Task createdTask = createTaskUseCase.executeCreateTask(
                 taskDto.getTitle(),
@@ -69,35 +69,35 @@ public class TaskController {
     }
 
     @GetMapping("/assigned")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')") // Keeping global fallback or require farmId
     public ResponseEntity<List<TaskDto>> getAssignedTasks(@AuthenticationPrincipal CustomUserDetails userDetails) {
         List<TaskDto> dtos = getAssignedTasksUseCase.executeGetAssignedTasks(userDetails.getUser().getIdUser());
         return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/farm/{farmId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<List<TaskDto>> getTasksByFarm(@PathVariable UUID farmId) {
         List<TaskDto> dtos = getTasksByFarmUseCase.executeGetTasksByFarm(farmId);
         return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OWNER', 'AGRONOMIST', 'FOREMAN', 'APPLICATOR', 'VETERINARIAN', 'WORKER')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')") // This would ideally require farmId
     public ResponseEntity<TaskDto> getTaskById(@PathVariable UUID id) {
         return ResponseEntity.ok(getTaskByIdUseCase.executeGetTaskById(id));
     }
 
     @PatchMapping("/{taskId}/status")
-    @PreAuthorize("hasAnyRole('APPLICATOR', 'VETERINARIAN', 'WORKER', 'OWNER', 'FOREMAN')")
+    @PreAuthorize("hasPermission('ANY_FARM', 'ANY')") // Same, requires farmId ideally
     public ResponseEntity<Void> updateTaskStatus(@PathVariable UUID taskId, @RequestParam TaskStatus newStatus) {
         updateTaskStatusUseCase.executeUpdateTaskStatus(taskId, newStatus);
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{taskId}")
-    @PreAuthorize("hasAnyRole('OWNER', 'FOREMAN')")
-    public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId, @RequestParam(required = false) String reason) {
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')") // Required parameter for authorization
+    public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId, @RequestParam(required = false) String reason, @RequestParam UUID farmId) {
         deleteTaskUseCase.executeDeleteTask(taskId, reason);
         return ResponseEntity.ok().build();
     }
