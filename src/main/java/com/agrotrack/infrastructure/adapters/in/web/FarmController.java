@@ -6,6 +6,7 @@ import com.agrotrack.domain.port.in.farm.CreateFarmUseCase;
 import com.agrotrack.domain.port.in.farm.GetFarmByIdUseCase;
 import com.agrotrack.domain.port.in.farm.GetFarmsUseCase;
 import com.agrotrack.domain.port.in.farm.DeleteFarmUseCase;
+import com.agrotrack.domain.port.in.user.AssignPersonnelUseCase;
 import com.agrotrack.infrastructure.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,17 +27,19 @@ public class FarmController {
     private final GetFarmByIdUseCase getFarmByIdUseCase;
     private final com.agrotrack.domain.port.in.farm.UpdateFarmUseCase updateFarmUseCase;
     private final DeleteFarmUseCase deleteFarmUseCase;
+    private final AssignPersonnelUseCase assignPersonnelUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public FarmController(CreateFarmUseCase createFarmUseCase, GetFarmsUseCase getFarmsUseCase,
                           GetFarmByIdUseCase getFarmByIdUseCase, com.agrotrack.domain.port.in.farm.UpdateFarmUseCase updateFarmUseCase,
-                          DeleteFarmUseCase deleteFarmUseCase,
+                          DeleteFarmUseCase deleteFarmUseCase, AssignPersonnelUseCase assignPersonnelUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.createFarmUseCase = createFarmUseCase;
         this.getFarmsUseCase = getFarmsUseCase;
         this.getFarmByIdUseCase = getFarmByIdUseCase;
         this.updateFarmUseCase = updateFarmUseCase;
         this.deleteFarmUseCase = deleteFarmUseCase;
+        this.assignPersonnelUseCase = assignPersonnelUseCase;
         this.mapper = mapper;
     }
 
@@ -54,6 +57,9 @@ public class FarmController {
                 farmDto.getSurface(),
                 farmDto.getImageUrl()
         );
+
+        // Assign the user as OWNER of the newly created farm
+        assignPersonnelUseCase.executeAssignPersonnel(userDetails.getUsername(), "OWNER", List.of(createdFarm.getIdFarm()));
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
