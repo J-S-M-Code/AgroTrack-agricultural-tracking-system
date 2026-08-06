@@ -115,4 +115,11 @@ public class User {
                 .map(FarmAccess::getRole)
                 .findFirst();
     }
+
+    public void updateProfile(String name, String lastName, String phone, String address) {
+        if (name != null && !name.isBlank()) this.name = name;
+        if (lastName != null && !lastName.isBlank()) this.lastName = lastName;
+        if (phone != null && !phone.isBlank()) this.phone = phone;
+        if (address != null && !address.isBlank()) this.address = address;
+    }
 }

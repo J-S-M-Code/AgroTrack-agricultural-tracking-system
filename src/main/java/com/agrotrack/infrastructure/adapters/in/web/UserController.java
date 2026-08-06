@@ -1,9 +1,13 @@
 package com.agrotrack.infrastructure.adapters.in.web;
 
 import com.agrotrack.application.dto.UserDto;
+import com.agrotrack.application.dto.UpdateProfileDto;
+import com.agrotrack.application.dto.UpdatePasswordDto;
 import com.agrotrack.domain.port.in.user.GetPersonnelByFarmUseCase;
 import com.agrotrack.domain.port.in.user.GetUserByIdUseCase;
 import com.agrotrack.domain.port.in.user.AssignPersonnelUseCase;
+import com.agrotrack.domain.port.in.user.UpdateProfileUseCase;
+import com.agrotrack.domain.port.in.user.ChangeUserPasswordUseCase;
 import com.agrotrack.infrastructure.security.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,7 +15,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -24,6 +27,8 @@ public class UserController {
     private final com.agrotrack.domain.port.in.user.UpdateUserAssignmentUseCase updateUserAssignmentUseCase;
     private final com.agrotrack.domain.port.in.user.DeleteUserUseCase deleteUserUseCase;
     private final com.agrotrack.domain.port.in.user.GetFarmContextUseCase getFarmContextUseCase;
+    private final UpdateProfileUseCase updateProfileUseCase;
+    private final ChangeUserPasswordUseCase changeUserPasswordUseCase;
     private final com.agrotrack.application.mapper.ApplicationDtoMapper mapper;
 
     public UserController(GetPersonnelByFarmUseCase getPersonnelByFarmUseCase,
@@ -32,6 +37,8 @@ public class UserController {
                           com.agrotrack.domain.port.in.user.UpdateUserAssignmentUseCase updateUserAssignmentUseCase,
                           com.agrotrack.domain.port.in.user.DeleteUserUseCase deleteUserUseCase,
                           com.agrotrack.domain.port.in.user.GetFarmContextUseCase getFarmContextUseCase,
+                          UpdateProfileUseCase updateProfileUseCase,
+                          ChangeUserPasswordUseCase changeUserPasswordUseCase,
                           com.agrotrack.application.mapper.ApplicationDtoMapper mapper) {
         this.getPersonnelByFarmUseCase = getPersonnelByFarmUseCase;
         this.getUserByIdUseCase = getUserByIdUseCase;
@@ -39,6 +46,8 @@ public class UserController {
         this.updateUserAssignmentUseCase = updateUserAssignmentUseCase;
         this.deleteUserUseCase = deleteUserUseCase;
         this.getFarmContextUseCase = getFarmContextUseCase;
+        this.updateProfileUseCase = updateProfileUseCase;
+        this.changeUserPasswordUseCase = changeUserPasswordUseCase;
         this.mapper = mapper;
     }
 
@@ -57,6 +66,22 @@ public class UserController {
             return ResponseEntity.status(403).build();
         }
         return ResponseEntity.ok(getFarmContextUseCase.executeGetFarmContext(user.getIdUser(), farmId));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<Void> updateMyProfile(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @jakarta.validation.Valid UpdateProfileDto body) {
+        updateProfileUseCase.executeUpdateProfile(userDetails.getUser().getIdUser(), body);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> updateMyPassword(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody @jakarta.validation.Valid UpdatePasswordDto body) {
+        changeUserPasswordUseCase.executeChangeUserPassword(userDetails.getUser().getIdUser(), body.getCurrentPassword(), body.getNewPassword());
+        return ResponseEntity.ok().build();
     }
     
     @GetMapping("/{id}")
