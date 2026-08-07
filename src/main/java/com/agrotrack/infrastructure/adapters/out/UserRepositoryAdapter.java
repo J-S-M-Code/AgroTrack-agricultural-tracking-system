@@ -62,6 +62,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 access.setUser(entity); // link back
                 com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity fe = new com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity();
                 fe.setId(fa.getFarmId());
+                fe.setActive(true); // Evita que @SQLRestriction('is_active = true') bloquee el acceso
                 access.setFarm(fe);
                 return access;
             }).collect(java.util.stream.Collectors.toList());
