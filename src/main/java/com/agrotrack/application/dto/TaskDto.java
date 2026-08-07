@@ -7,8 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
+import com.agrotrack.application.dto.PointDto;
+import com.agrotrack.application.dto.PolygonDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,10 +29,8 @@ public class TaskDto {
     private LocalDateTime creationDate;
     private LocalDateTime completeDate;
     private String description;
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Polygon polygonLimit;
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Point centroid;
+    private PolygonDto polygonLimit;
+    private PointDto centroid;
     private List<String> images;
     
     // IDs de relaciones en lugar de las entidades completas

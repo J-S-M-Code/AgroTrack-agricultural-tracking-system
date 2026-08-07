@@ -33,8 +33,10 @@ import com.agrotrack.infrastructure.adapters.out.mail.EmailService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.LocalDateTime;
 
+import com.agrotrack.domain.port.in.user.RemovePersonnelFromFarmUseCase;
+
 @Service
-public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase, UpdateUserAssignmentUseCase, DeleteUserUseCase, InviteUserUseCase, AcceptInviteUseCase, UpdateProfileUseCase {
+public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase, UpdateUserAssignmentUseCase, DeleteUserUseCase, InviteUserUseCase, AcceptInviteUseCase, UpdateProfileUseCase, RemovePersonnelFromFarmUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
     private final FarmRepositoryPort farmRepositoryPort;
@@ -105,7 +107,11 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
     @Transactional(readOnly = true)
     public List<UserDto> executeGetPersonnelByFarm(UUID farmId) {
         List<User> users = userRepositoryPort.findByFarmId(farmId);
-        return applicationDtoMapper.toUserDtoList(users);
+        return users.stream().map(user -> {
+            UserDto dto = applicationDtoMapper.toUserDto(user);
+            user.getRoleForFarm(farmId).ifPresent(dto::setRole);
+            return dto;
+        }).toList();
     }
 
     @Override
@@ -178,7 +184,10 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
                 .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada"));
 
         // 2. Crear usuario
-        String rawPassword = userDto.isSendEmail() ? generateRandomPassword() : userDto.getPassword();
+        String rawPassword = userDto.getPassword();
+        if (rawPassword == null || rawPassword.isBlank()) {
+            rawPassword = generateRandomPassword();
+        }
         new Password(rawPassword);
         Password password = new Password(passwordEncoder.encode(rawPassword));
         User newUser = User.create(userDto.getName(), userDto.getLastName(), userDto.getDni(), userDto.getPhone(), userDto.getAddress(), userDto.getEmail(), password);
@@ -231,6 +240,20 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
                 .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
                 
         user.updateProfile(dto.getName(), dto.getLastName(), dto.getPhone(), dto.getAddress());
+        userRepositoryPort.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void executeRemovePersonnelFromFarm(UUID farmId, UUID userId) {
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+
+        List<com.agrotrack.domain.model.entities.FarmAccess> newAccesses = user.getFarmAccesses().stream()
+                .filter(a -> !a.getFarmId().equals(farmId))
+                .toList();
+
+        user.assignFarmAccesses(newAccesses);
         userRepositoryPort.save(user);
     }
 
