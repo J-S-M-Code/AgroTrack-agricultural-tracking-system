@@ -25,4 +25,5 @@ public class FarmDto {
     private PointDto centroid;
     private double surface;
     private String imageUrl;
+    private String myRole;
 }

@@ -89,6 +89,13 @@ public class FarmController {
     @PreAuthorize("isAuthenticated()") // La capa de servicio solo devuelve las fincas del usuario
     public ResponseEntity<List<FarmDto>> getMyFarms(@AuthenticationPrincipal CustomUserDetails userDetails) {
         List<FarmDto> userFarms = getFarmsUseCase.executeGetFarmsByUser(userDetails.getUser().getIdUser());
+        
+        com.agrotrack.domain.model.entities.User loggedUser = userDetails.getUser();
+        userFarms.forEach(farmDto -> {
+            loggedUser.getRoleForFarm(farmDto.getIdFarm())
+                .ifPresent(role -> farmDto.setMyRole(role.name()));
+        });
+        
         return ResponseEntity.ok(userFarms);
     }
 

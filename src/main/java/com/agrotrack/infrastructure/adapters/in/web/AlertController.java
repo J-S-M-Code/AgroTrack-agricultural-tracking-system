@@ -51,7 +51,7 @@ public class AlertController {
             } else if (role == com.agrotrack.domain.model.enums.UserRole.VETERINARIAN) {
                 return alert.getRelatedCrop() == null && alert.getRelatedLot() == null; 
             }
-            return false;
+            return true;
         }).collect(java.util.stream.Collectors.toList());
         
         return ResponseEntity.ok(mapper.toAlertDtoList(filteredAlerts));
