@@ -128,10 +128,10 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
 
         try {
             UserRole assignedRole = UserRole.valueOf(role);
-            List<com.agrotrack.domain.model.entities.FarmAccess> accesses = farms.stream()
-                .map(f -> com.agrotrack.domain.model.entities.FarmAccess.builder().farmId(f.getIdFarm()).farmName(f.getName()).role(assignedRole).build())
-                .toList();
-            user.assignFarmAccesses(accesses);
+            farms.forEach(f -> {
+                user.addOrUpdateFarmAccess(com.agrotrack.domain.model.entities.FarmAccess.builder()
+                        .farmId(f.getIdFarm()).farmName(f.getName()).role(assignedRole).build());
+            });
         } catch (IllegalArgumentException e) {
             throw new BusinessRuleViolationsException("Rol inválido: " + role);
         }
@@ -148,10 +148,10 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
                 .map(id -> farmRepositoryPort.findById(id).orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + id)))
                 .toList();
 
-        List<com.agrotrack.domain.model.entities.FarmAccess> accesses = farms.stream()
-                .map(f -> com.agrotrack.domain.model.entities.FarmAccess.builder().farmId(f.getIdFarm()).farmName(f.getName()).role(newRole).build())
-                .toList();
-        user.assignFarmAccesses(accesses);
+        farms.forEach(f -> {
+            user.addOrUpdateFarmAccess(com.agrotrack.domain.model.entities.FarmAccess.builder()
+                    .farmId(f.getIdFarm()).farmName(f.getName()).role(newRole).build());
+        });
         userRepositoryPort.save(user);
     }
 
