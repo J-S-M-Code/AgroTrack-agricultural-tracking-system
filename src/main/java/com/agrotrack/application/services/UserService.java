@@ -23,18 +23,35 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 import com.agrotrack.domain.port.in.user.DeleteUserUseCase;
+import com.agrotrack.domain.port.in.user.UpdateProfileUseCase;
+import com.agrotrack.domain.port.in.user.InviteUserUseCase;
+import com.agrotrack.domain.port.in.user.AcceptInviteUseCase;
+import com.agrotrack.application.dto.CreateUserDto;
+import com.agrotrack.infrastructure.adapters.out.persistence.entity.UserInviteTokenJpaEntity;
+import com.agrotrack.infrastructure.adapters.out.persistence.repository.UserInviteTokenJpaRepository;
+import com.agrotrack.infrastructure.adapters.out.mail.EmailService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import java.time.LocalDateTime;
+
+import com.agrotrack.domain.port.in.user.RemovePersonnelFromFarmUseCase;
 
 @Service
-public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase, UpdateUserAssignmentUseCase, DeleteUserUseCase {
+public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCase, ChangeUserActivationUseCase, GetPersonnelByFarmUseCase, GetUserByIdUseCase, AssignPersonnelUseCase, UpdateUserAssignmentUseCase, DeleteUserUseCase, InviteUserUseCase, AcceptInviteUseCase, UpdateProfileUseCase, RemovePersonnelFromFarmUseCase {
 
     private final UserRepositoryPort userRepositoryPort;
     private final FarmRepositoryPort farmRepositoryPort;
     private final ApplicationDtoMapper applicationDtoMapper;
+    private final UserInviteTokenJpaRepository tokenRepository;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepositoryPort userRepositoryPort, FarmRepositoryPort farmRepositoryPort, ApplicationDtoMapper applicationDtoMapper) {
+    public UserService(UserRepositoryPort userRepositoryPort, FarmRepositoryPort farmRepositoryPort, ApplicationDtoMapper applicationDtoMapper, UserInviteTokenJpaRepository tokenRepository, EmailService emailService, PasswordEncoder passwordEncoder) {
         this.userRepositoryPort = userRepositoryPort;
         this.farmRepositoryPort = farmRepositoryPort;
         this.applicationDtoMapper = applicationDtoMapper;
+        this.tokenRepository = tokenRepository;
+        this.emailService = emailService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -46,8 +63,9 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
             throw new BusinessRuleViolationsException("Ya existe un usuario registrado con el correo: " + email);
         }
 
-        // 2. Instanciar el Value Object de Password (aquí explotan las validaciones de seguridad de tu regex)
-        Password password = new Password(rawPassword);
+        // 2. Validar la contraseña cruda, luego instanciar el Value Object con la codificada
+        new Password(rawPassword);
+        Password password = new Password(passwordEncoder.encode(rawPassword));
 
         // 3. Crear el usuario (su estado 'active' y las fechas nacen solas según tu constructor)
         User newUser = User.create(name, lastName, dni, phone, address, email, password);
@@ -64,11 +82,13 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
                 .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
 
         // Validamos la contraseña vieja antes de dejarlo cambiar a la nueva
-        if (!user.validatePassword(currentRawPassword)) {
+        if (!passwordEncoder.matches(currentRawPassword, user.getPassword().getValue())) {
             throw new BusinessRuleViolationsException("La contraseña actual proporcionada es incorrecta.");
         }
 
-        user.changePassword(newRawPassword);
+        // Validamos la nueva contraseña antes de codificarla
+        new Password(newRawPassword);
+        user.changePassword(passwordEncoder.encode(newRawPassword));
         userRepositoryPort.save(user);
     }
 
@@ -87,7 +107,11 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
     @Transactional(readOnly = true)
     public List<UserDto> executeGetPersonnelByFarm(UUID farmId) {
         List<User> users = userRepositoryPort.findByFarmId(farmId);
-        return applicationDtoMapper.toUserDtoList(users);
+        return users.stream().map(user -> {
+            UserDto dto = applicationDtoMapper.toUserDto(user);
+            user.getRoleForFarm(farmId).ifPresent(dto::setRole);
+            return dto;
+        }).toList();
     }
 
     @Override
@@ -110,10 +134,10 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
 
         try {
             UserRole assignedRole = UserRole.valueOf(role);
-            List<com.agrotrack.domain.model.entities.FarmAccess> accesses = farms.stream()
-                .map(f -> com.agrotrack.domain.model.entities.FarmAccess.builder().farmId(f.getIdFarm()).farmName(f.getName()).role(assignedRole).build())
-                .toList();
-            user.assignFarmAccesses(accesses);
+            farms.forEach(f -> {
+                user.addOrUpdateFarmAccess(com.agrotrack.domain.model.entities.FarmAccess.builder()
+                        .farmId(f.getIdFarm()).farmName(f.getName()).role(assignedRole).build());
+            });
         } catch (IllegalArgumentException e) {
             throw new BusinessRuleViolationsException("Rol inválido: " + role);
         }
@@ -130,10 +154,10 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
                 .map(id -> farmRepositoryPort.findById(id).orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + id)))
                 .toList();
 
-        List<com.agrotrack.domain.model.entities.FarmAccess> accesses = farms.stream()
-                .map(f -> com.agrotrack.domain.model.entities.FarmAccess.builder().farmId(f.getIdFarm()).farmName(f.getName()).role(newRole).build())
-                .toList();
-        user.assignFarmAccesses(accesses);
+        farms.forEach(f -> {
+            user.addOrUpdateFarmAccess(com.agrotrack.domain.model.entities.FarmAccess.builder()
+                    .farmId(f.getIdFarm()).farmName(f.getName()).role(newRole).build());
+        });
         userRepositoryPort.save(user);
     }
 
@@ -146,5 +170,94 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
         user.changeActivation(false);
         user.assignFarmAccesses(List.of()); // Limpiar fincas
         userRepositoryPort.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void executeInviteUser(CreateUserDto userDto, UUID farmId) {
+        // 1. Validar correo
+        if (userRepositoryPort.existsByEmail(userDto.getEmail())) {
+            throw new BusinessRuleViolationsException("Ya existe un usuario con el correo: " + userDto.getEmail());
+        }
+
+        Farm farm = farmRepositoryPort.findById(farmId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada"));
+
+        // 2. Crear usuario
+        String rawPassword = userDto.getPassword();
+        if (rawPassword == null || rawPassword.isBlank()) {
+            rawPassword = generateRandomPassword();
+        }
+        new Password(rawPassword);
+        Password password = new Password(passwordEncoder.encode(rawPassword));
+        User newUser = User.create(userDto.getName(), userDto.getLastName(), userDto.getDni(), userDto.getPhone(), userDto.getAddress(), userDto.getEmail(), password);
+        
+        List<com.agrotrack.domain.model.entities.FarmAccess> accesses = List.of(
+                com.agrotrack.domain.model.entities.FarmAccess.builder().farmId(farmId).farmName(farm.getName()).role(userDto.getRole()).build()
+        );
+        newUser.assignFarmAccesses(accesses);
+        
+        newUser = userRepositoryPort.save(newUser);
+
+        // 3. Si se debe enviar correo, generar token y enviar
+        if (userDto.isSendEmail()) {
+            String tokenValue = UUID.randomUUID().toString();
+            UserInviteTokenJpaEntity tokenEntity = UserInviteTokenJpaEntity.builder()
+                    .token(tokenValue)
+                    .userId(newUser.getIdUser())
+                    .farmId(farmId)
+                    .expirationDate(LocalDateTime.now().plusHours(24))
+                    .build();
+            tokenRepository.save(tokenEntity);
+            emailService.sendInviteEmail(newUser.getEmail(), tokenValue, farm.getName());
+        }
+    }
+
+    @Override
+    @Transactional
+    public void executeAcceptInvite(String token, String newPassword) {
+        UserInviteTokenJpaEntity tokenEntity = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Token de invitación inválido o no encontrado"));
+
+        if (tokenEntity.getExpirationDate().isBefore(LocalDateTime.now())) {
+            throw new BusinessRuleViolationsException("El token de invitación ha expirado");
+        }
+
+        User user = userRepositoryPort.findById(tokenEntity.getUserId())
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado"));
+
+        new Password(newPassword);
+        user.changePassword(passwordEncoder.encode(newPassword));
+        userRepositoryPort.save(user);
+        
+        tokenRepository.delete(tokenEntity);
+    }
+
+    @Override
+    @Transactional
+    public void executeUpdateProfile(UUID userId, com.agrotrack.application.dto.UpdateProfileDto dto) {
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+                
+        user.updateProfile(dto.getName(), dto.getLastName(), dto.getPhone(), dto.getAddress());
+        userRepositoryPort.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void executeRemovePersonnelFromFarm(UUID farmId, UUID userId) {
+        User user = userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new BusinessRuleViolationsException("Usuario no encontrado con ID: " + userId));
+
+        List<com.agrotrack.domain.model.entities.FarmAccess> newAccesses = user.getFarmAccesses().stream()
+                .filter(a -> !a.getFarmId().equals(farmId))
+                .toList();
+
+        user.assignFarmAccesses(newAccesses);
+        userRepositoryPort.save(user);
+    }
+
+    private String generateRandomPassword() {
+        return "Temp" + UUID.randomUUID().toString().substring(0, 8) + "!";
     }
 }

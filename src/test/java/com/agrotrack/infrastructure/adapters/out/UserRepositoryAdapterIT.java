@@ -2,7 +2,6 @@ package com.agrotrack.infrastructure.adapters.out;
 
 import com.agrotrack.domain.model.entities.Password;
 import com.agrotrack.domain.model.entities.User;
-import com.agrotrack.domain.model.enums.UserRole;
 import com.agrotrack.infrastructure.adapters.out.database.repositories.UserJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,5 +76,22 @@ class UserRepositoryAdapterIT {
         // Act & Assert
         assertTrue(adapter.existsByEmail("ana@test.com"));
         assertFalse(adapter.existsByEmail("notfound@test.com"));
+    }
+
+    @Test
+    void testFindByDni() {
+        // Arrange
+        User user = User.create("Carlos", "Lopez", "11223344", "555-9999", "Address 3", "carlos@test.com", new Password("SecurePass1!"));
+        adapter.save(user);
+
+        // Act
+        Optional<User> retrieved = adapter.findByDni("11223344");
+        Optional<User> notFound = adapter.findByDni("00000000");
+
+        // Assert
+        assertTrue(retrieved.isPresent());
+        assertEquals("Carlos", retrieved.get().getName());
+        assertEquals("11223344", retrieved.get().getDni());
+        assertFalse(notFound.isPresent());
     }
 }

@@ -9,7 +9,6 @@ import com.agrotrack.infrastructure.adapters.out.database.entities.UserFarmAcces
 import com.agrotrack.infrastructure.adapters.out.database.repositories.UserJpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -63,6 +62,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
                 access.setUser(entity); // link back
                 com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity fe = new com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity();
                 fe.setId(fa.getFarmId());
+                fe.setActive(true); // Evita que @SQLRestriction('is_active = true') bloquee el acceso
                 access.setFarm(fe);
                 return access;
             }).collect(java.util.stream.Collectors.toList());
@@ -97,8 +97,7 @@ public class UserRepositoryAdapter implements UserRepositoryPort {
 
     @Override
     public Optional<User> findByDni(String dni) {
-        // TODO: Implement findByDni in UserJpaRepository
-        return Optional.empty();
+        return userJpaRepository.findByDni(dni).map(this::mapToDomain);
     }
 
     @Override

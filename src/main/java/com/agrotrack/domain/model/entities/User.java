@@ -95,13 +95,12 @@ public class User {
         return this.password.getValue().equals(password);
     }
 
-    public void addFarmAccess(FarmAccess farmAccess) {
+    public void addOrUpdateFarmAccess(FarmAccess farmAccess) {
         if (this.farmAccesses == null) {
             this.farmAccesses = new ArrayList<>();
         }
-        if (this.farmAccesses.stream().noneMatch(fa -> fa.getFarmId().equals(farmAccess.getFarmId()))) {
-            this.farmAccesses.add(farmAccess);
-        }
+        this.farmAccesses.removeIf(fa -> fa.getFarmId().equals(farmAccess.getFarmId()));
+        this.farmAccesses.add(farmAccess);
     }
 
     public void assignFarmAccesses(List<FarmAccess> farmAccesses) {
@@ -114,5 +113,12 @@ public class User {
                 .filter(fa -> fa.getFarmId().equals(farmId))
                 .map(FarmAccess::getRole)
                 .findFirst();
+    }
+
+    public void updateProfile(String name, String lastName, String phone, String address) {
+        if (name != null && !name.isBlank()) this.name = name;
+        if (lastName != null && !lastName.isBlank()) this.lastName = lastName;
+        if (phone != null && !phone.isBlank()) this.phone = phone;
+        if (address != null && !address.isBlank()) this.address = address;
     }
 }

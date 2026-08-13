@@ -6,6 +6,8 @@ import com.agrotrack.infrastructure.security.JwtProvider;
 import jakarta.validation.Valid;
 import com.agrotrack.domain.port.in.user.RegisterUserUseCase;
 import com.agrotrack.infrastructure.adapters.in.web.dto.RegisterRequest;
+import com.agrotrack.application.dto.AcceptInviteDto;
+import com.agrotrack.domain.port.in.user.AcceptInviteUseCase;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -21,11 +23,13 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
     private final RegisterUserUseCase registerUserUseCase;
+    private final AcceptInviteUseCase acceptInviteUseCase;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtProvider jwtProvider, RegisterUserUseCase registerUserUseCase) {
+    public AuthController(AuthenticationManager authenticationManager, JwtProvider jwtProvider, RegisterUserUseCase registerUserUseCase, AcceptInviteUseCase acceptInviteUseCase) {
         this.authenticationManager = authenticationManager;
         this.jwtProvider = jwtProvider;
         this.registerUserUseCase = registerUserUseCase;
+        this.acceptInviteUseCase = acceptInviteUseCase;
     }
 
     @PostMapping("/login")
@@ -71,5 +75,11 @@ public class AuthController {
         String jwt = jwtProvider.generateToken(authentication);
 
         return new ResponseEntity<>(new AuthResponse(jwt), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/invite/accept")
+    public ResponseEntity<Void> acceptInvite(@Valid @RequestBody AcceptInviteDto request) {
+        acceptInviteUseCase.executeAcceptInvite(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok().build();
     }
 }

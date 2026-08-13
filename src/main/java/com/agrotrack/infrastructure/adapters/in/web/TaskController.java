@@ -60,8 +60,8 @@ public class TaskController {
                 taskDto.getAssignedId(),
                 taskDto.getRelatedFarmId(),
                 taskDto.getRelatedLotId(),
-                null, // polygonLimit: Se podría mapear si se usa
-                null, // centroid
+                mapper.mapPolygonDto(taskDto.getPolygonLimit()),
+                mapper.mapPointDto(taskDto.getCentroid()),
                 taskDto.getImages(),
                 taskDto.getDescription()
         );

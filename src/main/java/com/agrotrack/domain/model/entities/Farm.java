@@ -91,6 +91,7 @@ public class Farm {
         this.lots = new ArrayList<>();
         this.tasks = new ArrayList<>();
         this.alerts = new ArrayList<>();
+        this.isActive = true;
     }
 
     public static Farm create(String name, String companyName, String cuit, String numberRENAPSA,
