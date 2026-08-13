@@ -18,4 +18,17 @@ public interface FileStoragePort {
      * Elimina un archivo del almacenamiento.
      */
     void deleteFile(String fileName);
+
+    /**
+     * Genera una URL pre-firmada para subir un archivo.
+     * @param fileName Nombre del archivo.
+     * @return URL pre-firmada.
+     */
+    String generatePresignedUploadUrl(String fileName);
+
+    /**
+     * Elimina todos los archivos con un prefijo especifico (como una carpeta).
+     * @param prefix Prefijo o nombre de la carpeta.
+     */
+    void deleteDirectory(String prefix);
 }

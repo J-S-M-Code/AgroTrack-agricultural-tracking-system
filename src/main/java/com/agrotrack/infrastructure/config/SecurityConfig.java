@@ -70,6 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/users/register").permitAll() // Por ahora permitimos registro público
                         .requestMatchers("/api/v1/animals/test/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // Permitir handshake WebSocket/SockJS
                         .requestMatchers("/error").permitAll()
                         
                         // Rutas restringidas por Rol según indicación

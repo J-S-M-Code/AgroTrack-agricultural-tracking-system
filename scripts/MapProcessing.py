@@ -78,31 +78,19 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
         else:
             input_tif = tif_source
 
-        colored_tif = os.path.join(os.path.dirname(input_tif), "colored.tif")
+        # Usar un nombre único para evitar conflictos (race conditions) en procesamientos simultáneos
+        base_name = os.path.basename(input_tif)
+        colored_tif = os.path.join(os.path.dirname(input_tif), f"colored_{base_name}")
 
         if map_type != "RGB":
-            # --- 1. APLICAR PSEUDOCOLOR PERSONALIZADO ---
+            # --- 1. APLICAR PSEUDOCOLOR PERSONALIZADO (Por Bloques) ---
             with rasterio.open(input_tif) as src:
-                band = src.read(1)
                 meta = src.meta.copy()
 
                 # Obtener parámetros y paleta customizada
                 params = get_custom_cmap(map_type)
                 cmap = params['cmap']
                 vmin, vmax = params['vmin'], params['vmax']
-
-                # Crear máscara para ignorar los fondos reales del tif (bordes fuera del polígono, usualmente 0 o NoData)
-                # Nota: Esto NO hace transparente los valores bajos del cultivo, solo los bordes del mapa.
-                nodata_mask = band == 0
-
-                # Normalizar los datos
-                normalized = np.clip((band - vmin) / (vmax - vmin), 0, 1)
-
-                # Aplicar mapa de colores (devuelve matriz RGBA de 4 bandas)
-                colored_array = cmap(normalized)
-
-                # Aplicar transparencia SOLO al fondo (fuera del mapa), no a los valores bajos
-                colored_array[nodata_mask] = [0, 0, 0, 0]
 
                 # Actualizar metadatos para guardar como RGBA de 8 bits
                 meta.update(
@@ -111,19 +99,99 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
                     nodata=0
                 )
 
-                # Convertir de flotante (0-1) a entero (0-255)
-                colored_uint8 = (colored_array * 255).astype('uint8')
-
-                # Guardar el nuevo TIF temporal coloreado
+                # Guardar el nuevo TIF temporal coloreado escribiendo por bloques (chunking)
                 with rasterio.open(colored_tif, 'w', **meta) as dst:
-                    for i in range(4): # R, G, B, Alpha
-                        dst.write(colored_uint8[:, :, i], i + 1)
+                    for ji, window in src.block_windows(1):
+                        band = src.read(1, window=window)
+                        
+                        # Crear máscara para ignorar los fondos reales del tif
+                        nodata_mask = band == 0
+
+                        # Normalizar los datos
+                        normalized = np.clip((band - vmin) / (vmax - vmin), 0, 1)
+
+                        # Aplicar mapa de colores (devuelve matriz RGBA de 4 bandas)
+                        colored_array = cmap(normalized)
+
+                        # Aplicar transparencia SOLO al fondo (fuera del mapa)
+                        colored_array[nodata_mask] = [0, 0, 0, 0]
+
+                        # Convertir de flotante (0-1) a entero (0-255)
+                        colored_uint8 = (colored_array * 255).astype('uint8')
+
+                        # Escribir las 4 bandas en el bloque correspondiente
+                        for i in range(4): # R, G, B, Alpha
+                            dst.write(colored_uint8[:, :, i], i + 1, window=window)
 
             target_tif = colored_tif
             print(f"Pseudocolor personalizado aplicado exitosamente.")
         else:
-            # Si es RGB, usamos el original
-            target_tif = input_tif
+            # --- PROCESAR RGB PARA ASEGURAR 8-BIT Y TRANSPARENCIA ---
+            with rasterio.open(input_tif) as src:
+                meta = src.meta.copy()
+                
+                # Forzar 4 bandas (RGBA) y 8 bits
+                meta.update(
+                    dtype=rasterio.uint8,
+                    count=4,
+                    nodata=0
+                )
+
+                with rasterio.open(colored_tif, 'w', **meta) as dst:
+                    for ji, window in src.block_windows(1):
+                        # Leer bandas disponibles (puede tener 3 o 4)
+                        bands_data = src.read(window=window)
+                        num_bands = bands_data.shape[0]
+                        
+                        # Crear array RGBA vacío (todo negro y transparente por defecto)
+                        rgba_array = np.zeros((4, window.height, window.width), dtype=np.uint8)
+                        
+                        if num_bands >= 3:
+                            # Copiar R, G, B y normalizar si no es uint8
+                            for i in range(3):
+                                band = bands_data[i]
+                                if band.dtype != np.uint8:
+                                    # Normalizar flotantes o enteros de 16 bits
+                                    min_val, max_val = np.nanmin(band), np.nanmax(band)
+                                    if max_val > min_val:
+                                        band = ((band - min_val) / (max_val - min_val) * 255)
+                                rgba_array[i] = band.astype(np.uint8)
+                        elif num_bands > 0:
+                            # Si tiene menos de 3 bandas (ej. 1 banda), duplicar la primera en R, G, B
+                            band = bands_data[0]
+                            if band.dtype != np.uint8:
+                                min_val, max_val = np.nanmin(band), np.nanmax(band)
+                                if max_val > min_val:
+                                    band = ((band - min_val) / (max_val - min_val) * 255)
+                            uint8_band = band.astype(np.uint8)
+                            rgba_array[0] = uint8_band
+                            rgba_array[1] = uint8_band
+                            rgba_array[2] = uint8_band
+                        
+                        # Calcular máscara de Nodata (Si R, G y B son 0 o nodata)
+                        if src.nodata is not None:
+                            nodata_mask = (bands_data[0] == src.nodata)
+                        else:
+                            nodata_mask = (rgba_array[0] == 0) & (rgba_array[1] == 0) & (rgba_array[2] == 0)
+                            
+                        # Configurar canal Alpha: 255 donde hay datos, 0 donde es nodata
+                        alpha_channel = np.where(nodata_mask, 0, 255).astype(np.uint8)
+                        
+                        # Si la imagen original ya tenía 4 bandas (ya tenía Alpha), la combinamos
+                        if num_bands >= 4:
+                            orig_alpha = bands_data[3]
+                            if orig_alpha.dtype != np.uint8:
+                                orig_alpha = (orig_alpha / np.nanmax(orig_alpha) * 255).astype(np.uint8)
+                            alpha_channel = np.minimum(alpha_channel, orig_alpha)
+                            
+                        rgba_array[3] = alpha_channel
+
+                        # Escribir las 4 bandas
+                        for i in range(4):
+                            dst.write(rgba_array[i], i + 1, window=window)
+
+            target_tif = colored_tif
+            print("RGB procesado y convertido a RGBA 8-bits exitosamente.")
 
         # --- 2. CORTAR EN PACHES/TESELAS ---
         print("Generando paches (teselas XYZ)...")

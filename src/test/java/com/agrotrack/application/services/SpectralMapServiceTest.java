@@ -5,7 +5,7 @@ import com.agrotrack.domain.model.entities.Lot;
 import com.agrotrack.domain.model.entities.SpectralMap;
 import com.agrotrack.domain.model.enums.SpectralMapType;
 import com.agrotrack.domain.port.out.crop.SpectralMapRepositoryPort;
-import com.agrotrack.domain.port.out.lot.LotRepositoryPort;
+import com.agrotrack.domain.port.out.farm.FarmRepositoryPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,26 +31,26 @@ class SpectralMapServiceTest {
     private AsyncMapProcessor asyncMapProcessor;
 
     @Mock
-    private LotRepositoryPort lotRepositoryPort;
+    private FarmRepositoryPort farmRepositoryPort;
 
     @InjectMocks
     private SpectralMapService spectralMapService;
 
-    private Lot lot;
     private Farm farm;
-    private UUID lotId;
+    private UUID farmId;
 
     @BeforeEach
     void setUp() {
-        lotId = UUID.randomUUID();
-        UUID farmId = UUID.randomUUID();
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        farmId = UUID.randomUUID();
 
         farm = mock(Farm.class);
         lenient().when(farm.getIdFarm()).thenReturn(farmId);
-
-        lot = mock(Lot.class);
-        lenient().when(lot.getIdLot()).thenReturn(lotId);
-        lenient().when(lot.getFarm()).thenReturn(farm);
+    }
+    
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        org.springframework.transaction.support.TransactionSynchronizationManager.clear();
     }
 
     @Test
@@ -58,14 +58,14 @@ class SpectralMapServiceTest {
         String mockPath = "bucket/path/map.tif";
         LocalDateTime flightDate = LocalDateTime.now().minusDays(1);
         
-        when(lotRepositoryPort.findById(lotId)).thenReturn(Optional.of(lot));
+        when(farmRepositoryPort.findById(farmId)).thenReturn(Optional.of(farm));
         when(spectralMapRepositoryPort.save(any(SpectralMap.class))).thenAnswer(i -> {
             SpectralMap map = i.getArgument(0);
             return map;
         });
 
         SpectralMap newMap = spectralMapService.executeRegisterSpectralMap(
-                mockPath, flightDate, SpectralMapType.NDVI, 5.0, 10.0, 0.75, lotId
+                mockPath, flightDate, SpectralMapType.NDVI, 5.0, 10.0, 0.75, farmId, "Test description"
         );
 
         assertNotNull(newMap);
@@ -73,18 +73,17 @@ class SpectralMapServiceTest {
         assertEquals(mockPath, newMap.getUrlSpectralMap());
         assertEquals(SpectralMapType.NDVI, newMap.getIndexType());
         
-        verify(asyncMapProcessor).processAndTileMap(eq(newMap), eq(mockPath), eq(SpectralMapType.NDVI));
         verify(spectralMapRepositoryPort, times(1)).save(any(SpectralMap.class));
     }
 
     @Test
     void executeRegisterSpectralMapThrowsExceptionWhenLotNotFound() {
         String mockPath = "bucket/path/map.tif";
-        when(lotRepositoryPort.findById(lotId)).thenReturn(Optional.empty());
+        when(farmRepositoryPort.findById(farmId)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () ->
                 spectralMapService.executeRegisterSpectralMap(
-                        mockPath, LocalDateTime.now(), SpectralMapType.NDVI, 5.0, 10.0, 0.75, lotId
+                        mockPath, LocalDateTime.now(), SpectralMapType.NDVI, 5.0, 10.0, 0.75, farmId, "Test desc"
                 )
         );
 

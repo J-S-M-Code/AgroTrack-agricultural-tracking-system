@@ -10,6 +10,8 @@ public interface SpectralMapRepositoryPort {
     SpectralMap save(SpectralMap spectralMap);
     Optional<SpectralMap> findById(UUID mapId);
 
-    // Obtener todo el historial de mapas de un lote específico
-    List<SpectralMap> findByLotId(UUID lotId);
+    // Obtener todo el historial de mapas de una finca específica
+    List<SpectralMap> findByFarmId(UUID farmId);
+
+    void delete(UUID mapId);
 }

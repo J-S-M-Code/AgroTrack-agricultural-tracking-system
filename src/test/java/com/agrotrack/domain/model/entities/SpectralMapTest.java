@@ -12,6 +12,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Polygon;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,6 +33,7 @@ class SpectralMapTest {
     @Test
     void testCreateSpectralMapSuccess() {
         LocalDateTime flightDate = LocalDateTime.now().minusDays(2);
+        UUID farmId = UUID.randomUUID();
         
         SpectralMap map = SpectralMap.create(
                 "http://url.com/map.tif",
@@ -40,26 +42,28 @@ class SpectralMapTest {
                 15.0, // 15% cloud cover
                 1.5,  // 1.5 cm/px resolution
                 0.75, // mean index
-                assignedLot
+                farmId,
+                "Test description"
         );
         
         assertNotNull(map);
         assertEquals(SpectralMapType.NDVI, map.getIndexType());
         assertEquals(15.0, map.getCloudCoverPercentage());
-        assertEquals(assignedLot, map.getAssignedLot());
+        assertEquals(farmId, map.getFarmId());
     }
 
     @Test
     void testIsReliable() {
         LocalDateTime flightDate = LocalDateTime.now().minusDays(2);
+        UUID farmId = UUID.randomUUID();
         
         SpectralMap reliableMap = SpectralMap.create(
-                "http://url.com/map.tif", flightDate, SpectralMapType.NDVI, 10.0, 1.5, 0.75, assignedLot
+                "http://url.com/map.tif", flightDate, SpectralMapType.NDVI, 10.0, 1.5, 0.75, farmId, "Desc"
         );
         assertTrue(reliableMap.isReliable());
         
         SpectralMap unreliableMap = SpectralMap.create(
-                "http://url.com/map.tif", flightDate, SpectralMapType.NDVI, 30.0, 1.5, 0.75, assignedLot
+                "http://url.com/map.tif", flightDate, SpectralMapType.NDVI, 30.0, 1.5, 0.75, farmId, "Desc"
         );
         assertFalse(unreliableMap.isReliable());
     }
@@ -67,9 +71,10 @@ class SpectralMapTest {
     @Test
     void testRequiresAttention() {
         LocalDateTime flightDate = LocalDateTime.now().minusDays(2);
+        UUID farmId = UUID.randomUUID();
         
         SpectralMap map = SpectralMap.create(
-                "http://url.com/map.tif", flightDate, SpectralMapType.NDVI, 10.0, 1.5, 0.50, assignedLot
+                "http://url.com/map.tif", flightDate, SpectralMapType.NDVI, 10.0, 1.5, 0.50, farmId, "Desc"
         );
         
         assertTrue(map.requiresAttention(0.60)); // Threshold 0.60
@@ -78,13 +83,14 @@ class SpectralMapTest {
 
     @Test
     void testIsRecent() {
+        UUID farmId = UUID.randomUUID();
         SpectralMap recentMap = SpectralMap.create(
-                "http://url.com/map.tif", LocalDateTime.now().minusDays(2), SpectralMapType.NDVI, 10.0, 1.5, 0.50, assignedLot
+                "http://url.com/map.tif", LocalDateTime.now().minusDays(2), SpectralMapType.NDVI, 10.0, 1.5, 0.50, farmId, "Desc"
         );
         assertTrue(recentMap.isRecent());
 
         SpectralMap oldMap = SpectralMap.create(
-                "http://url.com/map.tif", LocalDateTime.now().minusDays(10), SpectralMapType.NDVI, 10.0, 1.5, 0.50, assignedLot
+                "http://url.com/map.tif", LocalDateTime.now().minusDays(10), SpectralMapType.NDVI, 10.0, 1.5, 0.50, farmId, "Desc"
         );
         assertFalse(oldMap.isRecent());
     }
