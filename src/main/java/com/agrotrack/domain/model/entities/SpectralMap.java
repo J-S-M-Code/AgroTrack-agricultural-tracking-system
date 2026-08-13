@@ -30,38 +30,46 @@ public class SpectralMap {
     private SpectralMapType indexType;
 
     @Getter
+    @Setter
     private Double cloudCoverPercentage;
 
     @Getter
+    @Setter
     private Double resolutionGSD; // Resolución en cm/píxel
 
     @Getter
+    @Setter
     private Double meanIndexValue; // Valor medio del índice (ej. 0.65)
 
     @Getter
-    private Lot assignedLot;
+    private UUID farmId;
 
     @Getter
     @Setter
     private MapStatus mapStatus;
 
+    @Getter
+    @Setter
+    private String description;
+
     private SpectralMap(String urlSpectralMap, LocalDateTime flightDate, SpectralMapType indexType,
-                        Double cloudCoverPercentage, Double resolutionGSD, Double meanIndexValue, Lot assignedLot) {
+                        Double cloudCoverPercentage, Double resolutionGSD, Double meanIndexValue, UUID farmId, String description) {
         this.urlSpectralMap = urlSpectralMap;
         this.flightDate = flightDate;
         this.indexType = indexType;
         this.cloudCoverPercentage = cloudCoverPercentage;
         this.resolutionGSD = resolutionGSD;
         this.meanIndexValue = meanIndexValue;
-        this.assignedLot = assignedLot;
+        this.farmId = farmId;
+        this.description = description;
         this.mapStatus = MapStatus.PENDING;
     }
 
     public static SpectralMap create(String urlSpectralMap, LocalDateTime flightDate, SpectralMapType indexType,
-                                     Double cloudCoverPercentage, Double resolutionGSD, Double meanIndexValue, Lot assignedLot) {
+                                     Double cloudCoverPercentage, Double resolutionGSD, Double meanIndexValue, UUID farmId, String description) {
 
-        if (assignedLot == null) {
-            throw new BusinessRuleViolationsException("El mapa debe estar asociado a un lote");
+        if (farmId == null) {
+            throw new BusinessRuleViolationsException("El mapa debe estar asociado a una finca");
         }
         if (flightDate == null || flightDate.isAfter(LocalDateTime.now())) {
             throw new BusinessRuleViolationsException("La fecha del vuelo no es válida");
@@ -79,7 +87,7 @@ public class SpectralMap {
             throw new BusinessRuleViolationsException("La resolución GSD debe ser un valor positivo");
         }
 
-        return new SpectralMap(urlSpectralMap, flightDate, indexType, cloudCoverPercentage, resolutionGSD, meanIndexValue, assignedLot);
+        return new SpectralMap(urlSpectralMap, flightDate, indexType, cloudCoverPercentage, resolutionGSD, meanIndexValue, farmId, description);
     }
 
     // --- MÉTODOS DE COMPORTAMIENTO ---

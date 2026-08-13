@@ -62,7 +62,6 @@ class SpectralMapControllerTest {
                 .meanIndexValue(0.7)
                 .build();
 
-        com.agrotrack.domain.model.entities.Lot mockLot = org.mockito.Mockito.mock(com.agrotrack.domain.model.entities.Lot.class);
         SpectralMap mockedMap = SpectralMap.create(
                 "crudo/test.tif",
                 flightDate,
@@ -70,7 +69,8 @@ class SpectralMapControllerTest {
                 10.0,
                 5.0,
                 0.7,
-                mockLot
+                lotId,
+                "Desc"
         );
         mockedMap.setIdMap(mapId);
         mockedMap.setMapStatus(MapStatus.PENDING);
@@ -82,19 +82,21 @@ class SpectralMapControllerTest {
                 eq(10.0),
                 eq(5.0),
                 eq(0.7),
-                eq(lotId)
+                eq(lotId),
+                eq("Desc")
         )).thenReturn(mockedMap);
 
         String jsonRequest = "{" +
                 "\"minioRawPath\":\"crudo/test.tif\"," +
-                "\"flightDate\":\"" + flightDate.toString() + "\"," +
+                "\"flightDate\":\"2025-01-01T10:00:00\"," +
                 "\"indexType\":\"NDVI\"," +
                 "\"cloudCoverPercentage\":10.0," +
                 "\"resolutionGSD\":5.0," +
-                "\"meanIndexValue\":0.7" +
+                "\"meanIndexValue\":0.7," +
+                "\"description\":\"Desc\"" +
                 "}";
 
-        mockMvc.perform(post("/api/v1/lots/{lotId}/maps", lotId)
+        mockMvc.perform(post("/api/v1/farms/{farmId}/maps", lotId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpect(status().isOk())

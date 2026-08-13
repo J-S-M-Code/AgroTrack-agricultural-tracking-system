@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface SpectralMapJpaRepository extends JpaRepository<SpectralMapJpaEntity, UUID> {
-    List<SpectralMapJpaEntity> findByLotId(UUID lotId);
+    List<SpectralMapJpaEntity> findByFarmId(UUID farmId);
 }

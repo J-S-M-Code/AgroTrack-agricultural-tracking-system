@@ -27,8 +27,7 @@ class MapTilingAdapterTest {
 
             UUID fakeMapId = UUID.randomUUID();
             UUID farmId = UUID.randomUUID();
-            UUID lotId = UUID.randomUUID();
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, mapType, "2024-01-01T12-00-00");
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -49,8 +48,7 @@ class MapTilingAdapterTest {
 
             UUID fakeMapId = UUID.randomUUID();
             UUID farmId = UUID.randomUUID();
-            UUID lotId = UUID.randomUUID();
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, mapType, "2024-01-01T12-00-00");
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -71,8 +69,7 @@ class MapTilingAdapterTest {
 
             UUID fakeMapId = UUID.randomUUID();
             UUID farmId = UUID.randomUUID();
-            UUID lotId = UUID.randomUUID();
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, mapType, "2024-01-01T12-00-00");
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -93,8 +90,7 @@ class MapTilingAdapterTest {
 
             UUID fakeMapId = UUID.randomUUID();
             UUID farmId = UUID.randomUUID();
-            UUID lotId = UUID.randomUUID();
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, mapType, "2024-01-01T12-00-00");
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -115,8 +111,7 @@ class MapTilingAdapterTest {
 
             UUID fakeMapId = UUID.randomUUID();
             UUID farmId = UUID.randomUUID();
-            UUID lotId = UUID.randomUUID();
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, mapType, "2024-01-01T12-00-00");
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");
@@ -137,8 +132,7 @@ class MapTilingAdapterTest {
 
             UUID fakeMapId = UUID.randomUUID();
             UUID farmId = UUID.randomUUID();
-            UUID lotId = UUID.randomUUID();
-            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, lotId, mapType);
+            mapTilingPort.processAndStoreTiles(geoTiffURL, fakeMapId, farmId, mapType, "2024-01-01T12-00-00");
 
             System.out.println("=== TEST FINALIZADO CON ÉXITO ===");
             System.out.println("¡Revisa tu consola de MinIO en http://localhost:9001!");

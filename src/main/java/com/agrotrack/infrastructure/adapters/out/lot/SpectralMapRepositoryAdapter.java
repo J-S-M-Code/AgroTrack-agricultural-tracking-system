@@ -27,8 +27,9 @@ public class SpectralMapRepositoryAdapter implements SpectralMapRepositoryPort {
 
     @Override
     public SpectralMap save(SpectralMap spectralMap) {
-        LotJpaEntity lotEntity = new LotJpaEntity();
-        lotEntity.setId(spectralMap.getAssignedLot().getIdLot());
+
+        com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity farmEntity = new com.agrotrack.infrastructure.adapters.out.database.entities.FarmJpaEntity();
+        farmEntity.setId(spectralMap.getFarmId());
 
         SpectralMapJpaEntity entity = new SpectralMapJpaEntity(
                 spectralMap.getIdMap(),
@@ -38,7 +39,11 @@ public class SpectralMapRepositoryAdapter implements SpectralMapRepositoryPort {
                 spectralMap.getCloudCoverPercentage(),
                 spectralMap.getResolutionGSD(),
                 spectralMap.getMeanIndexValue(),
-                lotEntity
+                spectralMap.getTilesBaseUrl(),
+                spectralMap.getDescription(),
+                spectralMap.getMapStatus(),
+
+                farmEntity
         );
 
         SpectralMapJpaEntity savedEntity = spectralMapJpaRepository.save(entity);
@@ -52,25 +57,26 @@ public class SpectralMapRepositoryAdapter implements SpectralMapRepositoryPort {
     }
 
     @Override
-    public List<SpectralMap> findByLotId(UUID lotId) {
-        return spectralMapJpaRepository.findByLotId(lotId).stream()
+    public List<SpectralMap> findByFarmId(UUID farmId) {
+        return spectralMapJpaRepository.findByFarmId(farmId).stream()
                 .map(this::mapToDomain)
                 .collect(Collectors.toList());
     }
 
-    private SpectralMap mapToDomain(SpectralMapJpaEntity entity) {
-        Lot lot = Lot.create(
-                entity.getLot().getName(), entity.getLot().getHectares(), entity.getLot().getSoilType(),
-                entity.getLot().getType(), entity.getLot().getDescription(), entity.getLot().getPolygonLimit(), farmRepositoryPort.findById(entity.getLot().getFarm().getId()).orElse(null)
-        );
-        lot.setIdLot(entity.getLot().getId());
+    @Override
+    public void delete(UUID mapId) {
+        spectralMapJpaRepository.deleteById(mapId);
+    }
 
+    private SpectralMap mapToDomain(SpectralMapJpaEntity entity) {
         SpectralMap map = SpectralMap.create(
                 entity.getUrlSpectralMap(), entity.getFlightDate(), entity.getIndexType(),
                 entity.getCloudCoverPercentage(), entity.getResolutionGSD(),
-                entity.getMeanIndexValue(), lot
+                entity.getMeanIndexValue(), entity.getFarm().getId(), entity.getDescription()
         );
         map.setIdMap(entity.getId());
+        map.setTilesBaseUrl(entity.getTilesBaseUrl());
+        map.setMapStatus(entity.getMapStatus() != null ? entity.getMapStatus() : com.agrotrack.domain.model.enums.MapStatus.PENDING);
         return map;
     }
 }

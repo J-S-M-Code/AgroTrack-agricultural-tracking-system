@@ -44,6 +44,9 @@ class FarmControllerTest {
     @Mock
     private com.agrotrack.application.mapper.ApplicationDtoMapper applicationDtoMapper;
 
+    @Mock
+    private com.agrotrack.domain.port.in.user.AssignPersonnelUseCase assignPersonnelUseCase;
+
     @InjectMocks
     private FarmController farmController;
 

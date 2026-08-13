@@ -34,7 +34,7 @@ public class MapTilingAdapter implements MapTilingPort {
     }
 
     @Override
-    public void processAndStoreTiles(String tifUrl, UUID mapId, UUID idFamr, UUID idLot, SpectralMapType mapType) {
+    public void processAndStoreTiles(String tifUrl, UUID mapId, UUID idFamr, SpectralMapType mapType, String flightDateStr) {
         System.out.println("⚡ Iniciando motor Python (MapPaches) para: " + mapId);
         System.out.println("📥 URL del TIF: " + tifUrl);
         Path tempDir = null;
@@ -64,7 +64,7 @@ public class MapTilingAdapter implements MapTilingPort {
             }
 
             System.out.println("Subiendo paches a MinIO...");
-            uploadTilesToMinio(tilesDir, mapId, idFamr, idLot);
+            uploadTilesToMinio(tilesDir, mapId, idFamr, flightDateStr);
 
         } catch (Exception e) {
             throw new RuntimeException("Error crítico procesando mapa con Python: " + e.getMessage(), e);
@@ -73,14 +73,14 @@ public class MapTilingAdapter implements MapTilingPort {
         }
     }
 
-    private void uploadTilesToMinio(Path tilesDir, UUID mapId, UUID idFamr, UUID idLot) throws IOException {
+    private void uploadTilesToMinio(Path tilesDir, UUID mapId, UUID idFamr, String flightDateStr) throws IOException {
         try (Stream<Path> paths = Files.walk(tilesDir)) {
             paths.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".png"))
                     .parallel()
                     .forEach(path -> {
                         String relativePath = tilesDir.relativize(path).toString().replace("\\", "/");
-                        String minioFileName = "mapas-espectrales/" + idFamr + "/" + idLot + "/" + mapId + "/" + relativePath;
+                        String minioFileName = "mapas-espectrales/procesados/" + idFamr + "/" + flightDateStr + "/" + mapId + "/" + relativePath;
 
                         try (InputStream is = Files.newInputStream(path)) {
                             fileStoragePort.uploadFile(minioFileName, is, "image/png");

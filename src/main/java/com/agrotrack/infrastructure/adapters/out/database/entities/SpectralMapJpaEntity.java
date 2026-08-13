@@ -1,5 +1,6 @@
 package com.agrotrack.infrastructure.adapters.out.database.entities;
 
+import com.agrotrack.domain.model.enums.MapStatus;
 import com.agrotrack.domain.model.enums.SpectralMapType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,9 +37,19 @@ public class SpectralMapJpaEntity {
     private Double resolutionGSD;
     private Double meanIndexValue;
 
-    // Relación con Lot
+    private String tilesBaseUrl;
+    
+    @Column(length = 1000)
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    private MapStatus mapStatus;
+
+    // Relación con Lot eliminada (los mapas ahora son a nivel de finca)
+
+    // Relación con Farm para seguridad Multi-Tenant
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lot_id", nullable = false)
+    @JoinColumn(name = "farm_id", nullable = false)
     @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
-    private LotJpaEntity lot;
+    private FarmJpaEntity farm;
 }

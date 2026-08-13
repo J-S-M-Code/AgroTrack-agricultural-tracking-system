@@ -16,6 +16,7 @@ public interface MapTilingPort {
      * @param idFamr El ID de la finca
      * @param idLot El ID de la lote
      * @param mapType El tipo de mapa (RGB, NDVI, GNDVI, etc.)
+     * @param flightDateStr La fecha de vuelo formateada
      */
-    void processAndStoreTiles(String tifUrl, UUID mapId, UUID idFamr, UUID idLot, SpectralMapType mapType);
+    void processAndStoreTiles(String tifUrl, UUID mapId, UUID idFamr, SpectralMapType mapType, String flightDateStr);
 }

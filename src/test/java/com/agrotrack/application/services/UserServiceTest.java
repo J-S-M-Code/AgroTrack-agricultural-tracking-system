@@ -28,6 +28,9 @@ class UserServiceTest {
     @Mock
     private ApplicationDtoMapper applicationDtoMapper;
 
+    @Mock
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UserService userService;
 
@@ -35,6 +38,7 @@ class UserServiceTest {
     void executeRegisterUser_Success() {
         // Arrange
         when(userRepositoryPort.existsByEmail("test@test.com")).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("EncodedPass94");
         when(userRepositoryPort.save(any(User.class))).thenAnswer(i -> {
             User u = i.getArgument(0);
             u.setIdUser(UUID.randomUUID());

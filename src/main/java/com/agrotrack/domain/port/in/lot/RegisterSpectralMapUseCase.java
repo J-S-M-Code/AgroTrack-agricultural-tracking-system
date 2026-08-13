@@ -13,6 +13,7 @@ public interface RegisterSpectralMapUseCase {
             Double cloudCoverPercentage, 
             Double resolutionGSD, 
             Double meanIndexValue,
-            UUID assignedLotId
+            UUID assignedFarmId,
+            String description
     );
 }

@@ -2,12 +2,19 @@ package com.agrotrack.infrastructure.adapters.out.storage;
 
 import com.agrotrack.domain.port.out.storage.FileStoragePort;
 import io.minio.BucketExistsArgs;
+import io.minio.GetPresignedObjectUrlArgs;
+import io.minio.ListObjectsArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
+import io.minio.Result;
+import io.minio.http.Method;
+import io.minio.messages.Item;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.TimeUnit;
 
 import java.io.InputStream;
 
@@ -70,6 +77,42 @@ public class MinioStorageAdapter implements FileStoragePort {
             );
         } catch (Exception e) {
             throw new RuntimeException("Error al eliminar archivo en MinIO: " + fileName, e);
+        }
+    }
+
+    @Override
+    public String generatePresignedUploadUrl(String fileName) {
+        try {
+            return minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.PUT)
+                            .bucket(bucketName)
+                            .object(fileName)
+                            .expiry(2, TimeUnit.HOURS)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Error al generar URL pre-firmada para MinIO", e);
+        }
+    }
+
+    @Override
+    public void deleteDirectory(String prefix) {
+        try {
+            Iterable<Result<Item>> results = minioClient.listObjects(
+                    ListObjectsArgs.builder()
+                            .bucket(bucketName)
+                            .prefix(prefix)
+                            .recursive(true)
+                            .build()
+            );
+
+            for (Result<Item> result : results) {
+                Item item = result.get();
+                deleteFile(item.objectName());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error al eliminar el directorio en MinIO: " + prefix, e);
         }
     }
 }
