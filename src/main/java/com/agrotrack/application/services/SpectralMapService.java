@@ -145,6 +145,9 @@ public class SpectralMapService implements RegisterSpectralMapUseCase, GetSpectr
 
     @Override
     public String executeGeneratePresignedUrl(UUID farmId, String fileName) {
+        if (fileName == null || (!fileName.toLowerCase().endsWith(".tif") && !fileName.toLowerCase().endsWith(".tiff"))) {
+            throw new IllegalArgumentException("El archivo debe tener extensión .tif o .tiff para ser procesado.");
+        }
         return fileStoragePort.generatePresignedUploadUrl("mapas-espectrales/crudos/" + farmId + "/" + UUID.randomUUID() + "-" + fileName);
     }
 }

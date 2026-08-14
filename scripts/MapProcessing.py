@@ -197,8 +197,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
         print("Generando paches (teselas XYZ)...")
         cores = max(1, os.cpu_count() - 1)
 
-        # ---------------------------------------------------------
-        # LÓGICA DINÁMICA DE EJECUCIÓN (PORTABILIDAD WINDOWS/AZURE)
+            # LÓGICA DINÁMICA DE EJECUCIÓN (PORTABILIDAD WINDOWS/AZURE)
         # ---------------------------------------------------------
         if "OSGeo4W" in gdal_script_path and os.name == 'nt':
             osgeo_base = gdal_script_path[:gdal_script_path.find("OSGeo4W") + 7]
@@ -206,9 +205,19 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
 
             print(f"Entorno OSGeo4W detectado. Usando: {osgeo_bat}")
 
-            cmd_str = f'"{osgeo_bat}" python "{gdal_script_path}" --processes={cores} -z 12-22 -w none "{target_tif}" "{output_dir}"'
+            # Usar una lista de argumentos para evitar inyección de comandos en lugar de shell=True
+            gdal2tiles_cmd = [
+                osgeo_bat,
+                "python",
+                gdal_script_path,
+                f"--processes={cores}",
+                "-z", "12-22",
+                "-w", "none",
+                target_tif,
+                output_dir
+            ]
 
-            result = subprocess.run(cmd_str, capture_output=True, text=True, shell=True)
+            result = subprocess.run(gdal2tiles_cmd, capture_output=True, text=True, shell=False)
         else:
             gdal2tiles_cmd = [
                 "python", "-W", "ignore", gdal_script_path,
