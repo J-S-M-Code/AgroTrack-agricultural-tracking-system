@@ -92,9 +92,28 @@ public class UserController {
 
     @GetMapping("/farm/{farmId}")
     @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
-    public ResponseEntity<List<UserDto>> getPersonnelByFarm(@PathVariable UUID farmId) {
+    public ResponseEntity<List<?>> getPersonnelByFarm(@PathVariable UUID farmId, @AuthenticationPrincipal CustomUserDetails userDetails) {
         List<UserDto> users = getPersonnelByFarmUseCase.executeGetPersonnelByFarm(farmId);
-        return ResponseEntity.ok(users);
+        
+        com.agrotrack.domain.model.entities.User caller = userDetails.getUser();
+        java.util.Optional<com.agrotrack.domain.model.enums.UserRole> roleOpt = caller.getRoleForFarm(farmId);
+        
+        if (roleOpt.isPresent() && roleOpt.get() == com.agrotrack.domain.model.enums.UserRole.OWNER) {
+            return ResponseEntity.ok(users); // El OWNER ve todos los detalles
+        } else {
+            // Trabajadores y demás ven una versión censurada sin DNI ni Teléfono
+            List<com.agrotrack.application.dto.UserSummaryDto> summaries = users.stream()
+                .map(u -> com.agrotrack.application.dto.UserSummaryDto.builder()
+                        .idUser(u.getIdUser())
+                        .name(u.getName())
+                        .lastName(u.getLastName())
+                        .email(u.getEmail())
+                        .role(u.getRole())
+                        .active(u.isActive())
+                        .build())
+                .toList();
+            return ResponseEntity.ok(summaries);
+        }
     }
 
     public static class AssignRequest {
