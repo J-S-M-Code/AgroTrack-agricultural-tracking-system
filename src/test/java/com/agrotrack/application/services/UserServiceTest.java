@@ -46,7 +46,7 @@ class UserServiceTest {
         });
 
         // Act
-        User result = userService.executeRegisterUser("Juan", "Perez", "123", "456", "Dir", "test@test.com", "SecurePass1!");
+        User result = userService.executeRegisterUser("Juan", "Perez", "123", "456", "Dir", "test@test.com", "SecurePass1!", true);
 
         // Assert
         assertNotNull(result.getIdUser());
@@ -61,7 +61,7 @@ class UserServiceTest {
 
         // Act & Assert
         assertThrows(BusinessRuleViolationsException.class, () -> 
-            userService.executeRegisterUser("Juan", "Perez", "123", "456", "Dir", "test@test.com", "SecurePass1!")
+            userService.executeRegisterUser("Juan", "Perez", "123", "456", "Dir", "test@test.com", "SecurePass1!", true)
         );
     }
 

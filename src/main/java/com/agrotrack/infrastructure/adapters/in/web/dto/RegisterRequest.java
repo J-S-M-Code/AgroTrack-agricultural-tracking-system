@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import jakarta.validation.constraints.AssertTrue;
 
 @Getter
 @Setter
@@ -29,4 +30,6 @@ public class RegisterRequest {
     private String email;
     @NotBlank
     private String password;
+    @AssertTrue(message = "Debe aceptar los Términos y Condiciones para registrarse")
+    private boolean acceptedTerms;
 }
