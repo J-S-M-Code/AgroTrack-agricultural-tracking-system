@@ -45,6 +45,8 @@ public class User {
     @Getter
     private boolean active;
     @Getter
+    private LocalDateTime termsAcceptedAt;
+    @Getter
     private List<FarmAccess> farmAccesses;
 
     private User(String name, String lastName, String dni, String phone, String address, String email, Password password) {
@@ -57,6 +59,7 @@ public class User {
         this.password = password;
         this.creationDate = LocalDateTime.now();
         this.lastAccess = LocalDateTime.now();
+        this.termsAcceptedAt = LocalDateTime.now();
         this.active = true;
         this.farmAccesses = new ArrayList<>();
     }

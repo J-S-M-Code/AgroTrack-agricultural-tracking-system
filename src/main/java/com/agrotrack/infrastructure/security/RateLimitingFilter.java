@@ -31,7 +31,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (request.getRequestURI().startsWith("/api/v1/auth/login")) {
+        if (request.getRequestURI().startsWith("/api/v1/auth/login") || request.getRequestURI().startsWith("/api/v1/auth/register")) {
             String ip = request.getRemoteAddr();
             // Fallback por si la app está tras un proxy
             String forwardedFor = request.getHeader("X-Forwarded-For");

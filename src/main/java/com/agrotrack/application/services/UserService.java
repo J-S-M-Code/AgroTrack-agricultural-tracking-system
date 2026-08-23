@@ -56,7 +56,11 @@ public class UserService implements RegisterUserUseCase, ChangeUserPasswordUseCa
 
     @Override
     @Transactional
-    public User executeRegisterUser(String name, String lastName, String dni, String phone, String address, String email, String rawPassword) {
+    public User executeRegisterUser(String name, String lastName, String dni, String phone, String address, String email, String rawPassword, boolean acceptedTerms) {
+
+        if (!acceptedTerms) {
+            throw new BusinessRuleViolationsException("Debe aceptar los términos y condiciones para registrarse.");
+        }
 
         // 1. Validar unicidad (regla de negocio que requiere de la base de datos)
         if (userRepositoryPort.existsByEmail(email)) {
