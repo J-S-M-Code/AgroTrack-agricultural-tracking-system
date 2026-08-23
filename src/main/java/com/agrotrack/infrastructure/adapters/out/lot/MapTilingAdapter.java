@@ -63,8 +63,8 @@ public class MapTilingAdapter implements MapTilingPort {
                 throw new RuntimeException("El script MapProcessing.py falló con código: " + exitCode);
             }
 
-            System.out.println("Subiendo paches a MinIO...");
-            uploadTilesToMinio(tilesDir, mapId, idFamr, flightDateStr);
+            System.out.println("Subiendo paches a Azure Blob Storage...");
+            uploadTilesToStorage(tilesDir, mapId, idFamr, flightDateStr);
 
         } catch (Exception e) {
             throw new RuntimeException("Error crítico procesando mapa con Python: " + e.getMessage(), e);
@@ -73,7 +73,7 @@ public class MapTilingAdapter implements MapTilingPort {
         }
     }
 
-    private void uploadTilesToMinio(Path tilesDir, UUID mapId, UUID idFamr, String flightDateStr) throws IOException {
+    private void uploadTilesToStorage(Path tilesDir, UUID mapId, UUID idFamr, String flightDateStr) throws IOException {
         try (Stream<Path> paths = Files.walk(tilesDir)) {
             paths.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".png"))
@@ -82,10 +82,13 @@ public class MapTilingAdapter implements MapTilingPort {
                         String relativePath = tilesDir.relativize(path).toString().replace("\\", "/");
                         String minioFileName = "mapas-espectrales/procesados/" + idFamr + "/" + flightDateStr + "/" + mapId + "/" + relativePath;
 
-                        try (InputStream is = Files.newInputStream(path)) {
-                            fileStoragePort.uploadFile(minioFileName, is, "image/png");
+                        try {
+                            byte[] bytes = Files.readAllBytes(path);
+                            try (InputStream is = new java.io.ByteArrayInputStream(bytes)) {
+                                fileStoragePort.uploadFile(minioFileName, is, bytes.length, "image/png");
+                            }
                         } catch (IOException e) {
-                            System.err.println("Error subiendo a MinIO: " + relativePath);
+                            System.err.println("Error subiendo a Azure: " + relativePath);
                         }
                     });
         }

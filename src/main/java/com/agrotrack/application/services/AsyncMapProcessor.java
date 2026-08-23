@@ -8,6 +8,7 @@ import com.agrotrack.domain.port.out.lot.MapTilingPort;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import com.agrotrack.domain.port.out.storage.FileStoragePort;
 
 import java.time.format.DateTimeFormatter;
 
@@ -17,11 +18,14 @@ public class AsyncMapProcessor {
     private final MapTilingPort mapTilingPort;
     private final SpectralMapRepositoryPort spectralMapRepositoryPort;
     private final SimpMessagingTemplate messagingTemplate;
+    private final FileStoragePort fileStoragePort;
 
     public AsyncMapProcessor(MapTilingPort mapTilingPort,
+                             FileStoragePort fileStoragePort,
                              SpectralMapRepositoryPort spectralMapRepositoryPort,
                              SimpMessagingTemplate messagingTemplate) {
         this.mapTilingPort = mapTilingPort;
+        this.fileStoragePort = fileStoragePort;
         this.spectralMapRepositoryPort = spectralMapRepositoryPort;
         this.messagingTemplate = messagingTemplate;
     }
@@ -42,6 +46,15 @@ public class AsyncMapProcessor {
             // Formato estándar XYZ para capas de mapas en frontend web/móvil
             String tilesBaseUrl = "mapas-espectrales/procesados/" + map.getFarmId() + "/" + flightDateStr + "/" + map.getIdMap() + "/";
                 
+            // Borrar el archivo crudo para ahorrar espacio
+            try {
+                String objectName = rawTifPath.substring(rawTifPath.indexOf("mapas-espectrales"));
+                fileStoragePort.deleteFile(objectName);
+                System.out.println(">>> Archivo crudo eliminado con éxito: " + objectName);
+            } catch (Exception e) {
+                System.err.println(">>> Error al borrar el archivo crudo: " + e.getMessage());
+            }
+            
             // Cambiar estado final a LISTO y asociar su URL de teselas
             updateMapState(map, MapStatus.READY, tilesBaseUrl);
             System.out.println("✅ [Async] Procesamiento completado con éxito para mapa ID: " + map.getIdMap());

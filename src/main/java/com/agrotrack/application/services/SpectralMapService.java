@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class SpectralMapService implements RegisterSpectralMapUseCase, GetSpectralMapsUseCase, DeleteSpectralMapUseCase, GeneratePresignedUrlUseCase, UpdateSpectralMapUseCase {
+public class SpectralMapService implements RegisterSpectralMapUseCase, GetSpectralMapsUseCase, DeleteSpectralMapUseCase, GeneratePresignedUrlUseCase, UpdateSpectralMapUseCase, com.agrotrack.domain.port.in.lot.RetrySpectralMapUseCase {
 
     private final SpectralMapRepositoryPort spectralMapRepositoryPort;
     private final AsyncMapProcessor asyncMapProcessor;
@@ -48,7 +48,7 @@ public class SpectralMapService implements RegisterSpectralMapUseCase, GetSpectr
             throw new IllegalArgumentException("El porcentaje de nubosidad debe estar entre 0 y 100");
         }
         if (resolutionGSD != null && resolutionGSD <= 0) {
-            throw new IllegalArgumentException("La resolución GSD debe ser un valor positivo");
+            throw new IllegalArgumentException("La resoluciÃ³n GSD debe ser un valor positivo");
         }
                 
         map.setCloudCoverPercentage(cloudCoverPercentage);
@@ -76,7 +76,7 @@ public class SpectralMapService implements RegisterSpectralMapUseCase, GetSpectr
             throw new IllegalArgumentException("Problemas al asignar la finca al mapeo");
         }
 
-        // 1. Instanciar el objeto de dominio con todos los parámetros definidos
+        // 1. Instanciar el objeto de dominio con todos los parÃ¡metros definidos
         SpectralMap map = SpectralMap.create(
             minioRawPath, // URL interna proveniente del frontend
             flightDate,
@@ -128,7 +128,7 @@ public class SpectralMapService implements RegisterSpectralMapUseCase, GetSpectr
         // ya que la carpeta de tiles puede contener miles de archivos.
         java.util.concurrent.CompletableFuture.runAsync(() -> {
             try {
-                System.out.println(">>> Iniciando eliminación asíncrona de archivos en MinIO para el mapa: " + mapId);
+                System.out.println(">>> Iniciando eliminaciÃ³n asÃ­ncrona de archivos en MinIO para el mapa: " + mapId);
                 // Delete original TIF
                 fileStoragePort.deleteFile(objectName);
                 
@@ -144,9 +144,28 @@ public class SpectralMapService implements RegisterSpectralMapUseCase, GetSpectr
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
+    public SpectralMap executeRetryProcessing(UUID mapId) {
+        SpectralMap map = spectralMapRepositoryPort.findById(mapId)
+                .orElseThrow(() -> new IllegalArgumentException("Mapa no encontrado"));
+                
+        map.setMapStatus(com.agrotrack.domain.model.enums.MapStatus.PENDING);
+        SpectralMap savedMap = spectralMapRepositoryPort.save(map);
+        
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(new org.springframework.transaction.support.TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                asyncMapProcessor.processAndTileMap(savedMap, map.getUrlSpectralMap(), map.getIndexType());
+            }
+        });
+        
+        return savedMap;
+    }
+
+    @Override
     public String executeGeneratePresignedUrl(UUID farmId, String fileName) {
         if (fileName == null || (!fileName.toLowerCase().endsWith(".tif") && !fileName.toLowerCase().endsWith(".tiff"))) {
-            throw new IllegalArgumentException("El archivo debe tener extensión .tif o .tiff para ser procesado.");
+            throw new IllegalArgumentException("El archivo debe tener extensiÃ³n .tif o .tiff para ser procesado.");
         }
         return fileStoragePort.generatePresignedUploadUrl("mapas-espectrales/crudos/" + farmId + "/" + UUID.randomUUID() + "-" + fileName);
     }

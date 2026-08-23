@@ -12,7 +12,7 @@ public interface FileStoragePort {
      * @param contentType El tipo de archivo (ej. "image/jpeg")
      * @return URL absoluta para acceder al archivo
      */
-    String uploadFile(String fileName, InputStream fileStream, String contentType);
+    String uploadFile(String fileName, InputStream fileStream, long length, String contentType);
 
     /**
      * Elimina un archivo del almacenamiento.
