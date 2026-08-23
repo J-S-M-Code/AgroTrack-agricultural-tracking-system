@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import os
 import subprocess
 import rasterio
@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 import urllib.request
+import urllib.parse
 import tempfile
 
 temp_tif_file = None
@@ -19,7 +20,7 @@ def get_custom_cmap(map_type):
             (0.125, "#000000"),
             (0.375, "#ffffff"),  
             (0.52, "#000000"),  # Negro (Valor 0)
-            (0.58, "#0867b4"),  # Celeste (Transición justo arriba del 0)
+            (0.58, "#0867b4"),  # Celeste (TransiciÃ³n justo arriba del 0)
             (0.60, "#00ff00"),  # Verde
             (0.75, "#ffff00"),  # Amarillo (Valor 0.5)
             (0.88, "#ff0000"),  # Rojo
@@ -55,7 +56,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
         output_dir: Directorio de salida para los paches
         map_type: Tipo de mapa espectral (NDVI, GNDVI, etc.)
         gdal_script_path: Ruta al script gdal2tiles.py
-        is_url: Si True, tif_source es una URL y será descargada
+        is_url: Si True, tif_source es una URL y serÃ¡ descargada
     """
     print(f"Procesando {'URL' if is_url else 'archivo'}: {tif_source} como {map_type}")
     
@@ -66,10 +67,11 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
         if is_url:
             # mkstemp crea el archivo y devuelve un FileDescriptor (fd) y la ruta
             fd, temp_download_path = tempfile.mkstemp(suffix='.tif')
-            # ¡CLAVE! Cerramos el FileDescriptor inmediatamente para liberar el archivo en Windows
+            # Â¡CLAVE! Cerramos el FileDescriptor inmediatamente para liberar el archivo en Windows
             os.close(fd)
             try:
                 print(f"Descargando TIF desde URL: {tif_source}")
+                tif_source = urllib.parse.unquote(tif_source)
                 urllib.request.urlretrieve(tif_source, temp_download_path)
                 input_tif = temp_download_path
             except Exception as e:
@@ -78,7 +80,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
         else:
             input_tif = tif_source
 
-        # Usar un nombre único para evitar conflictos (race conditions) en procesamientos simultáneos
+        # Usar un nombre Ãºnico para evitar conflictos (race conditions) en procesamientos simultÃ¡neos
         base_name = os.path.basename(input_tif)
         colored_tif = os.path.join(os.path.dirname(input_tif), f"colored_{base_name}")
 
@@ -87,7 +89,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
             with rasterio.open(input_tif) as src:
                 meta = src.meta.copy()
 
-                # Obtener parámetros y paleta customizada
+                # Obtener parÃ¡metros y paleta customizada
                 params = get_custom_cmap(map_type)
                 cmap = params['cmap']
                 vmin, vmax = params['vmin'], params['vmax']
@@ -104,7 +106,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
                     for ji, window in src.block_windows(1):
                         band = src.read(1, window=window)
                         
-                        # Crear máscara para ignorar los fondos reales del tif
+                        # Crear mÃ¡scara para ignorar los fondos reales del tif
                         nodata_mask = band == 0
 
                         # Normalizar los datos
@@ -143,7 +145,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
                         bands_data = src.read(window=window)
                         num_bands = bands_data.shape[0]
                         
-                        # Crear array RGBA vacío (todo negro y transparente por defecto)
+                        # Crear array RGBA vacÃ­o (todo negro y transparente por defecto)
                         rgba_array = np.zeros((4, window.height, window.width), dtype=np.uint8)
                         
                         if num_bands >= 3:
@@ -168,7 +170,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
                             rgba_array[1] = uint8_band
                             rgba_array[2] = uint8_band
                         
-                        # Calcular máscara de Nodata (Si R, G y B son 0 o nodata)
+                        # Calcular mÃ¡scara de Nodata (Si R, G y B son 0 o nodata)
                         if src.nodata is not None:
                             nodata_mask = (bands_data[0] == src.nodata)
                         else:
@@ -177,7 +179,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
                         # Configurar canal Alpha: 255 donde hay datos, 0 donde es nodata
                         alpha_channel = np.where(nodata_mask, 0, 255).astype(np.uint8)
                         
-                        # Si la imagen original ya tenía 4 bandas (ya tenía Alpha), la combinamos
+                        # Si la imagen original ya tenÃ­a 4 bandas (ya tenÃ­a Alpha), la combinamos
                         if num_bands >= 4:
                             orig_alpha = bands_data[3]
                             if orig_alpha.dtype != np.uint8:
@@ -197,7 +199,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
         print("Generando paches (teselas XYZ)...")
         cores = max(1, os.cpu_count() - 1)
 
-            # LÓGICA DINÁMICA DE EJECUCIÓN (PORTABILIDAD WINDOWS/AZURE)
+            # LÃ“GICA DINÃMICA DE EJECUCIÃ“N (PORTABILIDAD WINDOWS/AZURE)
         # ---------------------------------------------------------
         if "OSGeo4W" in gdal_script_path and os.name == 'nt':
             osgeo_base = gdal_script_path[:gdal_script_path.find("OSGeo4W") + 7]
@@ -205,13 +207,13 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
 
             print(f"Entorno OSGeo4W detectado. Usando: {osgeo_bat}")
 
-            # Usar una lista de argumentos para evitar inyección de comandos en lugar de shell=True
+            # Usar una lista de argumentos para evitar inyecciÃ³n de comandos en lugar de shell=True
             gdal2tiles_cmd = [
                 osgeo_bat,
                 "python",
                 gdal_script_path,
                 f"--processes={cores}",
-                "-z", "12-22",
+                "-z", "14-20",
                 "-w", "none",
                 target_tif,
                 output_dir
@@ -222,7 +224,7 @@ def apply_color_and_tile(tif_source, output_dir, map_type, gdal_script_path, is_
             gdal2tiles_cmd = [
                 "python", "-W", "ignore", gdal_script_path,
                 f"--processes={cores}",
-                "-z", "12-22",
+                "-z", "14-20",
                 "-w", "none",
                 target_tif,
                 output_dir
@@ -264,7 +266,7 @@ if __name__ == "__main__":
     gdal_path = sys.argv[4]
 
     
-    # Verificar si se pasó el flag --url para indicar que in_file es una URL
+    # Verificar si se pasÃ³ el flag --url para indicar que in_file es una URL
     is_url_flag = len(sys.argv) > 5 and sys.argv[5] == "--url"
 
     apply_color_and_tile(in_file, out_folder, m_type, gdal_path, is_url=is_url_flag)

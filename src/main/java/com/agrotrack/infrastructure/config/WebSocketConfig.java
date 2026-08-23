@@ -35,7 +35,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Endpoint al que se conectará el cliente Angular
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("http://localhost:4200") // CORS estricto
+                .setAllowedOrigins("http://localhost:4200", "https://agrotrackapp.com.ar", "https://agrotrack.azurewebsites.net") // CORS estricto
                 .withSockJS(); // Soporte para navegadores antiguos / fallback
     }
 }
+

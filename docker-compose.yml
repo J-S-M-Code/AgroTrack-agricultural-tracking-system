@@ -1,0 +1,61 @@
+﻿version: '3.8'
+
+services:
+  db-azuretest:
+    image: postgis/postgis:14-3.3  # Match TF production (version = "14")
+    container_name: agrotrack-postgres-azuretest
+    restart: always
+    environment:
+      POSTGRES_USER: pgadmin       # Match TF (administrator_login = "pgadmin")
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: agrotrack       # Match TF (name = "agrotrack")
+    ports:
+      - "5433:5432"
+    volumes:
+      - agrotrack_db_data:/var/lib/postgresql/data # Added persistence!
+
+  azurite-azuretest:
+    image: mcr.microsoft.com/azure-storage/azurite
+    container_name: agrotrack-azurite-azuretest
+    restart: always
+    ports:
+      - "10000:10000"
+      - "10001:10001"
+      - "10002:10002"
+    volumes:
+      - agrotrack_blob_data:/data # Added persistence!
+
+  backend-azuretest:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: agrotrack-backend-azuretest
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-azuretest:5432/agrotrack
+      - SPRING_DATASOURCE_USERNAME=pgadmin
+      - SPRING_DATASOURCE_PASSWORD=admin123
+      - AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite-azuretest:10000/devstoreaccount1;
+      - AZURE_STORAGE_CONTAINER_NAME=agrotrack-files
+    depends_on:
+      - db-azuretest
+      - azurite-azuretest
+
+  frontend-azuretest:
+    build: 
+      context: ../../Front 1/front-agrotrack
+      dockerfile: Dockerfile
+      args:
+        CONFIGURATION: development
+    container_name: agrotrack-frontend-azuretest
+    restart: always
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend-azuretest
+
+volumes:
+  agrotrack_db_data:
+  agrotrack_blob_data:

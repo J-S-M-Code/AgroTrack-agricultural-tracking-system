@@ -7,6 +7,7 @@ import com.agrotrack.domain.port.in.lot.GeneratePresignedUrlUseCase;
 import com.agrotrack.domain.port.in.lot.GetSpectralMapsUseCase;
 import com.agrotrack.domain.port.in.lot.RegisterSpectralMapUseCase;
 import com.agrotrack.domain.port.in.lot.UpdateSpectralMapUseCase;
+import com.agrotrack.domain.port.in.lot.RetrySpectralMapUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,17 +26,20 @@ public class SpectralMapController {
     private final DeleteSpectralMapUseCase deleteSpectralMapUseCase;
     private final GeneratePresignedUrlUseCase generatePresignedUrlUseCase;
     private final UpdateSpectralMapUseCase updateSpectralMapUseCase;
+    private final RetrySpectralMapUseCase retrySpectralMapUseCase;
 
     public SpectralMapController(RegisterSpectralMapUseCase registerSpectralMapUseCase,
                                  GetSpectralMapsUseCase getSpectralMapsUseCase,
                                  DeleteSpectralMapUseCase deleteSpectralMapUseCase,
                                  GeneratePresignedUrlUseCase generatePresignedUrlUseCase,
-                                 UpdateSpectralMapUseCase updateSpectralMapUseCase) {
+                                 UpdateSpectralMapUseCase updateSpectralMapUseCase,
+                                 RetrySpectralMapUseCase retrySpectralMapUseCase) {
         this.registerSpectralMapUseCase = registerSpectralMapUseCase;
         this.getSpectralMapsUseCase = getSpectralMapsUseCase;
         this.deleteSpectralMapUseCase = deleteSpectralMapUseCase;
         this.generatePresignedUrlUseCase = generatePresignedUrlUseCase;
         this.updateSpectralMapUseCase = updateSpectralMapUseCase;
+        this.retrySpectralMapUseCase = retrySpectralMapUseCase;
     }
 
     @PostMapping
@@ -109,6 +113,27 @@ public class SpectralMapController {
                 request.getMeanIndexValue(),
                 request.getDescription()
         );
+        
+        SpectralMapDto response = SpectralMapDto.builder()
+                .idMap(updatedMap.getIdMap())
+                .minioRawPath(updatedMap.getUrlSpectralMap())
+                .tilesBaseUrl(updatedMap.getTilesBaseUrl())
+                .flightDate(updatedMap.getFlightDate())
+                .indexType(updatedMap.getIndexType())
+                .cloudCoverPercentage(updatedMap.getCloudCoverPercentage())
+                .resolutionGSD(updatedMap.getResolutionGSD())
+                .meanIndexValue(updatedMap.getMeanIndexValue())
+                .description(updatedMap.getDescription())
+                .mapStatus(updatedMap.getMapStatus())
+                .build();
+                
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{mapId}/retry")
+    @PreAuthorize("hasPermission(#farmId, 'AGRONOMIST')")
+    public ResponseEntity<SpectralMapDto> retryProcessing(@PathVariable UUID farmId, @PathVariable UUID mapId) {
+        SpectralMap updatedMap = retrySpectralMapUseCase.executeRetryProcessing(mapId);
         
         SpectralMapDto response = SpectralMapDto.builder()
                 .idMap(updatedMap.getIdMap())

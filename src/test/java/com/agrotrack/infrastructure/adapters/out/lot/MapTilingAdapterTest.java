@@ -18,8 +18,8 @@ class MapTilingAdapterTest {
     private MapTilingPort mapTilingPort;
 
     @Test
-    void shouldProcessAndUploadGeoTiffToMinioRGB() {
-        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y MINIO ===");
+    void shouldProcessAndUploadGeoTiffToStorageRGB() {
+        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y STORAGE ===");
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/RGB.tif";
@@ -39,8 +39,8 @@ class MapTilingAdapterTest {
     }
 
     @Test
-    void shouldProcessAndUploadGeoTiffToMinioNDVI() {
-        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y MINIO ===");
+    void shouldProcessAndUploadGeoTiffToStorageNDVI() {
+        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y STORAGE ===");
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/NDVI.tif";
@@ -60,8 +60,8 @@ class MapTilingAdapterTest {
     }
 
     @Test
-    void shouldProcessAndUploadGeoTiffToMinioGNDVI() {
-        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y MINIO ===");
+    void shouldProcessAndUploadGeoTiffToStorageGNDVI() {
+        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y STORAGE ===");
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/GNDVI.tif";
@@ -81,8 +81,8 @@ class MapTilingAdapterTest {
     }
 
     @Test
-    void shouldProcessAndUploadGeoTiffToMinioLCI() {
-        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y MINIO ===");
+    void shouldProcessAndUploadGeoTiffToStorageLCI() {
+        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y STORAGE ===");
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/LCI.tif";
@@ -102,8 +102,8 @@ class MapTilingAdapterTest {
     }
 
     @Test
-    void shouldProcessAndUploadGeoTiffToMinioNDRE() {
-        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y MINIO ===");
+    void shouldProcessAndUploadGeoTiffToStorageNDRE() {
+        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y STORAGE ===");
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/NDRE.tif";
@@ -123,8 +123,8 @@ class MapTilingAdapterTest {
     }
 
     @Test
-    void shouldProcessAndUploadGeoTiffToMinioOSAVI() {
-        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y MINIO ===");
+    void shouldProcessAndUploadGeoTiffToStorageOSAVI() {
+        System.out.println("=== INICIANDO TEST DE INTEGRACIÓN DE GEOTOOLS Y STORAGE ===");
 
         try {
             String geoTiffURL = "http://localhost:9000/agrotrack-files/mapas-crudos/OSAVI.tif";
