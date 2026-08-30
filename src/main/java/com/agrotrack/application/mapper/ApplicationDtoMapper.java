@@ -59,6 +59,7 @@ public interface ApplicationDtoMapper {
     @Mapping(source = "relatedLot.idLot", target = "relatedLotId")
     @Mapping(source = "relatedCrop.idCrop", target = "relatedCropId")
     @Mapping(source = "relatedAnimal.idAnimal", target = "relatedAnimalId")
+    @Mapping(expression = "java(alert.getAuthor() != null ? alert.getAuthor().getName() + \" \" + alert.getAuthor().getLastName() : \"Sistema\")", target = "authorName")
     AlertDto toAlertDto(Alert alert);
     List<AlertDto> toAlertDtoList(List<Alert> alerts);
 

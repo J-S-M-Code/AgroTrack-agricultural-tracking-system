@@ -20,16 +20,20 @@ public class AlertController {
     private final com.agrotrack.domain.port.in.alert.DeleteAlertUseCase deleteAlertUseCase;
     private final ApplicationDtoMapper mapper;
 
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
     public AlertController(CreateAlertUseCase createAlertUseCase,
                            com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase,
                            com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase,
                            com.agrotrack.domain.port.in.alert.DeleteAlertUseCase deleteAlertUseCase,
-                           ApplicationDtoMapper mapper) {
+                           ApplicationDtoMapper mapper,
+                           org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.createAlertUseCase = createAlertUseCase;
         this.getAlertsByFarmUseCase = getAlertsByFarmUseCase;
         this.getAlertByIdUseCase = getAlertByIdUseCase;
         this.deleteAlertUseCase = deleteAlertUseCase;
         this.mapper = mapper;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @GetMapping("/farm/{farmId}")
@@ -73,7 +77,19 @@ public class AlertController {
                 dto.polygonLimit() != null ? dto.polygonLimit().toJtsPolygon() : null, 
                 dto.centroid() != null ? dto.centroid().toJtsPoint() : null
         );
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toAlertDto(createdAlert));
+        AlertDto createdDto = mapper.toAlertDto(createdAlert);
+        
+        // Notify frontend via WebSockets
+        try {
+            System.out.println("Enviando websocket de alerta a: /topic/farms/" + farmId + "/alerts");
+            messagingTemplate.convertAndSend("/topic/farms/" + farmId + "/alerts", createdDto);
+            System.out.println("Websocket de alerta enviado con exito.");
+        } catch (Exception e) {
+            System.err.println("Error al enviar websocket de alerta: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdDto);
     }
 
     @DeleteMapping("/{alertId}")
