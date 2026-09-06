@@ -37,7 +37,7 @@ public class CropService implements RegisterCropUseCase, UpdatePhenologicalState
     @Transactional
     public Crop executeRegisterCrop(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
                         LocalDateTime estimateHarvestDate, UUID assignedLotId, double implantedSurface,
-                        String renspa, PhenologicalState phenologicalState) {
+                        String renspa, PhenologicalState phenologicalState, boolean isPerennial) {
 
         // 1. Validar que el lote donde se va a sembrar exista
         Lot lot = lotRepositoryPort.findById(assignedLotId)
@@ -50,7 +50,7 @@ public class CropService implements RegisterCropUseCase, UpdatePhenologicalState
         // (Las validaciones de negocio sobre la superficie y las fechas explotan adentro del create)
         Crop newCrop = Crop.create(
                 typeCrop, species, variety, plantingDate, estimateHarvestDate,
-                lot, implantedSurface, renspa, phenologicalState
+                lot, implantedSurface, renspa, phenologicalState, isPerennial
         );
 
         // 3. Guardar en base de datos
@@ -84,12 +84,15 @@ public class CropService implements RegisterCropUseCase, UpdatePhenologicalState
             throw new BusinessRuleViolationsException("El cultivo aún no está en fecha para ser cosechado según la estimación.");
         }
 
-        // Actualizamos el estado a COSECHADO (HARVESTED)
-        crop.updatePhenologicalState(PhenologicalState.HARVESTED);
-
-        // Si quieres llevar registro exacto de la fecha, usamos el método de la entidad
-        // (aunque el setHarvestDate valida que no sea anterior a la fecha de plantación)
-        crop.setHarvestDate(actualHarvestDate);
+        if (crop.isPerennial()) {
+            // Si es perenne, vuelve a fase de crecimiento vegetativo y se reprograma la cosecha para el año siguiente
+            crop.updatePhenologicalState(PhenologicalState.VEGETATIVE_GROWTH);
+            crop.setHarvestDate(crop.getEstimateHarvestDate().plusYears(1));
+        } else {
+            // Si no es perenne, simplemente queda como COSECHADO
+            crop.updatePhenologicalState(PhenologicalState.HARVESTED);
+            crop.setHarvestDate(actualHarvestDate);
+        }
 
         cropRepositoryPort.save(crop);
     }
@@ -111,7 +114,7 @@ public class CropService implements RegisterCropUseCase, UpdatePhenologicalState
     @Transactional
     public Crop executeUpdateCrop(UUID cropId, TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
                            LocalDateTime estimateHarvestDate, UUID assignedLotId, double implantedSurface,
-                           String renspa, PhenologicalState phenologicalState) {
+                           String renspa, PhenologicalState phenologicalState, boolean isPerennial) {
                            
         Crop crop = cropRepositoryPort.findById(cropId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Cultivo no encontrado con ID: " + cropId));
@@ -119,7 +122,7 @@ public class CropService implements RegisterCropUseCase, UpdatePhenologicalState
         Lot lot = lotRepositoryPort.findById(assignedLotId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Lote no encontrado con ID: " + assignedLotId));
 
-        crop.update(typeCrop, species, variety, plantingDate, estimateHarvestDate, lot, implantedSurface, renspa, phenologicalState);
+        crop.update(typeCrop, species, variety, plantingDate, estimateHarvestDate, lot, implantedSurface, renspa, phenologicalState, isPerennial);
 
         return cropRepositoryPort.save(crop);
     }

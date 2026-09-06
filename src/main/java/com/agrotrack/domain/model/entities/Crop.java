@@ -50,9 +50,12 @@ public class Crop {
     @Getter
     private PhenologicalState phenologicalState;
 
+    @Getter
+    private boolean isPerennial;
+
     private Crop(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
                  LocalDateTime estimateHarvestDate, Lot assignedLot, double implantedSurface,
-                 String renspa, PhenologicalState phenologicalState) {
+                 String renspa, PhenologicalState phenologicalState, boolean isPerennial) {
         this.typeCrop = typeCrop;
         this.species = species;
         this.variety = variety;
@@ -62,11 +65,12 @@ public class Crop {
         this.implantedSurface = implantedSurface;
         this.renspa = renspa;
         this.phenologicalState = phenologicalState;
+        this.isPerennial = isPerennial;
     }
 
     public static Crop create(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
                               LocalDateTime estimateHarvestDate, Lot assignedLot, double implantedSurface,
-                              String renspa, PhenologicalState phenologicalState) {
+                              String renspa, PhenologicalState phenologicalState, boolean isPerennial) {
 
         // Validaciones de Enums y Entidades
         if (typeCrop == null) {
@@ -108,7 +112,7 @@ public class Crop {
             throw new BusinessRuleViolationsException("La superficie implantada no puede superar la superficie total del lote asignado");
         }
 
-        return new Crop(typeCrop, species, variety, plantingDate, estimateHarvestDate, assignedLot, implantedSurface, renspa, phenologicalState);
+        return new Crop(typeCrop, species, variety, plantingDate, estimateHarvestDate, assignedLot, implantedSurface, renspa, phenologicalState, isPerennial);
     }
 
     // --- MÉTODOS DE COMPORTAMIENTO ---
@@ -140,7 +144,7 @@ public class Crop {
 
     public void update(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
                        LocalDateTime estimateHarvestDate, Lot assignedLot, double implantedSurface,
-                       String renspa, PhenologicalState phenologicalState) {
+                       String renspa, PhenologicalState phenologicalState, boolean isPerennial) {
         
         if (typeCrop == null) throw new BusinessRuleViolationsException("El tipo de cultivo no puede ser nulo");
         // assignedLot can be null if the crop is orphaned
@@ -163,5 +167,6 @@ public class Crop {
         this.implantedSurface = implantedSurface;
         this.renspa = renspa;
         this.phenologicalState = phenologicalState;
+        this.isPerennial = isPerennial;
     }
 }

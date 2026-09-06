@@ -9,6 +9,6 @@ import java.util.UUID;
 
 public interface RegisterCropUseCase {
     Crop executeRegisterCrop(TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
-                 LocalDateTime estimateHarvestDate, UUID assignedLotId, double implantedSurface,
-                 String renspa, PhenologicalState phenologicalState);
+                             LocalDateTime estimateHarvestDate, UUID assignedLotId, double implantedSurface,
+                             String renspa, PhenologicalState phenologicalState, boolean isPerennial);
 }

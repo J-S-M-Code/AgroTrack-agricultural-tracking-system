@@ -60,7 +60,7 @@ class CropServiceTest {
 
         Crop newCrop = cropService.executeRegisterCrop(
                 TypeCrop.CEREAL, "Trigo", "Bandeira", plantingDate, estimateHarvest,
-                lotId, 50.0, "RENSPA-123", PhenologicalState.GERMINATION
+                lotId, 50.0, "RENSPA-123", PhenologicalState.GERMINATION, false
         );
 
         assertNotNull(newCrop);
@@ -76,7 +76,7 @@ class CropServiceTest {
         assertThrows(BusinessRuleViolationsException.class, () ->
                 cropService.executeRegisterCrop(
                         TypeCrop.CEREAL, "Trigo", "Bandeira", LocalDateTime.now(), LocalDateTime.now().plusDays(90),
-                        lotId, 50.0, "RENSPA-123", PhenologicalState.GERMINATION
+                        lotId, 50.0, "RENSPA-123", PhenologicalState.GERMINATION, false
                 )
         );
 

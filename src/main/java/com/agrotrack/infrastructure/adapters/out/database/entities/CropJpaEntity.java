@@ -56,6 +56,9 @@ public class CropJpaEntity {
     @Column(nullable = false)
     private PhenologicalState phenologicalState;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isPerennial = false;
+
     // Relación con Lot
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lot_id", nullable = false)

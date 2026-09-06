@@ -80,7 +80,7 @@ public class CropController {
         Crop createdCrop = registerCropUseCase.executeRegisterCrop(
                 dto.typeCrop(), dto.species(), dto.variety(), dto.plantingDate(),
                 dto.estimateHarvestDate(), lotId, dto.implantedSurface(),
-                dto.renspa(), dto.phenologicalState()
+                dto.renspa(), dto.phenologicalState(), dto.isPerennial()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toCropDto(createdCrop));
     }
@@ -91,7 +91,7 @@ public class CropController {
         Crop updatedCrop = updateCropUseCase.executeUpdateCrop(
                 cropId, dto.typeCrop(), dto.species(), dto.variety(), dto.plantingDate(),
                 dto.estimateHarvestDate(), dto.lotId(), dto.implantedSurface(),
-                dto.renspa(), dto.phenologicalState()
+                dto.renspa(), dto.phenologicalState(), dto.isPerennial()
         );
         return ResponseEntity.ok(mapper.toCropDto(updatedCrop));
     }
