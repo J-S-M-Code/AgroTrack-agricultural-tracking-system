@@ -10,5 +10,5 @@ import java.util.UUID;
 public interface UpdateCropUseCase {
     Crop executeUpdateCrop(UUID cropId, TypeCrop typeCrop, String species, String variety, LocalDateTime plantingDate,
                            LocalDateTime estimateHarvestDate, UUID assignedLotId, double implantedSurface,
-                           String renspa, PhenologicalState phenologicalState);
+                           String renspa, PhenologicalState phenologicalState, boolean isPerennial);
 }

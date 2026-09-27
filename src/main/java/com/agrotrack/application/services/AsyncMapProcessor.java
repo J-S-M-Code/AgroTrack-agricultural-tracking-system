@@ -37,6 +37,7 @@ public class AsyncMapProcessor {
         try {
             // Cambiar estado a PROCESANDO
             updateMapState(map, MapStatus.PROCESSING, null);
+            notifyFrontend(map.getFarmId().toString(), map.getIdMap().toString(), "PROCESSING");
 
             String flightDateStr = map.getFlightDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 

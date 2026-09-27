@@ -36,15 +36,18 @@ public class AlertService implements CreateAlertUseCase, GetAlertsByFarmUseCase,
     private final LotRepositoryPort lotRepositoryPort;
     private final CropRepositoryPort cropRepositoryPort;
     private final AnimalRepositoryPort animalRepositoryPort;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     public AlertService(AlertRepositoryPort alertRepositoryPort, UserRepositoryPort userRepositoryPort,
                         LotRepositoryPort lotRepositoryPort, CropRepositoryPort cropRepositoryPort,
-                        AnimalRepositoryPort animalRepositoryPort) {
+                        AnimalRepositoryPort animalRepositoryPort,
+                        org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.alertRepositoryPort = alertRepositoryPort;
         this.userRepositoryPort = userRepositoryPort;
         this.lotRepositoryPort = lotRepositoryPort;
         this.cropRepositoryPort = cropRepositoryPort;
         this.animalRepositoryPort = animalRepositoryPort;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Override

@@ -47,6 +47,7 @@ public class CropRepositoryAdapter implements CropRepositoryPort {
         entity.setImplantedSurface(crop.getImplantedSurface());
         entity.setRenspa(crop.getRenspa());
         entity.setPhenologicalState(crop.getPhenologicalState());
+        entity.setPerennial(crop.isPerennial());
         entity.setLot(lotEntity);
 
         CropJpaEntity savedEntity = cropJpaRepository.save(entity);
@@ -94,7 +95,7 @@ public class CropRepositoryAdapter implements CropRepositoryPort {
         Crop crop = Crop.create(
                 entity.getTypeCrop(), entity.getSpecies(), entity.getVariety(),
                 entity.getPlantingDate(), entity.getEstimateHarvestDate(),
-                lot, entity.getImplantedSurface(), entity.getRenspa(), entity.getPhenologicalState()
+                lot, entity.getImplantedSurface(), entity.getRenspa(), entity.getPhenologicalState(), entity.isPerennial()
         );
         crop.setIdCrop(entity.getId());
         crop.setActive(entity.isActive());
