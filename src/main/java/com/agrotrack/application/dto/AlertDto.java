@@ -19,6 +19,7 @@ public record AlertDto(
         String description,
         LocalDateTime createdAt,
         UUID authorId,
+        String authorName,
         List<String> images,
         UUID relatedLotId,
         UUID relatedCropId,

@@ -96,13 +96,15 @@ public class Alert {
         }
         if (relatedLot != null || relatedCrop != null){
             if (polygonLimit == null){
-                if (relatedLot == null){
-                    polygonLimit = relatedCrop.getAssignedLot().getPolygonLimit();
-                    centroid = relatedCrop.getAssignedLot().getPolygonLimit().getCentroid();
-                } else {
-                    polygonLimit = relatedLot.getPolygonLimit();
-                    centroid = relatedLot.getPolygonLimit().getCentroid();
+                Polygon inheritedPolygon = (relatedLot == null)
+                        ? (relatedCrop.getAssignedLot() != null ? relatedCrop.getAssignedLot().getPolygonLimit() : null)
+                        : relatedLot.getPolygonLimit();
+                polygonLimit = inheritedPolygon;
+                if (centroid == null && inheritedPolygon != null) {
+                    centroid = inheritedPolygon.getCentroid();
                 }
+            } else if (centroid == null) {
+                centroid = polygonLimit.getCentroid();
             }
         }
 

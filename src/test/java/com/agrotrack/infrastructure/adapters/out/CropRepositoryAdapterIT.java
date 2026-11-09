@@ -88,7 +88,7 @@ class CropRepositoryAdapterIT {
     void testSaveAndFindCrop() {
         Crop crop = Crop.create(
                 TypeCrop.CEREAL, "Maíz", "DK7220", LocalDateTime.now().minusDays(10),
-                LocalDateTime.now().plusDays(100), savedLot, 40.0, "REN-123", PhenologicalState.GERMINATION
+                LocalDateTime.now().plusDays(100), savedLot, 40.0, "REN-123", PhenologicalState.GERMINATION, false
         );
 
         Crop savedCrop = cropRepositoryAdapter.save(crop);

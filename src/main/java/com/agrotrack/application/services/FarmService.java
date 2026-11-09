@@ -36,9 +36,7 @@ public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCas
                         ProductiveOrientation productiveOrientation, String address,
                         Polygon polygonLimit, double surface, String imageUrl) {
 
-        if (farmRepositoryPort.existsByCuit(cuit)) {
-            throw new BusinessRuleViolationsException("Ya existe una finca registrada con el CUIT: " + cuit);
-        }
+        // Validation for uniqueness of CUIT was removed as per user request
 
         if (polygonLimit != null && farmRepositoryPort.existsOverlappingFarm(polygonLimit, null)) {
             throw new BusinessRuleViolationsException("El perímetro ingresado se superpone con una finca existente en el sistema.");
@@ -74,7 +72,7 @@ public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCas
             throw new BusinessRuleViolationsException("El nuevo perímetro se superpone con otra finca existente.");
         }
 
-        farm.modifyPolygonLimit(newPerimeter);
+        farm.modifyPolygonLimit(newPerimeter, farm.getSurface());
         farmRepositoryPort.save(farm);
     }
 
@@ -96,15 +94,17 @@ public class FarmService implements CreateFarmUseCase, UpdateFarmPerimeterUseCas
     @Override
     @Transactional
     public Farm executeUpdateFarm(UUID farmId, String name, String companyName, String cuit, String numberRENAPSA,
-                                  ProductiveOrientation productiveOrientation, String address, String imageUrl) {
+                                  ProductiveOrientation productiveOrientation, String address, String imageUrl, org.locationtech.jts.geom.Polygon polygonLimit, double surface) {
         Farm farm = farmRepositoryPort.findById(farmId)
                 .orElseThrow(() -> new BusinessRuleViolationsException("Finca no encontrada con ID: " + farmId));
 
-        if (!farm.getCuit().equals(cuit) && farmRepositoryPort.existsByCuit(cuit)) {
-            throw new BusinessRuleViolationsException("Ya existe otra finca registrada con el CUIT: " + cuit);
-        }
+        // Validation for uniqueness of CUIT was removed as per user request
 
         farm.update(name, companyName, cuit, numberRENAPSA, productiveOrientation, address, imageUrl);
+        
+        if (polygonLimit != null) {
+            farm.modifyPolygonLimit(polygonLimit, surface);
+        }
 
         return farmRepositoryPort.save(farm);
     }

@@ -51,7 +51,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
                     return false;
                 }
                 if (role == UserRole.OWNER) return true;
-                if (role == UserRole.FOREMAN && requiredRole != UserRole.OWNER && requiredRole != UserRole.AGRONOMIST) return true;
+                if (role == UserRole.FOREMAN && requiredRole != UserRole.OWNER) return true;
                 return role == requiredRole;
             });
         }
@@ -85,7 +85,7 @@ public class CustomPermissionEvaluator implements PermissionEvaluator {
             return true;
         }
 
-        if (userRoleInFarm == UserRole.FOREMAN && requiredRole != UserRole.OWNER && requiredRole != UserRole.AGRONOMIST) {
+        if (userRoleInFarm == UserRole.FOREMAN && requiredRole != UserRole.OWNER) {
             return true;
         }
 

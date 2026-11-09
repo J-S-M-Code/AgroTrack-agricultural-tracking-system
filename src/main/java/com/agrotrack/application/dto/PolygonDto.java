@@ -25,6 +25,15 @@ public class PolygonDto {
             List<Double> point = coordinates.get(0).get(i);
             coords[i] = new Coordinate(point.get(0), point.get(1));
         }
+        
+        // JTS requires closed rings. If not closed, force close it.
+        if (coords.length > 0 && !coords[0].equals2D(coords[coords.length - 1])) {
+            Coordinate[] closedCoords = new Coordinate[coords.length + 1];
+            System.arraycopy(coords, 0, closedCoords, 0, coords.length);
+            closedCoords[coords.length] = new Coordinate(coords[0]);
+            coords = closedCoords;
+        }
+
         return geometryFactory.createPolygon(coords);
     }
 

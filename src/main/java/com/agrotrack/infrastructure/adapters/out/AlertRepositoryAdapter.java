@@ -160,7 +160,7 @@ public class AlertRepositoryAdapter implements AlertRepositoryPort {
                     entity.getRelatedCrop().getVariety(), entity.getRelatedCrop().getPlantingDate(),
                     entity.getRelatedCrop().getEstimateHarvestDate(), cropLot,
                     entity.getRelatedCrop().getImplantedSurface(), entity.getRelatedCrop().getRenspa(),
-                    entity.getRelatedCrop().getPhenologicalState()
+                    entity.getRelatedCrop().getPhenologicalState(), entity.getRelatedCrop().isPerennial()
             );
             crop.setIdCrop(entity.getRelatedCrop().getId());
         }

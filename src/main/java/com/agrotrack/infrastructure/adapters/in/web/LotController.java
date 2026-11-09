@@ -42,8 +42,22 @@ public class LotController {
     }
 
     @PostMapping("/farm/{farmId}")
-    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
-    public ResponseEntity<LotDto> createLot(@PathVariable UUID farmId, @RequestBody LotDto lotDto) {
+    @PreAuthorize("hasPermission(#farmId, 'AGRONOMIST') or hasPermission(#farmId, 'VETERINARIAN')")
+    public ResponseEntity<?> createLot(@PathVariable UUID farmId, @RequestBody LotDto lotDto, @org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
+        java.util.Optional<com.agrotrack.domain.model.enums.UserRole> roleOpt = userDetails.getUser().getRoleForFarm(farmId);
+        if (roleOpt.isPresent()) {
+            com.agrotrack.domain.model.enums.UserRole role = roleOpt.get();
+            if (role == com.agrotrack.domain.model.enums.UserRole.AGRONOMIST) {
+                if (lotDto.getType() != com.agrotrack.domain.model.enums.LotType.AGRICULTURAL && lotDto.getType() != com.agrotrack.domain.model.enums.LotType.RESERVE) {
+                    return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body("Agronomists can only create AGRICULTURAL or RESERVE lots.");
+                }
+            } else if (role == com.agrotrack.domain.model.enums.UserRole.VETERINARIAN) {
+                if (lotDto.getType() != com.agrotrack.domain.model.enums.LotType.PASTURE && lotDto.getType() != com.agrotrack.domain.model.enums.LotType.WATER_ZONE && lotDto.getType() != com.agrotrack.domain.model.enums.LotType.HANDLING_PEN && lotDto.getType() != com.agrotrack.domain.model.enums.LotType.FEEDING_ZONE) {
+                    return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body("Veterinarians can only create animal-related lots.");
+                }
+            }
+        }
+
         Lot createdLot = createLotUseCase.executeCreateLot(
                 farmId,
                 lotDto.getName(),
@@ -63,8 +77,22 @@ public class LotController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasPermission(#lotDto.farmId, 'FOREMAN')")
-    public ResponseEntity<LotDto> updateLot(@PathVariable UUID id, @RequestBody LotDto lotDto) {
+    @PreAuthorize("hasPermission(#lotDto.farmId, 'AGRONOMIST') or hasPermission(#lotDto.farmId, 'VETERINARIAN')")
+    public ResponseEntity<?> updateLot(@PathVariable UUID id, @RequestBody LotDto lotDto, @org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
+        java.util.Optional<com.agrotrack.domain.model.enums.UserRole> roleOpt = userDetails.getUser().getRoleForFarm(lotDto.getFarmId());
+        if (roleOpt.isPresent()) {
+            com.agrotrack.domain.model.enums.UserRole role = roleOpt.get();
+            if (role == com.agrotrack.domain.model.enums.UserRole.AGRONOMIST) {
+                if (lotDto.getType() != com.agrotrack.domain.model.enums.LotType.AGRICULTURAL && lotDto.getType() != com.agrotrack.domain.model.enums.LotType.RESERVE) {
+                    return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body("Agronomists can only update AGRICULTURAL or RESERVE lots.");
+                }
+            } else if (role == com.agrotrack.domain.model.enums.UserRole.VETERINARIAN) {
+                if (lotDto.getType() != com.agrotrack.domain.model.enums.LotType.PASTURE && lotDto.getType() != com.agrotrack.domain.model.enums.LotType.WATER_ZONE && lotDto.getType() != com.agrotrack.domain.model.enums.LotType.HANDLING_PEN && lotDto.getType() != com.agrotrack.domain.model.enums.LotType.FEEDING_ZONE) {
+                    return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).body("Veterinarians can only update animal-related lots.");
+                }
+            }
+        }
+
         Lot updatedLot = updateLotUseCase.executeUpdateLot(
                 id,
                 lotDto.getName(),

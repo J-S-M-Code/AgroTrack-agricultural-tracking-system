@@ -6,5 +6,5 @@ import java.util.UUID;
 
 public interface UpdateFarmUseCase {
     Farm executeUpdateFarm(UUID farmId, String name, String companyName, String cuit, String numberRENAPSA,
-                           ProductiveOrientation productiveOrientation, String address, String imageUrl);
+                           ProductiveOrientation productiveOrientation, String address, String imageUrl, org.locationtech.jts.geom.Polygon polygonLimit, double surface);
 }

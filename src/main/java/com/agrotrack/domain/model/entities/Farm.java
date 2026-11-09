@@ -146,18 +146,19 @@ public class Farm {
 
     // --- MÉTODOS DE COMPORTAMIENTO ---
 
-    public void modifyPolygonLimit(Polygon newPolygonLimit) {
+    public void modifyPolygonLimit(Polygon newPolygonLimit, double surface) {
         if (newPolygonLimit == null || newPolygonLimit.isEmpty()) {
             throw new BusinessRuleViolationsException("El nuevo perímetro de la finca no puede estar vacío");
         }
         if (!newPolygonLimit.isValid()) {
             throw new BusinessRuleViolationsException("La geometría del nuevo polígono es inválida");
         }
+
         this.polygonLimit = newPolygonLimit;
         // Al cambiar el polígono, el centroide anterior ya no sirve
         this.centroid = newPolygonLimit.getCentroid();
-        // La superficie se resetea para obligar a recalcularla/actualizarla
-        this.surface = 0.0;
+        // La superficie se actualiza
+        this.surface = surface;
     }
 
     public void newLot(Lot newLot) {

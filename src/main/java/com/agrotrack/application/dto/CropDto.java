@@ -19,5 +19,6 @@ public record CropDto(
         LocalDateTime estimateHarvestDate,
         double implantedSurface,
         String renspa,
-        PhenologicalState phenologicalState
+        PhenologicalState phenologicalState,
+        boolean isPerennial
 ) {}

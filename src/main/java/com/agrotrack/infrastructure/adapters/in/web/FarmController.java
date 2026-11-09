@@ -80,7 +80,9 @@ public class FarmController {
                 farmDto.getNumberRENAPSA(),
                 farmDto.getProductiveOrientation(),
                 farmDto.getAddress(),
-                farmDto.getImageUrl()
+                farmDto.getImageUrl(),
+                farmDto.getPolygonLimit() != null ? farmDto.getPolygonLimit().toJtsPolygon() : null,
+                farmDto.getSurface()
         );
         return ResponseEntity.ok(mapper.toFarmDto(updatedFarm));
     }

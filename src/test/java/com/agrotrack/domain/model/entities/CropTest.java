@@ -36,7 +36,7 @@ class CropTest {
 
         Crop crop = Crop.create(
                 TypeCrop.CEREAL, "Trigo", "Baguette", plantingDate,
-                estimateHarvestDate, assignedLot, 5.0, "Renspa1", PhenologicalState.GERMINATION
+                estimateHarvestDate, assignedLot, 5.0, "Renspa1", PhenologicalState.GERMINATION, false
         );
 
         assertNotNull(crop);
@@ -55,7 +55,7 @@ class CropTest {
         assertThrows(BusinessRuleViolationsException.class, () -> 
             Crop.create(
                 TypeCrop.CEREAL, "Trigo", "Baguette", plantingDate,
-                estimateHarvestDate, assignedLot, 15.0, "Renspa1", PhenologicalState.GERMINATION
+                estimateHarvestDate, assignedLot, 15.0, "Renspa1", PhenologicalState.GERMINATION, false
             )
         );
     }
@@ -67,7 +67,7 @@ class CropTest {
 
         Crop crop = Crop.create(
                 TypeCrop.CEREAL, "Trigo", "Baguette", plantingDate,
-                estimateHarvestDate, assignedLot, 5.0, "Renspa1", PhenologicalState.GERMINATION
+                estimateHarvestDate, assignedLot, 5.0, "Renspa1", PhenologicalState.GERMINATION, false
         );
 
         LocalDateTime newHarvestDate = estimateHarvestDate.plusDays(15);
@@ -83,7 +83,7 @@ class CropTest {
 
         Crop crop = Crop.create(
                 TypeCrop.CEREAL, "Trigo", "Baguette", plantingDate,
-                estimateHarvestDate, assignedLot, 5.0, "Renspa1", PhenologicalState.GERMINATION
+                estimateHarvestDate, assignedLot, 5.0, "Renspa1", PhenologicalState.GERMINATION, false
         );
 
         assertTrue(crop.isReadyForHarvest(LocalDateTime.now()));
