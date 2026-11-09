@@ -61,7 +61,7 @@ public class AlertJpaEntity {
     // ¡MAGIA PARA MinIO!
     @ElementCollection
     @CollectionTable(name = "alert_images", joinColumns = @JoinColumn(name = "alert_id"))
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private List<String> images = new ArrayList<>();
 
     // Relaciones (todas opcionales, depende de a qué le sacó foto el ingeniero)

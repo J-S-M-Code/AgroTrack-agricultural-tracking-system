@@ -2,12 +2,23 @@ package com.agrotrack.infrastructure.adapters.in.web;
 
 import com.agrotrack.application.dto.AlertDto;
 import com.agrotrack.application.mapper.ApplicationDtoMapper;
+import com.agrotrack.domain.exception.BusinessRuleViolationsException;
 import com.agrotrack.domain.model.entities.Alert;
 import com.agrotrack.domain.port.in.alert.CreateAlertUseCase;
+import com.agrotrack.domain.port.in.alert.DeleteAlertUseCase;
+import com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase;
+import com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase;
+import com.agrotrack.domain.port.in.alert.UploadAlertImageUseCase;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -15,23 +26,26 @@ import java.util.UUID;
 public class AlertController {
 
     private final CreateAlertUseCase createAlertUseCase;
-    private final com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase;
-    private final com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase;
-    private final com.agrotrack.domain.port.in.alert.DeleteAlertUseCase deleteAlertUseCase;
+    private final GetAlertsByFarmUseCase getAlertsByFarmUseCase;
+    private final GetAlertByIdUseCase getAlertByIdUseCase;
+    private final DeleteAlertUseCase deleteAlertUseCase;
+    private final UploadAlertImageUseCase uploadAlertImageUseCase;
     private final ApplicationDtoMapper mapper;
 
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     public AlertController(CreateAlertUseCase createAlertUseCase,
-                           com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase getAlertsByFarmUseCase,
-                           com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase getAlertByIdUseCase,
-                           com.agrotrack.domain.port.in.alert.DeleteAlertUseCase deleteAlertUseCase,
+                           GetAlertsByFarmUseCase getAlertsByFarmUseCase,
+                           GetAlertByIdUseCase getAlertByIdUseCase,
+                           DeleteAlertUseCase deleteAlertUseCase,
+                           UploadAlertImageUseCase uploadAlertImageUseCase,
                            ApplicationDtoMapper mapper,
                            org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.createAlertUseCase = createAlertUseCase;
         this.getAlertsByFarmUseCase = getAlertsByFarmUseCase;
         this.getAlertByIdUseCase = getAlertByIdUseCase;
         this.deleteAlertUseCase = deleteAlertUseCase;
+        this.uploadAlertImageUseCase = uploadAlertImageUseCase;
         this.mapper = mapper;
         this.messagingTemplate = messagingTemplate;
     }
@@ -65,6 +79,28 @@ public class AlertController {
     @PreAuthorize("hasPermission(#farmId, 'ANY')")
     public ResponseEntity<AlertDto> getAlertById(@PathVariable java.util.UUID id, @RequestParam UUID farmId) {
         return ResponseEntity.ok(mapper.toAlertDto(getAlertByIdUseCase.executeGetAlertById(id)));
+    }
+
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<Map<String, String>> uploadAlertImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam UUID farmId) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessRuleViolationsException("El archivo de imagen no puede estar vacío");
+        }
+        try (InputStream inputStream = file.getInputStream()) {
+            String relativePath = uploadAlertImageUseCase.executeUploadAlertImage(
+                    farmId,
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getSize(),
+                    inputStream
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("path", relativePath));
+        } catch (IOException e) {
+            throw new BusinessRuleViolationsException("Error al procesar el archivo de imagen");
+        }
     }
 
     @PostMapping
