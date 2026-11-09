@@ -4,13 +4,13 @@ import com.agrotrack.domain.exception.BusinessRuleViolationsException;
 import com.agrotrack.domain.model.enums.AccionType;
 import com.agrotrack.domain.model.enums.Priority;
 import com.agrotrack.domain.model.enums.TaskStatus;
-import com.agrotrack.domain.model.enums.UserRole;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Polygon;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,7 +62,7 @@ class TaskTest {
     }
 
     @Test
-    void testUpdateStatus() {
+    void testUpdateStatusAndCompletionEvidence() {
         User creator = User.create("Juan", "Perez", "123", "123", "Dir", "c@c.com", new Password("SecurePass1!"));
         User assigned = User.create("Ana", "Gomez", "456", "456", "Dir", "a@c.com", new Password("SecurePass1!"));
         Polygon polygon = geometryFactory.createPolygon(new Coordinate[]{new Coordinate(0,0), new Coordinate(0,10), new Coordinate(10,10), new Coordinate(10,0), new Coordinate(0,0)});
@@ -73,6 +73,15 @@ class TaskTest {
 
         task.updateStatus(TaskStatus.IN_PROGESS);
         assertEquals(TaskStatus.IN_PROGESS, task.getTaskStatus());
+        assertNull(task.getCompleteDate());
+
+        List<String> completionImages = List.of("tareas/finca-1/evidencia.jpg");
+        task.updateStatus(TaskStatus.FINISH, "Trabajo completado sin inconvenientes", completionImages);
+
+        assertEquals(TaskStatus.FINISH, task.getTaskStatus());
+        assertNotNull(task.getCompleteDate());
+        assertEquals("Trabajo completado sin inconvenientes", task.getCompletionNotes());
+        assertEquals(completionImages, task.getCompletionImages());
     }
 
     @Test

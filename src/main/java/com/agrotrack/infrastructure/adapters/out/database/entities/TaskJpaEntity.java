@@ -92,4 +92,12 @@ public class TaskJpaEntity {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column(columnDefinition = "TEXT")
+    private String completionNotes;
+
+    @ElementCollection
+    @CollectionTable(name = "task_completion_images", joinColumns = @JoinColumn(name = "task_id"))
+    @Column(name = "image_url")
+    private List<String> completionImages = new ArrayList<>();
 }

@@ -45,9 +45,9 @@ public interface ApplicationDtoMapper {
     }
 
     @Mapping(source = "creator.idUser", target = "creatorId")
-    @Mapping(source = "creator.name", target = "creatorName")
+    @Mapping(expression = "java(task.getCreator() != null ? (task.getCreator().getLastName() != null ? task.getCreator().getName() + \" \" + task.getCreator().getLastName() : task.getCreator().getName()) : \"Sistema\")", target = "creatorName")
     @Mapping(source = "assigned.idUser", target = "assignedId")
-    @Mapping(source = "assigned.name", target = "assignedName")
+    @Mapping(expression = "java(task.getAssigned() != null ? (task.getAssigned().getLastName() != null ? task.getAssigned().getName() + \" \" + task.getAssigned().getLastName() : task.getAssigned().getName()) : \"Usuario\")", target = "assignedName")
     @Mapping(source = "relatedFarm.idFarm", target = "relatedFarmId")
     @Mapping(source = "relatedFarm.name", target = "farmName")
     @Mapping(source = "relatedLot.idLot", target = "relatedLotId")
