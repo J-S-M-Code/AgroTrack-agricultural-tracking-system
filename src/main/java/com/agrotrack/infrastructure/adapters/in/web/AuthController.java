@@ -83,4 +83,13 @@ public class AuthController {
         acceptInviteUseCase.executeAcceptInvite(request.getToken(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String jwt = jwtProvider.generateToken(authentication);
+        return ResponseEntity.ok(new AuthResponse(jwt));
+    }
 }

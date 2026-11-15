@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import com.agrotrack.application.dto.PointDto;
-import com.agrotrack.application.dto.PolygonDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +30,8 @@ public class TaskDto {
     private PolygonDto polygonLimit;
     private PointDto centroid;
     private List<String> images;
+    private String completionNotes;
+    private List<String> completionImages;
     
     // IDs de relaciones en lugar de las entidades completas
     private UUID creatorId;

@@ -38,6 +38,7 @@ public class Task {
     private Priority priority;
     @Getter
     private LocalDateTime creationDate;
+    @Setter
     @Getter
     private LocalDateTime completeDate;
     @Getter
@@ -58,6 +59,12 @@ public class Task {
     private List<String> images;
     @Getter
     private String description;
+    @Setter
+    @Getter
+    private String completionNotes;
+    @Setter
+    @Getter
+    private List<String> completionImages;
 
     private Task(String title, AccionType accionType, TaskStatus taskStatus, LocalDateTime dueDate, Priority priority,
                  LocalDateTime creationDate, LocalDateTime completeDate, User creator, User assigned, Farm relatedFarm,
@@ -140,9 +147,22 @@ public class Task {
     }
 
     public void updateStatus(TaskStatus newStatus) {
+        updateStatus(newStatus, null, null);
+    }
+
+    public void updateStatus(TaskStatus newStatus, String completionNotes, List<String> completionImages) {
         if (newStatus == null) {
             throw new BusinessRuleViolationsException("El nuevo estado de la tarea no puede ser nulo");
         }
         this.taskStatus = newStatus;
+        if (newStatus == TaskStatus.FINISH && this.completeDate == null) {
+            this.completeDate = LocalDateTime.now();
+        }
+        if (completionNotes != null) {
+            this.completionNotes = completionNotes;
+        }
+        if (completionImages != null) {
+            this.completionImages = completionImages;
+        }
     }
 }

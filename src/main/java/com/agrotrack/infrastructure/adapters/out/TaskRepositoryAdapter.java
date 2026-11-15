@@ -79,6 +79,8 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
         entity.setCentroid(task.getCentroid());
         entity.setImages(task.getImages() != null ? new ArrayList<>(task.getImages()) : new ArrayList<>());
         entity.setDescription(task.getDescription());
+        entity.setCompletionNotes(task.getCompletionNotes());
+        entity.setCompletionImages(task.getCompletionImages() != null ? new ArrayList<>(task.getCompletionImages()) : new ArrayList<>());
 
         // 6. Guardar en Base de Datos y asignar UUID
         TaskJpaEntity savedEntity = taskJpaRepository.save(entity);
@@ -186,6 +188,8 @@ public class TaskRepositoryAdapter implements TaskRepositoryPort {
         task.setIdTask(entity.getId());
         task.setActive(entity.isActive());
         task.setDeletionReason(entity.getDeletionReason());
+        task.setCompletionNotes(entity.getCompletionNotes());
+        task.setCompletionImages(entity.getCompletionImages() != null ? new ArrayList<>(entity.getCompletionImages()) : new ArrayList<>());
 
         return task;
     }
