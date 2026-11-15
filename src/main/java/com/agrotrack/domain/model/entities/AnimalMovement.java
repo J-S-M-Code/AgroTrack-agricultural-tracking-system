@@ -4,6 +4,7 @@ import com.agrotrack.domain.exception.BusinessRuleViolationsException;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -11,32 +12,82 @@ public class AnimalMovement {
     @Getter
     @Setter
     private UUID idMovement;
+
     @Getter
-    private Animal animal;
-    @Getter
-    private Field field;
+    private Lot originLot;
+
     @Getter
     private LocalDateTime entryDate;
+
     @Getter
-    @Setter
     private LocalDateTime exitDate;
 
-    private AnimalMovement(Animal animal, Field field, LocalDateTime entryDate){
-        this.animal = animal;
-        this.field = field;
+    @Getter
+    private User registeredBy;
+
+    private AnimalMovement(Lot originLot, LocalDateTime entryDate, User registeredBy) {
+        this.originLot = originLot;
         this.entryDate = entryDate;
+        this.registeredBy = registeredBy;
+        this.exitDate = null; // Inicialmente el movimiento está "abierto"
     }
 
-    public static AnimalMovement create(Animal animal, Field field, LocalDateTime entryDate){
-        if(animal == null){
-            throw new BusinessRuleViolationsException("Debe seleccionar un animal");
+    public static AnimalMovement create(Lot originLot, LocalDateTime entryDate, User registeredBy) {
+
+        if (originLot == null) {
+            throw new BusinessRuleViolationsException("El lote de origen no puede ser nulo");
         }
-        if (field == null){
-            throw new BusinessRuleViolationsException("Debes seleccionar un campo");
+
+        if (entryDate == null) {
+            throw new BusinessRuleViolationsException("La fecha de entrada no puede ser nula");
         }
-        if (entryDate == null || entryDate.isAfter(LocalDateTime.now())){
-            throw new BusinessRuleViolationsException("Fecha de ingreso no es correcta");
+
+        if (entryDate.isAfter(LocalDateTime.now())) {
+            throw new BusinessRuleViolationsException("La fecha de entrada no puede ser una fecha futura");
         }
-        return new AnimalMovement(animal, field, entryDate);
+
+        if (registeredBy == null) {
+            throw new BusinessRuleViolationsException("Debe especificarse el usuario que registra el movimiento");
+        }
+
+        return new AnimalMovement(originLot, entryDate, registeredBy);
+    }
+
+    // --- MÉTODOS DE COMPORTAMIENTO ---
+
+    /**
+     * Cierra el movimiento actual asignando una fecha de salida.
+     * @param exitDate Fecha en la que el animal efectivamente dejó el lote.
+     */
+    public void closeMovement(LocalDateTime exitDate) {
+        if (exitDate == null) {
+            throw new BusinessRuleViolationsException("La fecha de salida no puede ser nula al cerrar un movimiento");
+        }
+
+        if (exitDate.isBefore(this.entryDate)) {
+            throw new BusinessRuleViolationsException("La fecha de salida no puede ser anterior a la fecha de entrada");
+        }
+
+        if (exitDate.isAfter(LocalDateTime.now())) {
+            throw new BusinessRuleViolationsException("La fecha de salida no puede ser una fecha futura");
+        }
+
+        this.exitDate = exitDate;
+    }
+
+    /**
+     * Calcula cuántos días permaneció el animal en el lote.
+     * Si el movimiento no ha cerrado, calcula el tiempo hasta la fecha actual.
+     */
+    public long getDurationInDays(LocalDateTime currentDate) {
+        LocalDateTime end = (this.exitDate != null) ? this.exitDate : currentDate;
+        return Duration.between(this.entryDate, end).toDays();
+    }
+
+    /**
+     * Indica si el animal todavía se encuentra en este lote (movimiento activo).
+     */
+    public boolean isActive() {
+        return this.exitDate == null;
     }
 }

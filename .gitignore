@@ -1,8 +1,13 @@
 HELP.md
+contexto_modificaciones.md
+
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+
+### Evitamos los .tif ###
+test/resource
 
 ### STS ###
 .apt_generated

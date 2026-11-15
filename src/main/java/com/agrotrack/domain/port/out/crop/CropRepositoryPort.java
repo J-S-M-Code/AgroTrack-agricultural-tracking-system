@@ -9,5 +9,10 @@ import java.util.UUID;
 public interface CropRepositoryPort {
     Crop save(Crop crop);
     Optional<Crop> findById(UUID cropId);
-    List<Crop> findActiveCropsByFieldId(UUID fieldId);
+
+    // Útil para saber qué está plantado actualmente en un lote
+    List<Crop> findActiveCropsByLotId(UUID lotId);
+
+    List<Crop> findByFarmId(UUID farmId);
+    List<Crop> findUnassignedCropsByUserId(UUID userId);
 }

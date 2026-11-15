@@ -19,6 +19,10 @@ public class Password {
         if (password == null || password.trim().isEmpty()) {
             throw new BusinessRuleViolationsException("La contraseña no puede estar vacia.");
         }
+        // Si ya es un hash BCrypt (comienza con $2a$), saltamos las validaciones
+        if (password.startsWith("$2a$") || password.startsWith("$2b$")) {
+            return;
+        }
         if (!PATTERN.matcher(password).matches()) {
             throw new BusinessRuleViolationsException("La contraseña debe ser mayor a 8 digitos y contener al menos una mayúscula, una minúscula y un número.");
         }

@@ -1,0 +1,137 @@
+package com.agrotrack.infrastructure.adapters.in.web;
+
+import com.agrotrack.application.dto.AlertDto;
+import com.agrotrack.application.mapper.ApplicationDtoMapper;
+import com.agrotrack.domain.exception.BusinessRuleViolationsException;
+import com.agrotrack.domain.model.entities.Alert;
+import com.agrotrack.domain.port.in.alert.CreateAlertUseCase;
+import com.agrotrack.domain.port.in.alert.DeleteAlertUseCase;
+import com.agrotrack.domain.port.in.alert.GetAlertByIdUseCase;
+import com.agrotrack.domain.port.in.alert.GetAlertsByFarmUseCase;
+import com.agrotrack.domain.port.in.alert.UploadAlertImageUseCase;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/v1/alerts")
+public class AlertController {
+
+    private final CreateAlertUseCase createAlertUseCase;
+    private final GetAlertsByFarmUseCase getAlertsByFarmUseCase;
+    private final GetAlertByIdUseCase getAlertByIdUseCase;
+    private final DeleteAlertUseCase deleteAlertUseCase;
+    private final UploadAlertImageUseCase uploadAlertImageUseCase;
+    private final ApplicationDtoMapper mapper;
+
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    public AlertController(CreateAlertUseCase createAlertUseCase,
+                           GetAlertsByFarmUseCase getAlertsByFarmUseCase,
+                           GetAlertByIdUseCase getAlertByIdUseCase,
+                           DeleteAlertUseCase deleteAlertUseCase,
+                           UploadAlertImageUseCase uploadAlertImageUseCase,
+                           ApplicationDtoMapper mapper,
+                           org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
+        this.createAlertUseCase = createAlertUseCase;
+        this.getAlertsByFarmUseCase = getAlertsByFarmUseCase;
+        this.getAlertByIdUseCase = getAlertByIdUseCase;
+        this.deleteAlertUseCase = deleteAlertUseCase;
+        this.uploadAlertImageUseCase = uploadAlertImageUseCase;
+        this.mapper = mapper;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    @GetMapping("/farm/{farmId}")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<java.util.List<AlertDto>> getAlertsByFarm(@PathVariable java.util.UUID farmId, 
+                                                                    @org.springframework.security.core.annotation.AuthenticationPrincipal com.agrotrack.infrastructure.security.CustomUserDetails userDetails) {
+        java.util.Optional<com.agrotrack.domain.model.enums.UserRole> roleOpt = userDetails.getUser().getRoleForFarm(farmId);
+        if (roleOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        com.agrotrack.domain.model.enums.UserRole role = roleOpt.get();
+        java.util.List<Alert> allAlerts = getAlertsByFarmUseCase.executeGetAlertsByFarm(farmId);
+        
+        java.util.List<Alert> filteredAlerts = allAlerts.stream().filter(alert -> {
+            if (role == com.agrotrack.domain.model.enums.UserRole.OWNER || role == com.agrotrack.domain.model.enums.UserRole.FOREMAN) {
+                return true;
+            } else if (role == com.agrotrack.domain.model.enums.UserRole.AGRONOMIST) {
+                return alert.getRelatedAnimal() == null; 
+            } else if (role == com.agrotrack.domain.model.enums.UserRole.VETERINARIAN) {
+                return alert.getRelatedCrop() == null && alert.getRelatedLot() == null; 
+            }
+            return true;
+        }).collect(java.util.stream.Collectors.toList());
+        
+        return ResponseEntity.ok(mapper.toAlertDtoList(filteredAlerts));
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<AlertDto> getAlertById(@PathVariable java.util.UUID id, @RequestParam UUID farmId) {
+        return ResponseEntity.ok(mapper.toAlertDto(getAlertByIdUseCase.executeGetAlertById(id)));
+    }
+
+    @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<Map<String, String>> uploadAlertImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam UUID farmId) {
+        if (file == null || file.isEmpty()) {
+            throw new BusinessRuleViolationsException("El archivo de imagen no puede estar vacío");
+        }
+        try (InputStream inputStream = file.getInputStream()) {
+            String relativePath = uploadAlertImageUseCase.executeUploadAlertImage(
+                    farmId,
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getSize(),
+                    inputStream
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("path", relativePath));
+        } catch (IOException e) {
+            throw new BusinessRuleViolationsException("Error al procesar el archivo de imagen");
+        }
+    }
+
+    @PostMapping
+    @PreAuthorize("hasPermission(#farmId, 'ANY')")
+    public ResponseEntity<AlertDto> createAlert(@RequestBody AlertDto dto, @RequestParam UUID farmId) {
+        Alert createdAlert = createAlertUseCase.execute(
+                dto.title(), dto.alertType(), dto.priority(), dto.recordType(),
+                dto.description(), dto.createdAt(), dto.authorId(), dto.images(),
+                dto.relatedLotId(), dto.relatedCropId(), dto.relatedAnimalId(),
+                dto.polygonLimit() != null ? dto.polygonLimit().toJtsPolygon() : null, 
+                dto.centroid() != null ? dto.centroid().toJtsPoint() : null
+        );
+        AlertDto createdDto = mapper.toAlertDto(createdAlert);
+        
+        // Notify frontend via WebSockets
+        try {
+            System.out.println("Enviando websocket de alerta a: /topic/farms/" + farmId + "/alerts");
+            messagingTemplate.convertAndSend("/topic/farms/" + farmId + "/alerts", createdDto);
+            System.out.println("Websocket de alerta enviado con exito.");
+        } catch (Exception e) {
+            System.err.println("Error al enviar websocket de alerta: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdDto);
+    }
+
+    @DeleteMapping("/{alertId}")
+    @PreAuthorize("hasPermission(#farmId, 'FOREMAN')")
+    public ResponseEntity<Void> deleteAlert(@PathVariable UUID alertId, @RequestParam UUID farmId) {
+        deleteAlertUseCase.executeDeleteAlert(alertId);
+        return ResponseEntity.ok().build();
+    }
+}
