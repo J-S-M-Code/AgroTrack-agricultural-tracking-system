@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   db-azuretest:
     image: postgis/postgis:14-3.3  # Match TF production (version = "14")
     container_name: agrotrack-postgres-azuretest
@@ -13,6 +11,8 @@ services:
       - "5433:5432"
     volumes:
       - agrotrack_db_data:/var/lib/postgresql/data # Added persistence!
+    networks:
+      - agrotrack-net
 
   azurite-azuretest:
     image: mcr.microsoft.com/azure-storage/azurite
@@ -24,6 +24,8 @@ services:
       - "10002:10002"
     volumes:
       - agrotrack_blob_data:/data # Added persistence!
+    networks:
+      - agrotrack-net
 
   backend-azuretest:
     build: 
@@ -42,19 +44,37 @@ services:
     depends_on:
       - db-azuretest
       - azurite-azuretest
+    networks:
+      - agrotrack-net
 
   frontend-azuretest:
     build: 
       context: ../../Front 1/front-agrotrack
       dockerfile: Dockerfile
       args:
-        CONFIGURATION: development
+        CONFIGURATION: production
     container_name: agrotrack-frontend-azuretest
     restart: always
     ports:
       - "4200:80"
     depends_on:
       - backend-azuretest
+    networks:
+      - agrotrack-net
+  
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-azuretest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token eyJhIjoiZGM3YTk0YTQ0N2E4MTMwMWVhNTRhOGE4NmYwOTBkYmQiLCJ0IjoiYmI4YmNmYzItMTJkMi00Y2E0LTg1MzItMTcwZmUzN2IyNWVkIiwicyI6IlptUXlORFk1Tm1FdE5qTTRNaTAwWldabExXSTBPR0V0WXprNFpETXhZbVl3TmpKbSJ9
+    depends_on:
+      - frontend-azuretest
+    networks:
+      - agrotrack-net
+
+networks:
+  agrotrack-net:
+    driver: bridge
 
 volumes:
   agrotrack_db_data:

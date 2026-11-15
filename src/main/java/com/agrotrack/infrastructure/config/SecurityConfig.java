@@ -30,7 +30,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${cors.allowed-origins:http://localhost:4200,http://localhost:8100,http://localhost,https://localhost,capacitor://localhost,https://agrotrackapp.com.ar,https://www.agrotrackapp.com.ar,https://agrotrack.azurewebsites.net}")
+    @Value("${cors.allowed-origins:http://localhost:4200,http://localhost:8100,http://localhost,https://localhost,capacitor://localhost,https://agrotackapp.com.ar,https://www.agrotackapp.com.ar,https://agrotrackapp.com.ar,https://www.agrotrackapp.com.ar,https://agrotrack.azurewebsites.net}")
     private List<String> allowedOrigins;
 
     public SecurityConfig(CustomUserDetailsService customUserDetailsService, PasswordEncoder passwordEncoder) {
@@ -105,6 +105,8 @@ public class SecurityConfig {
             "http://192.168.*:*",
             "http://10.*:*",
             "http://172.*:*",
+            "https://*.agrotackapp.com.ar",
+            "https://agrotackapp.com.ar",
             "https://*.agrotrackapp.com.ar",
             "https://agrotrackapp.com.ar",
             "https://agrotrack.azurewebsites.net"
